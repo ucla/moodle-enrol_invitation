@@ -35,6 +35,9 @@ $move     = optional_param('move',0,PARAM_INT);
 $moveto   = optional_param('moveto',-1,PARAM_INT);
 $moveup   = optional_param('moveup',0,PARAM_INT);
 $movedown = optional_param('movedown',0,PARAM_INT);
+// BEGIN UCLA MOD: CCLE-3858 - Optional param used to redirect back to category subpage
+$subcategory = optional_param('subcategory', -1, PARAM_INT);
+// END UCLA MOD: CCLE-3858
 
 $site = get_site();
 
@@ -73,10 +76,21 @@ $straction = get_string('action');
 $strfulllistofcourses = get_string('fulllistofcourses');
 
 
-// Unless it's an editing admin, just print the regular listing of courses/categories.
-if (!$adminediting) {
-    $showaddcoursebutton = true;
-    // Print form for creating new categories.
+// Unless it's an editing admin, just print the regular listing of courses/categories
+// BEGIN UCLA MOD: CCLE-3858
+// If the user is a manager, and attempting to delete/hide/show/move a subcategory,
+// then we don't list the courses and instead move on to the respective function.
+if (!$adminediting && empty($delete) && empty($hide) &&
+                      empty($show) && empty($moveup) && empty($movedown)) {
+    
+// The old if statement is:
+// 
+//if (!$adminediting) {
+//    $showaddcoursebutton = true;
+// 
+// END UCLA MOD: CCLE-3858
+
+    // Print form for creating new categories
     $countcategories = $DB->count_records('course_categories');
     if ($countcategories > 1 || ($countcategories == 1 && $DB->count_records('course') > 200)) {
         $strcourses = get_string('courses');
@@ -242,6 +256,13 @@ if ((!empty($moveup) or !empty($movedown)) and confirm_sesskey()) {
     // finally reorder courses
     fix_course_sortorder();
 }
+
+// BEGIN UCLA MOD: CCLE-3858 - Redirect to subcategory page if we were modifying a subcategory
+if ($subcategory != -1) {
+    $subcategoryurl = new moodle_url('/course/category.php', array('id' => $subcategory, 'sesskey' => sesskey()));
+    redirect($subcategoryurl);
+}
+// END UCLA MOD: CCLE-3858
 
 /// Print headings
 echo $OUTPUT->header();

@@ -140,6 +140,9 @@ class collab_handler extends browseby_handler {
             }
         }
    
+        // Sort category list in alphabetical order
+        array_alphasort($categorylist, "name");
+        
         $rendercatlist = array();
         foreach ($categorylist as $category) {
             if(!empty($category)) {

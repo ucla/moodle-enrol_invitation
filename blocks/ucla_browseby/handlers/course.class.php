@@ -6,7 +6,8 @@ class course_handler extends browseby_handler {
             CONCAT(
                 ubci.term, '-',
                 ubci.srs, '-',
-                ubii.uid
+                ubii.uid, '-',
+                r.shortname 
             ) AS 'recordsetid',
             ubci.section AS 'sectnum',
             ubci.course AS 'coursenum',
@@ -32,7 +33,8 @@ class course_handler extends browseby_handler {
             mco.idnumber AS idnumber,
             public_world_syllabus.id>0 AS has_public_world_syllabus,
             public_ucla_syllabus.id>0 AS has_public_ucla_syllabus,
-            private_syllabus.id>0 AS has_private_syllabus
+            private_syllabus.id>0 AS has_private_syllabus,
+            r.shortname AS role_shortname
     ";
 
     const browseall_order_helper = "
@@ -57,7 +59,7 @@ class course_handler extends browseby_handler {
     }
 
     function handle($args) {
-        global $OUTPUT, $PAGE;
+        global $CFG, $OUTPUT, $PAGE;
 
         $subjarea = null;
         $instructor = null;
@@ -102,16 +104,25 @@ class course_handler extends browseby_handler {
 
             // Get all courses in this subject area but from
             // our browseall tables
+            // CCLE-3989 - Supervising Instructor Shown On Course List:
+            // Join role table to limit display to only instructor types in CFG.
             $sql = self::browseall_sql_helper . "
                 FROM {ucla_browseall_classinfo} ubci
-                INNER JOIN {ucla_browseall_instrinfo} ubii
+                JOIN {ucla_browseall_instrinfo} ubii
                     USING(term, srs)
-                LEFT JOIN {ucla_request_classes} urc
+                JOIN {ucla_request_classes} urc
                     USING(term, srs)
-                LEFT JOIN {user} user
+                JOIN {user} user
                     ON ubii.uid = user.idnumber
-                LEFT JOIN {course} mco
-                    ON mco.id = urc.courseid " .
+                JOIN {course} mco
+                    ON urc.courseid = mco.id
+                JOIN {context} ct
+                    ON mco.id = ct.instanceid              
+                JOIN {role_assignments} ra
+                    ON ct.id = ra.contextid AND user.id = ra.userid
+                JOIN {role} r
+                    ON ra.roleid = r.id
+            " .
             self::browseall_syllabus_helper .
             "   WHERE ubci.subjarea = :subjarea
                 $termwhere
@@ -156,18 +167,27 @@ class course_handler extends browseby_handler {
 
             // Query that selects courses for selected term only
             // This will not include people enrolled only locally.
+            // CCLE-3989 - Supervising Instructor Shown On Course List:
+            // Join role table to limit display to only instructor types in CFG.
             $sql = self::browseall_sql_helper . "
                 FROM $sqlhelp ubi
-                LEFT JOIN {ucla_browseall_classinfo} ubci
+                JOIN {ucla_browseall_classinfo} ubci
                     USING (term, srs)
-                LEFT JOIN {ucla_browseall_instrinfo} ubii
+                JOIN {ucla_browseall_instrinfo} ubii
                     USING (term, srs)
-                LEFT JOIN {ucla_request_classes} urc
+                JOIN {ucla_request_classes} urc
                     USING (term, srs)
-                LEFT JOIN {user} user
+                JOIN {user} user
                     ON ubii.uid = user.idnumber
-                LEFT JOIN {course} mco
-                    ON mco.id = urc.courseid " .
+                JOIN {course} mco
+                    ON urc.courseid = mco.id  
+                JOIN {context} ct
+                    ON mco.id = ct.instanceid               
+                JOIN {role_assignments} ra
+                    ON ct.id = ra.contextid AND user.id = ra.userid
+                JOIN {role} r
+                    ON ra.roleid =r.id
+                 " .
             self::browseall_syllabus_helper .
             "   WHERE
                     ubi.userid = :user
@@ -262,11 +282,14 @@ class course_handler extends browseby_handler {
             }
 
             $k = make_idnumber($course);
-
-            // Apend instructors, since they could have duplicate rows
+            // Append instructors, since they could have duplicate rows
             if (isset($fullcourseslist[$k])) {
                 $courseobj = $fullcourseslist[$k];
-                if ($instructor_name = $this->fullname($course)) {
+                
+                // CCLE-3989 - Supervising Instructor showsn on Course List:
+                // Only append if this instructor's role_shortname is in CFG.
+                if (in_array($course->role_shortname, $CFG->instructor_levels_roles['Instructor'])
+                        && $instructor_name = $this->fullname($course)) {
                     $courseobj->instructors[$course->userid] = $instructor_name;
                 }
             } else {
@@ -305,9 +328,12 @@ class course_handler extends browseby_handler {
                     uclacoursecreator::make_course_title(
                         $course->course_title, $course->section_title
                     );
-
-                if ($instructor_name = $this->fullname($course)) {
-                    $courseobj->instructors[$course->userid] = $instructor_name;
+                
+               // CCLE-3989 - Supervising Instructor showsn on Course List:
+               // Only append if this instructor's role_shortname is in CFG.
+               if (in_array($course->role_shortname, $CFG->instructor_levels_roles['Instructor'])
+                        && $instructor_name = $this->fullname($course)) {
+                   $courseobj->instructors[$course->userid] = $instructor_name;
                 }
 
                 $courseobj->session_group = $course->session_group;

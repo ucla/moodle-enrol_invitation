@@ -99,7 +99,7 @@ $CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories
 $CFG->forced_plugin_settings['format_ucla']['hideregsummary'] = 1;
 
 // MyUCLA url updater
-$CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'https://m2test.ccle.ucla.edu/rex/myucla_url_updater/update.php';  // test server
+$CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'https://test.ccle.ucla.edu/myucla_url_updater/update.php';  // test server
 $CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'SSC TEST';   // name for registering URL with My.UCLA
 $CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ssc-test@ssc.ucla.edu';  // email for registering URL with My.UCLA
 $CFG->forced_plugin_settings['tool_myucla_url']['override_debugging'] = true;   // test sending MyUCLA urls
@@ -114,7 +114,7 @@ define('MYUCLA_URL_UPDATER_TEST_CONFIG_EMAIL',
 define('MYUCLA_URL_UPDATER_TEST_CONFIG_OVERRIDE_DEBUGGING',
         $CFG->forced_plugin_settings['tool_myucla_url']['override_debugging']);
 define('MYUCLA_URL_UPDATER_TEST_CONFIG_ACCESSDENIED_URL',
-        'https://m2test.ccle.ucla.edu/rex/myucla_url_updater/accessdenied.php');
+        'https://test.ccle.ucla.edu/myucla_url_updater/accessdenied.php');
 
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
@@ -182,6 +182,10 @@ $CFG->forcedefaultmymoodle = false;
 
 // to enable database unit testing
 $CFG->unittestprefix = 'tst_';
+
+// CCLE-3966 - Include self when messaging participants.
+// Emails should still be sent to users that are logged in.
+$CFG->forced_plugin_settings['message']['message_provider_moodle_instantmessage_loggedin'] = 'popup,email';
 
 // Site administration > Advanced features
 $CFG->usetags = 0;

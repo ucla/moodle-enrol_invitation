@@ -100,13 +100,19 @@ $string['file_count'] = 'Number of files over 1 MB';
 $string['database_size'] = 'Size of database';
 
 
-//strings for inactive_collab_sites
-$string['inactive_collab_sites'] = 'Inactive sites (collab)';
-$string['inactive_collab_sites_help'] = 'Returns number of inactive collab sites. Inactivity is based on if a site has not had a single page view for 6 months. Does not count guest user access. Includes test sites.';
+//strings for collab_num_sites
+$string['collab_num_sites'] = 'Num sites (collab)';
+$string['collab_num_sites_help'] = 'Returns count of total, active, and inactive collab sites. ' .
+        'Inactivity is based on if a site has not had a single page view for 6 months. ' .
+        'Does not count guest user access. Includes test sites.';
+$string['total_count'] = 'Total';
+$string['active_count'] = 'Active';
+$string['inactive_count'] = 'Inactive';
+$string['num_sites_cached_results'] = 'Total: {$a->total} | Active: {$a->active} | Inactive: {$a->inactive}';
 
-//strings for inactive_course_sites
-$string['inactive_course_sites'] = 'Inactive sites (course)';
-$string['inactive_course_sites_help'] = 'Reports number of inactive course sites. ' .
+//strings for course_num_sites
+$string['course_num_sites'] = 'Num sites (course)';
+$string['course_num_sites_help'] = 'Reports count of total, active, and inactive course sites. ' .
         'Inactivity is based on if a course has not had any log hits 1 week after ' .
         'the start of the term. Handles the different starting times for summer ' .
         'sessions. Does not count guest user access.';
@@ -187,6 +193,15 @@ $string['avg_num_threads'] = 'Threads per Forum';
 $string['avg_num_posters'] = 'Posters per Forum';
 $string['forum_usage_cached_results'] = 'Avg Posters: {$a->avg_num_posters} | '.
                                         'Avg Threads: {$a->avg_num_threads}';
+
+//string for users by division
+$string['users_by_division'] = 'Users by division (course)';
+$string['users_by_division_help'] = 'Counts the number of hits, users, ' .
+        'ratio of (hits/users) for a division by term, ' .
+        'and number of users of the entire system by term';
+$string['hits'] = 'Hits';
+$string['ratio_hits_users'] = 'Hits to Users';
+                                   
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';

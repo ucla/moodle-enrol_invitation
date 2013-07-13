@@ -141,24 +141,29 @@ $sectionhtml = '';
 if ($displayforms) { 
     $moodlelog_show_filter = optional_param('moodlelog_show_filter', 0, PARAM_BOOL);
     
-    $actions = $DB->get_records('log', array(), '', 'DISTINCT action');
+    // Get a list of all the module types in the log data.
+    $modules = $DB->get_records('log', array(), 'module ASC', 'DISTINCT module');
     $checkboxes = array();
 
-    $sm = get_string_manager();
-    foreach ($actions as $action) {
-        $action = $action->action;
-        $stringid = $action . '_description';
-        if ($sm->string_exists($stringid, 'tool_uclasupportconsole')) {
-            $actiondesc = get_string($stringid, 'tool_uclasupportconsole');
-        } else {
-            $actiondesc = $action;
+    foreach($modules as $module) {
+        $module = $module->module;
+        // This variable is to know whether or not to output the module heading.
+        $moduleheading = 1;
+        // Get all possible actions found for that module in the log data.
+        $actions = $DB->get_records('log', array('module'=>$module), 'action ASC', 'DISTINCT action');
+        foreach ($actions as $action) {
+            $action = $action->action;
+            if ($moduleheading === 1) {
+                $checkboxes[] = html_writer::tag('h4', $module);
+            }
+            $moduleheading = 0;
+            
+            // Create the checkbox array for holding action types. The actions
+            // are represented as "module_action" (for example: user_login).
+            $checkboxes[] = html_writer::tag('li',
+                    html_writer::checkbox('actiontypes[]', $module . '_' . $action,
+                            false, $action));
         }
-
-        // Todo descriptions
-        $checkboxes[] = html_writer::tag('li', 
-            html_writer::checkbox('actiontypes[]', $action, 
-                true, $actiondesc));
-
     }
 
     // show/hide action type filter, mainly for users with no js enabled
@@ -174,12 +179,13 @@ if ($displayforms) {
                 array('id' => 'show-log-types-filter', 
                     // TODO: there has to be a better way to show/hide using YUI...
                     'onclick' => "YAHOO.util.Dom.setStyle('log-action-types-container', 'display', '');YAHOO.util.Dom.setStyle('show-log-types-filter', 'display', 'none');return false;"));        
-        $form_content .= html_writer::end_tag('div');                
+        $form_content .= html_writer::end_tag('div');
         
         // hide action types
         $action_types_container_params['style'] = 'display:none';
     }
     
+    // Display the filter checkbox form.
     $form_content .= html_writer::start_tag('div', $action_types_container_params);
     $form_content .= html_writer::label(get_string('moodlelog_select', 'tool_uclasupportconsole'), 
                 'log-action-types') . 
@@ -189,28 +195,87 @@ if ($displayforms) {
     
     $sectionhtml = supportconsole_simple_form($title, $form_content);
 } else if ($consolecommand == "$title") { 
-    $actions = required_param_array('actiontypes', PARAM_TEXT);
-    list($sql, $params) = $DB->get_in_or_equal($actions);
-    $wheresql = 'action ' . $sql;
-    $log_query = "
-        select
-            a.id, 
-            from_unixtime(time) as time,
-            b.firstname,
-            b.lastname,
-            ip,
-            c.shortname,
-            c.id as courseid,
-            module,
-            action
-        from {log} a
-        left join {user} b on (a.userid = b.id)
-        left join {course} c on (a.course = c.id)
-        where $wheresql
-        order by a.id desc limit 100
-    ";
+    
+    // Initialize empty containers for the database query ($logquery), the 
+    // query parameters ($params), and the header to be displayed at the top of 
+    // the results ($headertext).
+    $logquery = '';
+    $params = array();
+    $headertext = array();
+    
+    // Get the module, action pairs (represented as module_action).
+    $moduleactions = optional_param_array('actiontypes', array(), PARAM_TEXT);
+    
+    // If there are no actions selected, either the form was hidden, or no
+    // checkboxes were selected. In both cases, this results in the log not
+    // filtering out any entries (the last 100 entries of any type are shown).
+    if (empty ($moduleactions))
+    {
+        $logquery = "
+            SELECT
+                a.id, 
+                from_unixtime(time) AS time,
+                b.firstname,
+                b.lastname,
+                ip,
+                c.shortname,
+                c.id AS courseid,
+                module,
+                action
+            FROM {log} a
+            LEFT JOIN {user} b ON (a.userid = b.id)
+            LEFT JOIN {course} c ON (a.course = c.id)
+            ORDER BY a.id DESC LIMIT 100
+        ";
+    }
+    else
+    {
+        // The $modules and $actions arrays are filled with the pairs of modules
+        // and actions found in $module_actions. The $header_text is also made
+        // at this point, and used after the query.
+        $modules = array();
+        $actions = array();
+        foreach ($moduleactions as $ma) {
+            $moduleactionpair = explode("_", $ma);
+            array_push($modules, $moduleactionpair[0]);
+            array_push($actions, $moduleactionpair[1]);
+            
+            $headertextstring = $moduleactionpair[1] . ' ' . $moduleactionpair[0];
+            array_push($headertext, $headertextstring);
+        }
 
-    $results = $DB->get_records_sql($log_query, $params);
+        // Create the necessary conditional statements and their parameters to
+        // be used in the query that follows. This must be done for both actions
+        // and modules for the different clauses of the AND in the conditional
+        // statement.
+        list($actsql, $actparams) = $DB->get_in_or_equal($actions);
+        $wheresqlactions = 'action ' . $actsql;
+        list($modsql, $modparams) = $DB->get_in_or_equal($modules);
+        $wheresqlmodules = 'module ' . $modsql;
+
+        // Merge the parameters into a single array for use by the querying
+        // function.
+        $params = array_merge($actparams, $modparams);
+        $logquery = "
+            SELECT
+                a.id, 
+                from_unixtime(time) AS time,
+                b.firstname,
+                b.lastname,
+                ip,
+                c.shortname,
+                c.id AS courseid,
+                module,
+                action
+            FROM {log} a
+            LEFT JOIN {user} b ON (a.userid = b.id)
+            LEFT JOIN {course} c ON (a.course = c.id)
+            WHERE $wheresqlactions AND $wheresqlmodules
+            ORDER BY a.id DESC LIMIT 100
+        ";
+    }
+    
+    $results = $DB->get_records_sql($logquery, $params);
 
     foreach ($results as $k => $result) {
         if (!empty($result->courseid) && !empty($result->shortname)) {
@@ -224,7 +289,7 @@ if ($displayforms) {
     }
 
     $sectionhtml = supportconsole_render_section_shortcut($title, $results,
-        $params);
+        $headertext);
 } 
 $consoles->push_console_html('logs', $title, $sectionhtml);
 

@@ -357,6 +357,9 @@ class block_ucla_my_sites extends block_base {
             $content[] = html_writer::table($t);
         }
         
+        // Sort a bunch of collabortation sites via fullname
+        array_alphasort($collaboration_sites, "fullname");
+        
         // print collaboration sites (if any)
         if (!empty($collaboration_sites)) {
             $content[] = html_writer::tag('h3', get_string('collaborationsites', 

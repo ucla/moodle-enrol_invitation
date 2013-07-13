@@ -31,11 +31,22 @@ YUI.add('moodle-local_ucla-logincheck', function(Y) {
     M.local_ucla.logincheck = {
         init: function(config) {
             USERID = config.userid;
-            
-            // Target forums:
-            var forums = Y.one('.mform input[name="_qf__mod_forum_post_form"]');
-            
-            if(forums != null) {
+
+            // Create array of modules to check
+            var modules = ['.path-mod-forum', '.path-mod-wiki', '.path-mod-assign', '.path-mod-assignment',
+                            '.path-mod-page', '.path-mod-choice', '.path-mod-questionnaire'];
+
+            var flag = false;
+
+            // Check if we are in one of the modules if one is found, break.
+            Y.Array.some(modules, function(mod){
+                if(Y.one(mod)){
+                    flag = true;
+                    return true;
+                }
+            });
+
+            if(flag) {
 
                 // Grab all forms on the page..
                 var forms = Y.all('.mform');
@@ -46,6 +57,9 @@ YUI.add('moodle-local_ucla-logincheck', function(Y) {
                     // Grab all the submit buttons
                     var buttons = form.all('input[type="submit"]')
 
+                    // Grab hidden sesskey field
+                    var formsesskey = form.one('input[name="sesskey"]');
+                    
                     // Hijack the 'click' handler for buttons
                     buttons.on('click', function(e) {
 
@@ -61,8 +75,13 @@ YUI.add('moodle-local_ucla-logincheck', function(Y) {
 
                                     // Check status
                                     if(json.status) {
-                                        // If all good, then continue click
 
+                                        // If logged in, check the logged in sesskey with the form field sesskey,
+                                        // and change the form field to the new sesskey if they differ. 
+                                        if(json.sesskey != formsesskey.getAttribute('value')) {
+                                            formsesskey.set('value', json.sesskey); 
+                                        }
+                                        // Now, continue click
                                         // First remove the event handler
                                         e.target.detachAll();
                                         // Then simulate click for default behavior
@@ -184,4 +203,3 @@ YUI.add('moodle-local_ucla-logincheck', function(Y) {
 }, '@VERSION@', {
     requires: ['node', 'io', 'json', 'event', 'node-event-simulate']
 });
-
