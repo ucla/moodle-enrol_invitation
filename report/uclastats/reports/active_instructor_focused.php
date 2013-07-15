@@ -76,7 +76,7 @@ class active_instructor_focused extends uclastats_base {
      * Returns an array of form elements used to run report.
      */
     public function get_parameters() {
-        return array('term', 'threshold');
+        return array('term');
     }
 
     /**
@@ -89,8 +89,8 @@ class active_instructor_focused extends uclastats_base {
         global $DB;
 
         $retval = array();
-        $threshold = $params['threshold'];
-        unset($params['threshold']);
+        // For now, default threshold is hardcoded to be 1.
+        $threshold = 1;
 
         // First get list of courseids for a given term by division.
         $sql = "SELECT  c.*,
@@ -113,23 +113,24 @@ class active_instructor_focused extends uclastats_base {
                     // We want the result columns to display in a certain order.
                     $retval[$division] = array('division' => $division,
                         'numactive' => 0, 'numinactive' => 0,
-                        'totalcourses' => 0, 'averagescore' => 0,
-                        'totalpoints' => 0);
+                        'totalcourses' => 0);
                 }
 
-                /* Find how out many points this course "scored". Scoring is
-                 * defined as:
-                 * 
-                 * 1 point for each visible resource
-                 * 1 point for each block added
-                 * 2 points for each visible activity (not including default
-                 * Announcement and Discussion forums)
-                 * 1 point for each post by the Instructor/TA in either the
-                 * default Announcement and Discussion forums.
-                 */
-                $points += $this->score_modules($course);
-                $points += $this->score_blocks($course);
-                $points += $this->score_default_forum_activity($course);
+                if ($course->visible == 1) {
+                    /* Find how out many points this course "scored". Scoring is
+                     * defined as:
+                     *
+                     * 1 point for each visible resource
+                     * 1 point for each block added
+                     * 1 points for each visible activity (not including default
+                     * Announcement and Discussion forums)
+                     * 1 point for each post by the Instructor/TA in either the
+                     * default Announcement and Discussion forums.
+                     */
+                    $points += $this->score_modules($course);
+                    $points += $this->score_blocks($course);
+                    $points += $this->score_default_forum_activity($course);
+                }
 
                 // Update totals for divsion.
                 if ($points >= $threshold) {
@@ -139,17 +140,8 @@ class active_instructor_focused extends uclastats_base {
                     ++$retval[$division]['numinactive'];
                 }
                 ++$retval[$division]['totalcourses'];
-                $retval[$division]['totalpoints'] += $points;
             }
 
-            // After processing all the courses, calculate the average.
-            foreach ($retval as &$division) {
-                if ($division['totalcourses'] != 0) {
-                    $division['averagescore'] =
-                            round($division['totalpoints']/$division['totalcourses'], 2);
-                }
-                unset($division['totalpoints']);
-            }
             // Order result by division.
             ksort($retval);
         }
@@ -267,10 +259,10 @@ class active_instructor_focused extends uclastats_base {
                     // 1 point for each visible resource.
                     $points += 1;
                 } else {
-                    // 2 points for each visible activity. Note, that there is
+                    // 1 points for each visible activity. Note, that there is
                     // no constant for activities. Only resource modules return
                     // something for FEATURE_MOD_ARCHETYPE.
-                    $points += 2;
+                    $points += 1;
                 }
             }
         }

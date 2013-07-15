@@ -221,14 +221,18 @@ $string['totalcourses'] = 'Total courses';
 // Strings for Course activity (Instructor focused)
 $string['active_instructor_focused'] = 'Course activity (Instructor focused)';
 $string['active_instructor_focused_help'] = 'A course is determined to be active ' . 
-        'if the total points it earns is over the given threshold. Scoring is defined as:' .
-        '<ul><li>1 point for each visible resource</li><li>1 point for each block added</li>' .
-        '<li>2 points for each visible activity (not including the default Announcement and Discussion forums)</li>' .
-        '<li>1 point for each post by the Instructor/TA in either the default Announcement and Discussion forums</li></ul>';
+        'if it is visible and has visible content added to it beyond the normal ' . 
+        'course shell. This includes adding a block, module, or posting in the ' .
+        'default forums. This does not include uploading a syllabus.';
 $string['numactive'] = 'Active';
 $string['numinactive'] = 'Inactive';
 $string['totalcourses'] = 'Total courses';
-$string['averagescore'] = 'Average score';
+
+// Strings for Course activity (Student focused)
+$string['active_student_focused'] = 'Course activity (Student focused)';
+$string['active_student_focused_help'] = 'A course is determined to be active ' .
+        'if the course is visible and has at least 80% of its enrolled students ' .
+        'viewing the course at least once during the term.';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';
