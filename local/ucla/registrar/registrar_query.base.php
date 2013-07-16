@@ -265,7 +265,7 @@ abstract class registrar_query {
      *  Stolen from enrol/database/lib.php:enrol_database_plugin.init_db()
      *  @return ADOConnection 
      */
-    function open_registrar_connection() {
+    static function open_registrar_connection() {
         global $CFG;
 
         // This will allow us to share connections hurrah

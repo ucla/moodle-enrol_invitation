@@ -78,7 +78,7 @@ if ($displayforms) {
 
     // invalid log type
     if (!in_array($log_file, $syslogs_types)) {
-        echo "Invalid logfile name. $logfile\n";
+        echo "Invalid logfile name. $log_file";
         exit;        
     }
     
