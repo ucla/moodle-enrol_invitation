@@ -268,3 +268,23 @@ function supportconsole_simple_form($title, $contents='') {
     return $formhtml;
 }
 
+/*
+ * This function caches the module/action list used by the support console's
+ * "Show last 100 log entries" tool at some interval (nightly at the time of
+ * this writing). See version.php for cron time.
+ */
+function tool_uclasupportconsole_cron() {
+    global $DB;
+
+    // Query the log for all module/action pairs (the id field must be included
+    // to give moodle a unique identifier for the records).
+    $logquery = 'SELECT DISTINCT CONCAT(module, \'-\', action), module, action
+                 FROM {log}
+                 GROUP BY module, action
+                 ORDER BY module, action';
+    $records = $DB->get_records_sql($logquery);
+    $encoding = json_encode($records);
+
+    // Put the encoding into $CFG
+    set_config('moduleactionpairs',$encoding, 'tool_uclasupportconsole');
+}
