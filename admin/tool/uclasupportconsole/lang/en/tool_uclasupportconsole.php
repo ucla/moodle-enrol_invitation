@@ -44,9 +44,14 @@ $string['recentlysentgrades'] = 'Show 100 most recent MyUCLA grade log entries';
 
 // Users
 $string['moodleusernamesearch'] = 'Show users with firstname and/or lastname';
-$string['roleassignments'] = 'Count of role assignments on system';
+$string['roleassignments'] = 'Display role assignments';
+$string['userswithrole'] = 'Users with the given role assignment';
+$string['viewuser'] = 'View 1 User';
+$string['viewusers'] = 'View {$a} Users'; 
 $string['countnewusers'] = 'Show most recently created users';
 $string['pushgrades'] = 'Manually push grades to MyUCLA';
+$string['noenrollments'] = 'There are no enrollments';
+$string['usersdescription'] ='Users with role: {$a->role}, Context: {$a->contextlevel} and Component: {$a->component}';
 
 // The SRDB
 $string['enrollview'] = 'Get courses for view enrollment (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3318">enroll2</a>)';
