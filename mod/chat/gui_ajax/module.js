@@ -28,11 +28,17 @@ M.mod_chat_ajax.init = function(Y, cfg) {
         messages : [],                                  // An array of messages
         scrollable : true,                              // True is scrolling should occur
         thememenu : null,                               // A reference to the menu for changing themes
+        // BEGIN UCLA MOD: CCLE-4038-chatroom-scrollbar-always-scrolls-down-when-new-message-is-posted
+        autoscroll : true,                              // True if scrolling should occur.
+        // END UCLA MOD: CCLE-4038
 
         // Elements
         messageinput : null,
         sendbutton : null,
         messagebox : null,
+        // BEGIN UCLA MOD: CCLE-4038-chatroom-scrollbar-always-scrolls-down-when-new-message-is-posted
+        autoscrollcheck : null,                         // Auto scroll checkbox.
+        // END UCLA MOD: CCLE-4038
 
         init : function(cfg) {
             this.cfg = cfg;
@@ -60,6 +66,18 @@ M.mod_chat_ajax.init = function(Y, cfg) {
             this.sendbutton = Y.one('#button-send');
             this.messagebox = Y.one('#chat-messages');
 
+            // BEGIN UCLA MOD: CCLE-4038-chatroom-scrollbar-always-scrolls-down-when-new-message-is-posted
+            // Grab checkbox from page.
+            this.autoscrollcheck = Y.one('#auto');
+
+            // Set default auto scroll setting.
+            if(this.autoscrollcheck.getAttribute('checked') == 'checked') {
+               this.autoscroll = true;
+            } else {
+               this.autoscroll = false;
+            }
+            //END UCLA MOD: CCLE-4038
+
             // Attach the default events for this module
             this.sendbutton.on('click', this.send, this);
             this.messagebox.on('mouseenter', function() {
@@ -68,6 +86,18 @@ M.mod_chat_ajax.init = function(Y, cfg) {
             this.messagebox.on('mouseleave', function() {
                 this.scrollable = true;
             }, this);
+
+            // BEGIN UCLA MOD: CCLE-4038-chatroom-scrollbar-always-scrolls-down-when-new-message-is-posted
+            // Attach click event to auto scroll checkbox. 
+            this.autoscrollcheck.on('click', function() {
+                if(this.autoscroll == false) {
+                    this.autoscroll = true;
+                    Y.Node.getDOMNode(this.messagebox).parentNode.scrollTop = Y.Node.getDOMNode(this.messagebox).parentNode.scrollHeight;
+                } else {
+                    this.autoscroll = false;
+                }               
+            }, this);
+            // END UCLA MOD: CCLE-4038
 
             // Send the message when the enter key is pressed
             Y.on('key', this.send, this.messageinput,  'press:13', this);
@@ -228,10 +258,17 @@ M.mod_chat_ajax.init = function(Y, cfg) {
             }
             // Update users
             this.update_users(data.users);
+
+            // BEGIN UCLA MOD: CCLE-4038-chatroom-scrollbar-always-scrolls-down-when-new-message-is-posted
             // Scroll to the bottom of the message list
-            if (this.scrollable) {
-                Y.Node.getDOMNode(this.messagebox).parentNode.scrollTop+=500;
+            // if (this.scrollable) {
+            //     Y.Node.getDOMNode(this.messagebox).parentNode.scrollTop+=500;
+            // Scroll to the bottom of the message list if autoscroll is on.
+            if (data.msgs && this.scrollable && this.autoscroll) {
+                Y.Node.getDOMNode(this.messagebox).parentNode.scrollTop = Y.Node.getDOMNode(this.messagebox).parentNode.scrollHeight;
             }
+            // END UCLA MOD: CCLE-4038
+
             this.messageinput.focus();
         },
 
