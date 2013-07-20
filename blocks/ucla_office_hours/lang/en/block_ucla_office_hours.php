@@ -41,4 +41,6 @@ $string['cannotedit'] = 'Sorry, but you cannot edit office hours information for
 // capabilities strings
 $string['ucla_office_hours:editothers'] = 'Edit other instructor/ta office hours information. Users will always be able to edit their own office hours information.';
 
+// Office hours form validation strings
+$string['officehours_format'] = 'Try using a shorter format (e.g. M 11:30a-12:30p).';
 //EOF
