@@ -428,7 +428,7 @@ class block_ucla_office_hours extends block_base {
       
         $streditsummary     = get_string('editcoursetitle', 'format_ucla');
         $link_options = array('title' => get_string('editofficehours',
-            'format_ucla'));
+            'format_ucla'), 'class' => 'editing_instr_info');
 
         // The number is an informal sorting system.
         // Note the naming schema

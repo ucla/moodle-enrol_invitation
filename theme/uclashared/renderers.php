@@ -1,9 +1,10 @@
 <?php
 
+require_once($CFG->dirroot . '/theme/bootstrapbase/renderers/core_renderer.php');
 require_once($CFG->dirroot . '/enrol/renderer.php');
 require_once($CFG->dirroot . '/course/renderer.php');
 
-class theme_uclashared_core_renderer extends core_renderer {
+class theme_uclashared_core_renderer extends theme_bootstrapbase_core_renderer {
     private $sep = NULL;
     private $theme = 'theme_uclashared';
 
@@ -272,8 +273,8 @@ class theme_uclashared_core_renderer extends core_renderer {
             return false;
         }
        
-        $cp_button = html_writer::link($cp_link, $cp_text, 
-            array('class' => 'control-panel-button'));
+        $cp_button = html_writer::link($cp_link, get_string('control_panel', $this->theme), 
+            array('class' => 'btn btn-sm btn-cpanel'));
 
         return $cp_button;
     }
@@ -355,34 +356,6 @@ class theme_uclashared_core_renderer extends core_renderer {
         } 
 
         return $c;
-    }
-
-    /**
-     *  Overwriting pix icon renderers to not use icons for action buttons.
-     *
-     * @param action_link $link
-     * @return string HTML fragment
-     */
-    function render_action_link(action_link $action) {
-        $noeditingicons = get_user_preferences('noeditingicons', 1);
-        if (!empty($noeditingicons)) {
-            if ($action->text instanceof pix_icon) {
-                $icon = $action->text;
-
-                /// We want to preserve the icon (but hide it), 
-                /// so the YUI js references remain intact
-                $icon->attributes['style'] = 'display:none';
-                $attr = $icon->attributes;
-                $displaytext = $attr['alt'];
-
-                $out = $this->render($icon);
-
-                // Output hidden icon and text
-                $action->text = $out . $displaytext;
-            }
-        }
-
-        return parent::render_action_link($action);
     }
 
     /**

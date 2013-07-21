@@ -191,12 +191,12 @@ class ucla_cp_renderer {
             $row_contents = '';
             
             // This corresponds to bootstrap grid
-            $responsive_class = 'panel-6 item';
+            $responsive_class = 'col-sm-6 col-xs-12 item';
 
             foreach ($content_row as $content_item => $content_link) {
 
                 $the_output = html_writer::start_tag('div',
-                    array('class' => $responsive_class));
+                    array('class' => $responsive_class . ' ' . $content_link->item_name));
                 
                 $the_output .= ucla_cp_renderer::$handler(
                     $content_link);
@@ -206,7 +206,7 @@ class ucla_cp_renderer {
             }
             
             $full_table .= html_writer::tag('div', $row_contents,
-                array('class' => 'row small-collapse'));
+                array('class' => 'row'));
         }
         
         return $full_table;

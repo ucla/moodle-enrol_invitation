@@ -1,0 +1,132 @@
+//
+// CCLE / COURSE / forum
+// --------------------------------------------------
+
+
+.forumaddnew,
+.forumnodiscuss {
+    text-align: center;
+    
+    input[type="submit"] {
+        @extend .btn;
+        @extend .btn-success;
+    }
+}
+
+
+// Update how forum posts look
+// --------------------------------------------------
+
+.forumpost {
+    margin-top:15px;
+    overflow: hidden;
+    border: 1px solid #EBEAE5;
+    border-left: 4px solid #EBEAE5;
+    border-color: scale-lightness(#EBEAE5, -10);
+    background-color: #fff;
+    
+    /*box-shadow: 0 2px 3px rgba(0, 0, 0, 0.05);*/
+    @include box-shadow(0 1px 1px rgba(0, 0, 0, 0.05));
+    
+        .row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+    // Modify the header
+    .topic {
+        padding: 8px;
+        
+        .subject {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .author {
+            font-size: 1.25rem;
+            color: #aaa;
+        }
+    }
+    .picture {
+        .userpicture {
+            @include border-radius(6px);
+            overflow: hidden;
+        }
+    }
+    .content {
+        .posting {
+            padding: 0 8px;
+        }
+    }
+    .options {
+        .commands {
+            padding: 8px;
+        }
+    }
+
+    // Make the first post stand out
+    &.firstpost {
+        border: 0;
+        
+        @include box-shadow(white 2px 2px 10px);
+        
+        .topic {
+            background-color: white;
+        }
+        .subject {
+            font-size: 2.5rem;
+            
+        }
+        .maincontent .posting {
+            font-size: 1.9rem;
+        }
+    }
+}
+
+// Make nested posts darker
+.indent .indent {
+    .forumpost {
+        background-color: #FAF9F4;
+        color: #4B4A49;
+    }
+    .indent {
+        .forumpost{
+            background-color: scale-lightness(#FAF9F4, -4);
+            color: scale-lightness(#4B4A49, 5);
+        }
+        .indent {
+            .forumpost{
+                background-color: scale-lightness(#FAF9F4, -8);
+                color: scale-lightness(#4B4A49, 10);
+            }
+            .indent {
+                .forumpost{
+                    background-color: scale-lightness(#FAF9F4, -12);
+                    color: scale-lightness(#4B4A49, 15);
+                }
+            }
+        }
+    }
+}
+
+// Modify forum post box styles
+.forumpost + .indent {
+    .forumpost {
+        margin-bottom: 0;
+/*        @include border-top-radius(6px);
+        @include border-bottom-radius(0);*/
+    }
+
+}
+.forumpost ~ .indent:last-child {
+    .forumpost {
+        margin-bottom: 20px;
+        /*@include border-bottom-radius(6px);*/
+    }
+}
+.indent + .indent {
+    > .forumpost {
+        margin-top: -1px;
+        margin-bottom: 0;
+        /*@include border-top-radius(0);*/
+    }
+}
+

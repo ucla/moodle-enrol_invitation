@@ -1,0 +1,15 @@
+
+/*@import "bootstrap/lib/utilities";*/
+@import "bootstrap/lib/responsive-utilities";
+
+
+// Silly Moodle thinks .hidden should be visible. 
+// --------------------------------------------------
+
+.course-content .hidden,
+.mform .hidden {
+    display: block !important;
+    visibility: visible !important;
+}
+
+

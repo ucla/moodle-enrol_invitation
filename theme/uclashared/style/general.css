@@ -1,25 +1,11 @@
-a:link {text-decoration:none;color: #536895;}
-a:visited {text-decoration:none;color: #536895;}
-a:hover {text-decoration:underline;}
 
 img.icon,
 img.iconhelp {vertical-align:middle;}
 
 html, body {background-color:#FFF; height:100%;}
 #page {height:100%;background-color:transparent;margin:0 auto;}
-#page #page-content {background-color:#FFF; height:auto;}
+/*#page #page-content {background-color:#FFF; height:auto;}*/
 
-
-/** Front page display **/
-.introbanner {
-    height: 163px;
-    width: 100%;
-    -moz-box-shadow:    inset 0 0 5px #000000;
-    -webkit-box-shadow: inset 0 0 5px #000000;
-    box-shadow:         inset 0 0 5px #000000;
-    background: url([[pix:theme|banner]]) no-repeat black;
-    margin-top: 10px;
-}
 
 #dock {
     background: url([[pix:theme|dock_bg]]);
@@ -28,8 +14,8 @@ html, body {background-color:#FFF; height:100%;}
 
 /** General **/
 /*.generalbox {border: 1px solid #DDDDDD;}*/
-.generaltable td {border-width:0;}
-.sitetopic {border-width:0;}
+/*.generaltable td {border-width:0;}
+.sitetopic {border-width:0;}*/
 /*.headingblock,*/
 /*h2.main {
     margin-bottom:10px;
@@ -177,12 +163,12 @@ html, body {background-color:#FFF; height:100%;}
 
 .admin .plugincompattable .r1 .cell {background-color:#FFF;}
 
-.singlebutton,
+/*.singlebutton,
 .buttons {text-align:center;margin:20px;}
 .buttons form {display:inline;}
 .buttons div {display:inline;}
 .buttons .singlebutton {display:inline;padding:5px;margin:0px;}
-.admin .generalbox {background-color:#EEE;border-color:#C8C9C7;}
+.admin .generalbox {background-color:#EEE;border-color:#C8C9C7;}*/
 
 #admin-mnet-index table td,
 #files-index .column-content table td {border-width:0px;}
@@ -235,10 +221,10 @@ Turning off style, but leaving it here in case we need to reenable it in the fut
 }*/
 
 /* CCLE-2993 - Shorten textarea for intro/description field */
-#id_introeditor, #id_introeditor_tbl, #id_intro {
+/*#id_introeditor, #id_introeditor_tbl, #id_intro {
     height:150px;    
-    width: 275px;   /* only applicable for intro forms that don't use TinyMCE */
-}
+    width: 275px;    only applicable for intro forms that don't use TinyMCE 
+}*/
 
 
 

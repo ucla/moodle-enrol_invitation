@@ -796,19 +796,11 @@ YUI.add('moodle-course-toolboxes', function(Y) {
     M.course = M.course || {};
 
     M.course.init_resource_toolbox = function(config) {
-        // START UCLA MOD CCLE-3362 - adding support for text icons
-//        return new RESOURCETOOLBOX(config);
-        M.course.init_resource_toolbox_config = config;
-        M.course.init_resource_toolbox = RESOURCETOOLBOX;
-        // END UCLA MOD CCLE-3362
+        return new RESOURCETOOLBOX(config);
     };
 
     M.course.init_section_toolbox = function(config) {
-        // START UCLA MOD CCLE-3362 - adding support for text icons
-//        return new SECTIONTOOLBOX(config);
-        M.course.init_section_toolbox = SECTIONTOOLBOX;
-        M.course.init_section_toolbox_config = config;
-        // END UCLA MOD CCLE-3362
+        return new SECTIONTOOLBOX(config);
     };
 
 },

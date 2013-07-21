@@ -220,38 +220,38 @@ class format_ucla extends format_topics {
         global $PAGE;
         
         if (ajaxenabled() && $PAGE->user_is_editing()) {
-            $PAGE->requires->js('/course/format/ucla/module_override.js');
-
-            // Need these strings.. 
-            $strishidden = '(' . get_string('hidden', 'calendar') . ')';
-            $strmovealt = get_string('movealt', 'format_ucla');
-            $pp_make_private = get_string('publicprivatemakeprivate', 'local_publicprivate');
-            $pp_make_public = get_string('publicprivatemakepublic', 'local_publicprivate');
-            $pp_private_material = get_string('publicprivategroupingname','local_publicprivate');
-
-            $noeditingicons = get_user_preferences('noeditingicons', 1);
-
-            $noeditingicons = empty($noeditingicons) ? false : true;
-
-            $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_resource_toolbox',
-                    array(array(
-                        'noeditingicon' => $noeditingicons,
-                        'makeprivate' => $pp_make_private,
-                        'makepublic' => $pp_make_public,
-                        'privatematerial' => $pp_private_material,
-                    )), null, true);
-
-            $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_toolbox',
-                    array(array(
-                        'noeditingicon' => $noeditingicons,
-                    )), null, true);
-
-            $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init',
-                    array(array(
-                        'noeditingicon' => $noeditingicons,
-                        'hidden' => $strishidden,
-                        'movealt' => $strmovealt,
-                    )), null, true);
+//            $PAGE->requires->js('/course/format/ucla/module_override.js');
+//
+//            // Need these strings.. 
+//            $strishidden = '(' . get_string('hidden', 'calendar') . ')';
+//            $strmovealt = get_string('movealt', 'format_ucla');
+//            $pp_make_private = get_string('publicprivatemakeprivate', 'local_publicprivate');
+//            $pp_make_public = get_string('publicprivatemakepublic', 'local_publicprivate');
+//            $pp_private_material = get_string('publicprivategroupingname','local_publicprivate');
+//
+//            $noeditingicons = get_user_preferences('noeditingicons', 1);
+//
+//            $noeditingicons = empty($noeditingicons) ? false : true;
+//
+//            $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_resource_toolbox',
+//                    array(array(
+//                        'noeditingicon' => $noeditingicons,
+//                        'makeprivate' => $pp_make_private,
+//                        'makepublic' => $pp_make_public,
+//                        'privatematerial' => $pp_private_material,
+//                    )), null, true);
+//
+//            $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_toolbox',
+//                    array(array(
+//                        'noeditingicon' => $noeditingicons,
+//                    )), null, true);
+//
+//            $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init',
+//                    array(array(
+//                        'noeditingicon' => $noeditingicons,
+//                        'hidden' => $strishidden,
+//                        'movealt' => $strmovealt,
+//                    )), null, true);
         }
 
     

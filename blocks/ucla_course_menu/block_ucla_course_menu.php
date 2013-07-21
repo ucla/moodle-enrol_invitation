@@ -93,13 +93,15 @@ class block_ucla_course_menu extends block_navigation {
                 // we don't always want the editing links to be in alpha order
                 ksort($special_editing_links);
                 $links_html = '';
+                
                 foreach ($special_editing_links as $special_editing_link) {
                     $links_html .= html_writer::tag('div', 
                         $special_editing_link, array(
-                            'class' => 'edit_control_links'
+                            'class' => 'btn btn-warning edit-control-links'
                         ));
                 }
-                $this->content->text .= $links_html;
+                
+                $this->content->text .= html_writer::tag('div', $links_html, array('class' => 'btn-group-vertical edit-controls'));
             }      
         }
 
@@ -356,7 +358,7 @@ class block_ucla_course_menu extends block_navigation {
      **/
     function html_attributes() {
         $orig = parent::html_attributes();
-        $orig['class'] .= ' block_navigation';
+        $orig['class'] .= ' ';
 
         return $orig;
     }

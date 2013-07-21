@@ -1,0 +1,333 @@
+#ucla-alert-edit {
+    border: 1px solid #CDCDCD;
+    padding: 10px;
+    margin: 10px;
+    zoom: 1;
+}
+#ucla-alert-edit:after { display: block; clear: both; visibility: hidden; content: '.'; height: 0;}
+#ucla-alert-edit ul {
+    border: 1px solid #CDCDCD;
+    margin: 5px;
+    width: 200px;
+    min-height: 200px;
+    float: left;
+    padding: 0;
+    zoom: 1;
+    position: relative;
+    padding-top: 30px;
+    border-radius: 4px 4px 4px 4px;
+}
+#ucla-alert-edit ul li {
+    background-image: none;
+    list-style-type: none;
+    padding-left: 20px;
+    padding: 5px;
+    margin: 5px;
+    cursor: move;
+    zoom: 1;
+    position: relative;
+}
+
+.alert-edit-section ul li.list1,
+#ucla-alert-edit ul li.list1 {
+    background-color: #8DD5E7;
+    border:1px solid #004C6D;
+}
+#ucla-alert-edit ul li.list2 {
+    background-color: #EDFF9F;
+    border:1px solid #CDCDCD;
+}
+
+// ALERT EDIT STYLES 
+.alert-edit-header,
+.alert-edit-section {
+    border: 1px solid #CDCDCD;
+    display: block;
+    float: left;
+    width: auto;
+    margin: 10px;
+}
+.alert-edit-header {
+    margin: 0;
+    border: 0;
+    border-right: 1px solid #CDCDCD;
+    min-height: 600px;
+}
+.alert-edit-header .header-box {
+    margin: 5px;
+}
+#ucla-alert-edit .block-ucla-alert .box-section-title {
+    border-top: 0;
+    padding: 4px 8px 0 8px;
+}
+
+.alert-edit-header ul li.alert-edit-item,
+.alert-edit-section ul li.alert-edit-item {
+    background-color: #FAFAF8;
+    border:1px dashed gray;
+    margin: 5px;
+}
+
+#ucla-alert-edit ul:after {
+    background-color: #F5F5F5;
+    border: 1px solid #DDDDDD;
+    border-radius: 4px 0 4px 0;
+    content: "Section content";
+    left: -1px;
+    padding: 3px 7px;
+    position: absolute;
+    top: -1px;
+    font-weight: bold;
+    font-size: .9em;
+    color: #9DA0A4;
+}
+
+// ITEM EDIT TEXT BOX 
+.alert-edit-text-box {
+    border: 1px solid #cdcdcd;
+    padding: 5px;
+    background-color: white;
+    display: none;
+}
+.alert-edit-textarea {
+    border: 0;
+    width: 100%;
+}
+.alert-edit-button-box {
+    border-top: 1px solid #cdcdcd;
+    padding: 5px;
+    margin-top: 5px;
+    margin-bottom: -2px;
+    background-color: white;
+    text-align: right;
+}
+
+// HEADER EDIT TEXT BOX 
+.alert-edit-header .alert-edit-header-wrapper .alert-edit-text-box {
+    margin: 5px;
+    border: 5px solid #88B851;
+}
+.alert-edit-header .alert-edit-text-box.alert-header-yellow {
+    border-color: #EDB83D;
+}
+.alert-edit-header .alert-edit-text-box.alert-header-red {
+    border-color: #E17D68;
+}
+.alert-edit-header .alert-edit-text-box.alert-header-blue {
+    border-color: #47BCBB;
+}
+
+// HEADER SELECT HIGHTLIGHT 
+.block-ucla-alert .header-box.header-selected {
+    border: 10px solid white;
+}
+.block-ucla-alert .header-box.header-selected:before {
+    color: white;
+    content: '✔';
+    font-size: 1em;
+    font-weight: bold;
+    left: -1px;
+    padding: 3px 7px;
+    position: relative;
+    top: -1px;
+}
+
+
+.alert-edit-commit-box {
+    width: 100%;
+    display: block;
+    float: left;
+    clear: both;
+    text-align: right;
+    border-top: 1px solid #ddd;
+    padding: 10px;
+    background-color: #F9F9F9;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box; 
+    -webkit-box-sizing: border-box;
+}
+
+.alert-edit-scratch-add {
+    border-top: 1px solid #ddd;
+    margin: 5px;
+    padding: 5px;
+    display: block;
+    clear: left;
+}
+.alert-edit-add {
+    width: 100%;
+}
+
+// Block editing button 
+.alert-block-edit-on-btn {
+    width:80%;
+}
+.region-content .ucla-alert .content .box-boundary.alert-block-edit-on-box {
+    text-align: center;
+    border-top: 1px solid #EBEBE2; 
+    padding-bottom: 0; 
+    padding-top: 4px;
+}
+
+// Tutorial 
+
+.edit-alert-tutorial {
+    width: 100%; 
+    padding: 8px; 
+    border-top: 1px solid #DDDDDD; 
+    display: block;
+    float: left;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box; 
+    -webkit-box-sizing: border-box;
+}
+.edit-alert-tutorial h1 {
+    margin-bottom: 4px;
+}
+
+.edit-alert-tutorial .edit-alert-tutorial-summary {
+    margin-bottom: 8px;
+}
+
+.edit-alert-tutorial .edit-alert-tutorial-summary span {
+    background-color: #F5F5F5;
+    border: 1px solid #DDDDDD;
+    padding: 0 6px;
+    border-radius: 4px 4px 4px 4px;
+}
+
+.edit-alert-tutorial div.box-boundary {
+    width: 200px;
+    float: left;
+    border: 1px solid #DDDDDD;
+    margin: 5px;
+    padding: 4px;
+    position: relative;
+    padding-top: 30px;
+    border-radius: 4px 0 4px 0;
+}
+
+.edit-alert-tutorial div.box-boundary:after {
+    background-color: #F5F5F5;
+    border: 1px solid #DDDDDD;
+    border-radius: 4px 0 4px 0;
+    color: #9DA0A4;
+    content: "Tutorial";
+    font-size: 0.9em;
+    font-weight: bold;
+    left: -1px;
+    padding: 3px 7px;
+    position: absolute;
+    top: -1px;
+}
+
+// BANNER ELEMENTS 
+
+.banner-alert-header {
+    clear: both;
+    display: inline-block;
+    width: 178px;
+}
+.banner-ucla-alert {
+    width: 100%;
+    margin-top: 10px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+.banner-ucla-alert-content {
+    background-color: #FAFAF8;
+    border: 1px solid #EBEBE2;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.067);
+}
+.banner-alert-section {
+    clear: both;
+    display: inline-block;
+    vertical-align: top;
+}
+.banner-alert-section .box-boundary {
+    display: inline-block;
+}
+.banner-alert-section .box-section-title {
+    display: none;
+}
+.banner-alert-section .box-boundary .box-text {
+    font-size: 1.1em;
+    line-height: 1.1em;
+    color: #463A45;
+    margin-top: 4px;
+}
+
+// EXPIRES ITEM 
+.alert-item-expires {
+    border-top: 1px solid #CCC;
+}
+
+// BOUNDARY BOX -- GENERAL BOX 
+.region-content .ucla-alert .content .box-boundary,
+#ucla-alert .content .box-boundary {
+    display: block;
+    padding: 4px;
+    padding-top: 0;
+}
+
+.region-content .ucla-alert .box-boundary.divider,
+#ucla-alert .box-boundary.divider {
+    border-bottom: 1px solid #E9EBDF;
+}
+
+
+// HEADER BOX -- FOR MAIN SITE
+.block-ucla-alert .header-box,
+.region-content .ucla-alert .content .header-box {
+    padding: 4px 0;
+    text-align: center;
+}
+
+.block-ucla-alert .header-box {
+    background-color: #88B851;
+    min-height: 30px;
+    text-shadow:1px 1px 3px #648A38;
+}
+
+
+// HEADER COLOR OVERRIDES 
+.block-ucla-alert .header-box.alert-header-yellow {
+    background-color: #EDB83D;
+    text-shadow: 1px 1px 3px #CD9513;
+}
+.block-ucla-alert .header-box.alert-header-red {
+    background-color: #E17D68;
+    text-shadow: 1px 1px 2px #D64F33;
+}
+.block-ucla-alert .header-box.alert-header-blue {
+    background-color: #47BCBB;
+    text-shadow: 1px 1px 3px #389998;
+}
+
+.block-ucla-alert .header-box.alert-header-empty {
+    background-color: #D1DBEF;
+    text-shadow: 1px 1px 3px #6083C8;
+}
+.block-ucla-alert .content .header-box.alert-header-empty {
+    display: none;
+}
+
+// HEADER TITLE & SUBTITLE 
+.block-ucla-alert .header-title,
+.region-content .ucla-alert .header-title {
+    color: white;
+    font-size: 1.7em;
+    font-family: Impact, Gill Sans, sans-serif;
+    text-transform: uppercase;
+    line-height: 1.1em;
+    padding-top: 5px;
+}
+
+.block-ucla-alert .header-subtitle,
+.region-content .ucla-alert .header-subtitle {
+    color: white;
+    padding-left: 2px;
+    padding-right: 2px;
+}

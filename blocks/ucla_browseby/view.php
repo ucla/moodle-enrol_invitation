@@ -6,7 +6,8 @@ require_once($CFG->dirroot . '/blocks/ucla_browseby/block_ucla_browseby.php');
 require_once($CFG->dirroot . '/blocks/ucla_browseby/'
     . 'browseby_handler_factory.class.php');
 require_once($CFG->dirroot . '/blocks/ucla_browseby/renderer.php');
-
+require_once($CFG->dirroot . '/blocks/ucla_search/block_ucla_search.php');
+        
 $type = required_param('type', PARAM_TEXT);
 $term = optional_param('term', $CFG->currentterm, PARAM_TEXT);
 

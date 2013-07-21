@@ -2,17 +2,21 @@
 # 
 # Usage:
 # 
+# For a one-off build (default debug output)
+# 
 #   $ compass compile
 # 
-# Or for automated builds
+# Or for automated builds that watch project files
 # 
 #   $ compass watch
 # 
-# For production environments -- with compressed stylesheets and file override
+# For production environments with compressed stylesheets
 # 
 #   $ compass compile -e production --force 
 
-http_path = "/"
+require 'sass-css-importer'
+add_import_path Sass::CssImporter::Importer.new("theme/bootstrapbase/style")
+
 
 ## UCLA theme directory
 theme_dir = "theme/uclashared"
@@ -29,21 +33,13 @@ images_dir = "#{theme_dir}/pix"
 ## Location of javascript
 javascripts_dir = "#{theme_dir}/javascript"
 
-# add_import_path = "#{theme_dir}/sass"
+## Import boostrap package
+additional_import_paths = ["#{theme_dir}/package", sass_dir]
 
 ## For production environment, use compressed CSS
 output_style = (environment == :production) ? :compressed : :expanded
 
-# @todo 
-# Compile CSS for Moodle modules ONLY for production
-# 
-# Create a styles.min.css file
-# 
-#Dir.glob('**/sass/styles.scss').each do |f|
-#    puts f
-#end
 
-# 
 # Set up compass 'watch' for Moodle modules
 # 
 # When you run 'compass watch', it will listen for changes to a 'styles.scss' file in 
@@ -58,12 +54,12 @@ watch "**/sass/styles.scss" do |project_dir, relative_path|
     
     ## Compile compass inside compass, whoa!
     cmd = "compass compile --sass-dir #{relative_path.gsub(/\/styles.scss/, '')} --css-dir #{relative_path.gsub(/\/sass\/styles.scss/, '')} -I #{sass_dir}"
-    # puts cmd
+    puts cmd
     
     ## Do system call
     system(cmd)
 
-    ## This is another way of doing it in pure ruby, but not possible with watch,
+    ## This is another way of doing it in pure ruby, but not possible with watch...
     ## Save for reference
     # Compass.add_configuration(
     #     {

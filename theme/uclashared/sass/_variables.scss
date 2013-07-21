@@ -1,0 +1,100 @@
+
+@import "bootstrap/lib/variables";
+
+// Bootstrap overrides
+// Buttons
+// -------------------------
+
+// Making 'warning' color a little more red
+$brand-warning:  #f29644;
+
+$btn-warning-color: #fff;
+$btn-warning-bg: $brand-warning;
+$btn-warning-border: darken($btn-warning-bg, 5%);
+
+/// end
+
+$type-font-family:               "Helvetica Neue", Helvetica, Arial, sans-serif !default;
+$type-font-size:                 0.93em !default;
+$type-font-size-small:           0.85em !default;
+$type-font-size-h1:              2.5em !default;
+$type-font-size-h2:              2.2em !default;
+$type-font-size-h3:              1.65em !default;
+$type-font-size-h4:              1.45em !default;
+$type-font-size-h5:              1.25em !default;
+$type-font-size-h6:              1.1em !default;
+$type-font-size-h1-small:        0.6em !default;
+$type-font-size-h2-small:        0.65em !default;
+$type-font-size-h3-small:        0.7em !default;
+$type-font-size-h4-small:        0.8em !default;
+$type-font-size-h5-small:        0.9em !default;
+$type-font-size-h6-small:        0.9em !default;
+$type-line-spacing:              20px !default;
+$type-line-height:               1.4 !default;
+$type-line-height-heading:       1 !default;
+
+// Define theme colors (accessible colors)
+$ucla-blue:         #0072b1;
+$ccle-blue:         #4168a1;
+
+// Overrides webblocks variables
+
+$color-branding-primary:         #3399cc;
+
+// CCLE colors
+// --------------------------------------------------
+
+// Legacy colors
+$ccle-ucla-blue:                #536895;
+$ccle-ucla-orange:              #FFB300;
+
+// Used by blocks
+$ccle-light-blue:               #D1DBEF;
+$ccle-lighter-blue:             #DFE7F4;
+$ccle-border-blue:              #AFC5F0;
+
+// Used by course header
+$ccle-dark-blue:                #394A6E;
+
+$ccle-link-color:               #536895;
+
+// Grays
+// Used by 
+$ccle-light-gray:               #F5F5F5;
+$ccle-lighter-gray:             #F9F9F9;  
+
+// This is loaded directly in document head
+// @todo: consider moving source fonts locally?
+// @import url("https://fonts.googleapis.com/css?family=Lato:400,700,900,400italic");
+
+$type-font-family:               "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+// Requires html root font-size set to 62.5%  in the 'type' sheet
+$type-font-size:                 1.4rem;
+$type-font-size-small:           1rem;
+
+// Use a very dark gray for font color
+$type-font-color:                #444;
+
+// Type needs to match YUI Base CSS
+// Scale header sizes to match YUI
+// --------------------------------------------------
+$type-font-size-h1:              $type-font-size * 1.385;
+$type-font-size-h2:              $type-font-size * 1.231;
+$type-font-size-h3:              $type-font-size * 1.08;
+$type-font-size-h4:              $type-font-size * 1.00;
+$type-font-size-h5:              $type-font-size * .9;
+$type-font-size-h6:              $type-font-size * .8;
+
+// What to do here?
+$type-font-size-h1-small:        0.6em;
+$type-font-size-h2-small:        0.65em;
+$type-font-size-h3-small:        0.7em;
+$type-font-size-h4-small:        0.8em;
+$type-font-size-h5-small:        0.9em;
+$type-font-size-h6-small:        0.9em;
+
+$type-line-spacing:              20px;
+$type-line-height:               1.5;
+$type-line-height-heading:       1;
+

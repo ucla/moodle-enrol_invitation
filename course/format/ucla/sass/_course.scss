@@ -1,0 +1,103 @@
+//
+// CCLE / COURSE / course site
+// --------------------------------------------------
+
+// Generic CCLE box with drop shadow and rounded coreners
+.ccle-generic-box {
+    display: block;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    padding: 4px 8px;
+    width: 100%;
+    margin-bottom: 8px;
+    
+    @include box-sizing(border-box);
+    @include box-shadow(#ddd 1px 1px 1px);
+    @include border-radius(6px);
+}
+
+// These are contents of a course
+.course-content {
+    
+    font-size: $type-font-size;
+    line-height: $type-line-height;
+    
+    .registrar-collapsed {
+        @extend .ccle-generic-box;
+        overflow: hidden;
+    }
+    .collapse-toggle {
+        width: 100%;
+        display: inline-block;
+        padding: 2px;
+        
+        @include box-sizing(border-box);
+        @include border-radius(6px);
+    }
+    // Course header
+    // Contains title 
+    > .headingblock {
+        // temporary fix for XP/IE8 headers
+        // @todo: turn this conversion into a sass function
+        font-size: 26px;
+        font-size: 2.6rem;
+        
+        background-color: $ccle-light-blue;
+        border: 1px solid $ccle-border-blue;
+        color: $ccle-dark-blue;
+        padding: 4px 2px;
+        
+        // Course registrar/crosslist metadata
+        > .course-meta  {
+            color: scale-lightness($ccle-dark-blue, 35%);
+            font-weight: normal;
+            // @todo: turn this into a sass function
+            font-size: 14px;
+            font-size: $type-font-size;
+            margin-bottom: 4px;
+            
+            // Crosslist metadata will be truncated and limited
+            // to a single line.  
+            @include respond-to(handhelds) {
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                height: $type-line-height;
+            }
+            
+            /// Term and hostcourse will be bolded and darkened
+            > .reg-term {
+                text-transform: uppercase;
+                font-weight: bold;
+                color: $ccle-dark-blue;
+            }
+            > .reg-courses > .reg-hostcourse {
+                font-weight: bold;
+                color: $ccle-dark-blue;
+            }
+        }
+    }
+    
+    // Office hours table
+    .instr-info {
+        margin-top: 10px;
+    }
+    
+    // Put a border around hidden sections
+    .hidden .content {
+        border: 4px dotted #ccc;
+    }
+}
+
+// Course search highlight -- yellowish osx-like color used
+.summary {
+    .highlight {
+        border: 1px solid #EBD742;
+        background-color: yellow;
+        padding: 0 1px;
+        
+        @include background-image(linear-gradient(top, yellow, #EBD742));
+        @include border-radius(4px);
+        @include box-shadow(#aaa 1px 2px 2px);
+    }
+}

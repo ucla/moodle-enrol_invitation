@@ -1,0 +1,179 @@
+
+ GENERAL BLOCK STYLE OVERRIDES 
+#ucla-alert,
+.region-content .ucla-alert {
+    background-color: #FAFAF8;
+    border: 1px solid #EBEBE2;
+}
+
+.region-content .ucla-alert .content,
+#ucla-alert .content {
+    background-color: #FAFAF8;
+    padding: 0;
+    color: #463A45;
+}
+
+ BOUNDARY BOX -- GENERAL BOX 
+.region-content .ucla-alert .content .box-boundary,
+#ucla-alert .content .box-boundary {
+    display: block;
+    padding: 4px;
+    padding-top: 0;
+}
+
+.region-content .ucla-alert .box-boundary.divider,
+#ucla-alert .box-boundary.divider {
+    border-bottom: 1px solid #E9EBDF;
+}
+
+ HEADER BOX -- FOR MAIN SITE
+.block-ucla-alert .header-box,
+.region-content .ucla-alert .content .header-box {
+    padding: 4px 0;
+    text-align: center;
+}
+
+.block-ucla-alert .header-box {
+    background-color: #88B851;
+    min-height: 30px;
+    text-shadow:1px 1px 3px #648A38;
+}
+
+ HEADER COLOR OVERRIDES 
+.block-ucla-alert .header-box.alert-header-yellow {
+    background-color: #EDB83D;
+    text-shadow: 1px 1px 3px #CD9513;
+}
+.block-ucla-alert .header-box.alert-header-red {
+    background-color: #E17D68;
+    text-shadow: 1px 1px 2px #D64F33;
+}
+.block-ucla-alert .header-box.alert-header-blue {
+    background-color: #47BCBB;
+    text-shadow: 1px 1px 3px #389998;
+}
+
+.block-ucla-alert .header-box.alert-header-empty {
+    background-color: #D1DBEF;
+    text-shadow: 1px 1px 3px #6083C8;
+}
+.block-ucla-alert .content .header-box.alert-header-empty {
+    display: none;
+}
+
+ HEADER TITLE & SUBTITLE 
+.block-ucla-alert .header-title,
+.region-content .ucla-alert .header-title {
+    color: white;
+    font-size: 1.7em;
+    font-family: Impact, Gill Sans, sans-serif;
+    text-transform: uppercase;
+    line-height: 1.1em;
+    padding-top: 5px;
+}
+
+.block-ucla-alert .header-subtitle,
+.region-content .ucla-alert .header-subtitle {
+    color: white;
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+ GENERAL FORMATTING 
+.block-ucla-alert .box-title,
+.region-content .ucla-alert .box-title {
+    display: inline-block;
+    font-weight: bold;
+    line-height: 1em;
+    margin: 4px 0;
+    text-transform: uppercase;
+    padding-top: 4px;
+}
+
+.block-ucla-alert .box-text,
+.region-content .ucla-alert .box-text {
+    margin: 2px 0;
+    margin-left: 4px;
+}
+
+.block-ucla-alert .box-text br,
+.region-content .ucla-alert .box-text br {
+    line-height: 0.75em;
+}
+
+.block-ucla-alert .box-link,
+.block-ucla-alert .box-list,
+.region-content .ucla-alert .box-link,
+.region-content .ucla-alert .box-list {
+    border-left: 5px solid #4A87BD;
+    padding-left: 5px;
+    margin-left: 4px;
+    margin-bottom: 2px;
+}
+
+ TWITTER DEFAUL LINK 
+.block-ucla-alert .box-link.box-twitter-link,
+.region-content .ucla-alert .box-link.box-twitter-link {
+    border-left-color: #00C0F7;
+}
+
+ TWITTER CONTENT  
+.alert-tweet-quote {
+    margin-top: 4px;
+    padding: 2px;
+    border-top: 1px solid #CCC;
+    border-bottom: 1px solid #CCC;
+    background-color: #FFF;
+    quotes: "\201C" "\201D";
+}
+.alert-tweet-quote:before { 
+    content: open-quote; 
+    font-weight: bold; 
+    font-size: 1.2em;
+}
+.alert-tweet-quote:after { 
+    font-size: 1.2em;
+    content: close-quote; 
+    font-weight: bold; 
+    color: #CCC;
+}
+.alert-tweet-date {
+    text-align: right;
+    font-size: 0.8em;
+    color: #CCC;
+} 
+.block-ucla-alert .box-link a {
+    width: 100%;
+    display: inline-block;
+}
+
+.block-ucla-alert .box-section-title,
+.region-content .ucla-alert .box-section-title {
+    border-top: 1px solid #E9EBDF;
+    font-size: 1.2em;
+    font-weight: bold;
+    letter-spacing: -0.3pt;
+    padding-top: 4px;
+    text-transform: uppercase;
+}
+
+ COURSE TITLE BOX 
+.course-title-box {
+    display: block;
+    background-color: #536895;
+    text-shadow: 1px 1px 3px #9DB2DD;
+    padding: 5px;
+    text-align: center;
+}
+
+.course-title {
+    font-family: Impact, Gill Sans, sans-serif;
+    display: block;
+    font-size: 1.5em;
+    text-transform: uppercase;
+    color: white;
+    line-height: 1.1em;
+}
+
+
+
