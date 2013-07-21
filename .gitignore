@@ -10,6 +10,7 @@
 # See gitignore(5) man page for more details
 #
 /config_private.php
+/.sass-cache
 /config.php
 /lib/editor/tinymce/extra/tools/temp/
 *~
