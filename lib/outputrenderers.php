@@ -2251,16 +2251,6 @@ EOD;
         if (empty($CFG->rolesactive)) {
             // continue does not make much sense if moodle is not installed yet because error is most probably not recoverable
         } else if (!empty($link)) {
-            // BEGIN UCLA MOD: CCLE-2984-Continue button redirect to previous page if part of wwwroot
-            //if(rtrim($link, '/') == $CFG->wwwroot) {
-            if (isset($_SERVER['HTTP_REFERER'])) {
-                $link = $_SERVER['HTTP_REFERER'];
-                $link = str_replace('&', '&amp;', $link); // make it valid XHTML
-                $link = clean_text($link);
-            } else {
-                $link = $CFG->wwwroot .'/';
-            }
-            // END UCLA MOD-CCLE-2984
             $output .= $this->continue_button($link);
         }
 
@@ -2296,8 +2286,6 @@ EOD;
         }
         $button = new single_button($url, get_string('continue'), 'get');
         $button->class = 'continuebutton';
-        $button->add_action(new component_action("click", "function(e) {e.preventDefault(); 
-            window.history.back(); return false}"));
 
         return $this->render($button);
     }
