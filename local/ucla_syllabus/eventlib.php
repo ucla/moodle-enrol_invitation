@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * Event handlers for non-webservices events.
  *
@@ -22,7 +37,7 @@ require_once($CFG->dirroot . '/local/ucla_syllabus/alert_form.php');
 function delete_syllabi($course) {
     global $DB;
 
-    // get all syllabus entries for course
+    // Get all syllabus entries for course.
     $syllabi = $DB->get_records('ucla_syllabus',
             array('courseid' => $course->id));
 
@@ -32,25 +47,25 @@ function delete_syllabi($course) {
 
     $fs = get_file_storage();
     foreach ($syllabi as $syllabus) {
-        // delete any files associated with syllabus entry
-        $files = $fs->get_area_files($course->context->id, 
+        // Delete any files associated with syllabus entry.
+        $files = $fs->get_area_files($course->context->id,
                 'local_ucla_syllabus', 'syllabus', $syllabus->id, '', false);
         if (!empty($files)) {
             foreach ($files as $file) {
                 $file->delete();
-            }            
+            }
         }
 
-        // next, delete entry in syllabus table
+        // Next, delete entry in syllabus table.
         $DB->delete_records('ucla_syllabus', array('id' => $syllabus->id));
 
-        // Data to handle events
+        // This is the data needed to handle events.
         $data = new stdClass();
         $data->courseid = $course->id;
         $data->access_type = $syllabus->access_type;
 
-        // trigger events
-        events_trigger('ucla_syllabus_deleted', $data);        
+        // Trigger any necessary events.
+        events_trigger('ucla_syllabus_deleted', $data);
     }
 }
 
@@ -64,48 +79,27 @@ function delete_syllabi($course) {
 function ucla_syllabus_handle_ucla_format_notices($eventdata) {
     global $CFG, $DB, $OUTPUT;
 
-    // ignore any old terms or if term is not set (meaning it is a collab site)
+    // Ignore any old terms or if term is not set (meaning it is a collab site).
     if (!isset($eventdata->term) ||
             term_cmp_fn($eventdata->term, $CFG->currentterm) == -1) {
-        // important for event handlers to return true, because false indicates
-        // error and event will be reprocessed on the next cron run
-        return true;    
-    }
-
-    // see if current user can manage syllabi for course
-    $course = new stdClass();
-    $ucla_syllabus_manager = new ucla_syllabus_manager($eventdata->course);
-
-    // ignore alert if user cannot upload syllabi or if course has one uploaded
-    if (!$ucla_syllabus_manager->can_manage() || 
-            $ucla_syllabus_manager->has_syllabus()) {
+        // It is important for event handlers to return true, because false
+        // indicates error and event will be reprocessed on the next cron run.
         return true;
     }
 
-    $alert_form = null;
+    // See if current user can manage syllabi for course.
+    $course = new stdClass();
+    $syllabusmanager = new ucla_syllabus_manager($eventdata->course);
 
-//    // User can add syllabus, but course does not have syllabus. Check to see
-//    // if someone manually uploaded a syllabus.
-//    $manuallysyllabi = $ucla_syllabus_manager->get_all_manual_syllabi();
-//    if (!empty($manuallysyllabi)) {
-//        // There might be multiple manually uploaded syllabus, and user might
-//        // choose to ignore some of them.
-//        foreach ($manuallysyllabi as $syllabus) {
-//            $noprompt = get_user_preferences('ucla_syllabus_noprompt_manual_' .
-//                    $syllabus->cmid, null, $eventdata->userid);
-//            if (is_null($noprompt)) {
-//                // Display form.
-//                $alert_form = new alert_form(new moodle_url('/local/ucla_syllabus/alert.php',
-//                        array('id' => $eventdata->course->id)),
-//                        array('manualsyllabus' => $syllabus), 'post', '',
-//                        array('class' => 'ucla-syllabus-alert-form'));
-//                // Only want one alert to be shown.
-//                break;
-//            }
-//        }
-//    }
+    // Ignore alert if user cannot upload syllabi or if course has one uploaded.
+    if (!$syllabusmanager->can_manage() ||
+            $syllabusmanager->has_syllabus()) {
+        return true;
+    }
 
-    if (empty($alert_form)) {
+    $alertform = null;
+
+    if (empty($alertform)) {
         // User can add syllabus, but course doesn't have syllabus, give alert.
 
         // But first, see if they turned off the syllabus alert for their
@@ -121,7 +115,7 @@ function ucla_syllabus_handle_ucla_format_notices($eventdata) {
         }
 
         // Now we can display the alert.
-        $alert_form = new alert_form(new moodle_url('/local/ucla_syllabus/alert.php',
+        $alertform = new alert_form(new moodle_url('/local/ucla_syllabus/alert.php',
                 array('id' => $eventdata->course->id)), null, 'post', '',
                 array('class' => 'ucla-syllabus-alert-form'));
     }
@@ -129,7 +123,7 @@ function ucla_syllabus_handle_ucla_format_notices($eventdata) {
     // Unfortunately, the display function outputs HTML, rather than returning
     // it, so we need to capture it.
     ob_start();
-    $alert_form->display();
+    $alertform->display();
     $eventdata->notices[] = ob_get_clean();
 
     return true;

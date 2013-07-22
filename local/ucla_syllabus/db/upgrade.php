@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -42,23 +41,21 @@ defined('MOODLE_INTERNAL') || die();
 function xmldb_local_ucla_syllabus_upgrade($oldversion) {
     global $DB;
 
-    $dbman = $DB->get_manager(); // loads ddl manager and xmldb classes
+    $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
 
     // And upgrade begins here. For each one, you'll need one
     // block of code similar to the next one. Please, delete
     // this comment lines once this file start handling proper
     // upgrade code.
 
-    // if ($oldversion < YYYYMMDD00) { //New version in version.php
-    //
-    // }
-    
+    // Dates in this section are formatted as: YYYYMMDD00.
+
     if ($oldversion < 2012092701) {
 
-        // Define table ucla_syllabus_webservice to be created
+        // Define table ucla_syllabus_webservice to be created.
         $table = new xmldb_table('ucla_syllabus_webservice');
 
-        // Adding fields to table ucla_syllabus_webservice
+        // Adding fields to table ucla_syllabus_webservice.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('subjectarea', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
         $table->add_field('leadingsrs', XMLDB_TYPE_CHAR, '9', null, null, null, null);
@@ -68,65 +65,65 @@ function xmldb_local_ucla_syllabus_upgrade($oldversion) {
         $table->add_field('enabled', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, null);
         $table->add_field('action', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
 
-        // Adding keys to table ucla_syllabus_webservice
+        // Adding keys to table ucla_syllabus_webservice.
         $table->add_key('id', XMLDB_KEY_PRIMARY, array('id'));
 
-        // Conditionally launch create table for ucla_syllabus_webservice
+        // Conditionally launch create table for ucla_syllabus_webservice.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
 
-        // ucla_syllabus savepoint reached
+        // Savepoint for syllabus reached.
         upgrade_plugin_savepoint(true, 2012092701, 'local', 'ucla_syllabus');
     }
-    
+
     if ($oldversion < 2012100400) {
 
-        // Define table ucla_syllabus_client to be created
+        // Define table ucla_syllabus_client to be created.
         $table = new xmldb_table('ucla_syllabus_client');
 
-        // Adding fields to table ucla_syllabus_client
+        // Adding fields to table ucla_syllabus_client.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('data', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
 
-        // Adding keys to table ucla_syllabus_client
+        // Adding keys to table ucla_syllabus_client.
         $table->add_key('id', XMLDB_KEY_PRIMARY, array('id'));
 
-        // Conditionally launch create table for ucla_syllabus_client
+        // Conditionally launch create table for ucla_syllabus_client.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
 
-        // ucla_syllabus savepoint reached
+        // Savepoint for syllabus reached.
         upgrade_plugin_savepoint(true, 2012100400, 'local', 'ucla_syllabus');
     }
-    
+
     if ($oldversion < 2012120700) {
 
-        // Define field url to be added to ucla_syllabus
+        // Define field url to be added to ucla_syllabus.
         $table = new xmldb_table('ucla_syllabus');
         $field = new xmldb_field('url', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'is_preview');
 
-        // Conditionally launch add field url
+        // Conditionally launch add field url.
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        
+
         $field = new xmldb_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'url');
 
-        // Conditionally launch add field timemodified
+        // Conditionally launch add field timemodified.
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
         $field = new xmldb_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'timemodified');
 
-        // Conditionally launch add field timecreated
+        // Conditionally launch add field timecreated.
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
-        // ucla_syllabus savepoint reached
+        // Savepoint for syllabus reached.
         upgrade_plugin_savepoint(true, 2012120700, 'local', 'ucla_syllabus');
     }
 

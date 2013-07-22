@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * English strings for UCLA syllabus plugin
@@ -13,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 $string['pluginadministration'] = 'UCLA syllabus administration';
 $string['pluginname'] = 'UCLA syllabus';
 
-// strings for uploading syllabus form
+// Strings for uploading syllabus form.
 $string['syllabus_manager'] = 'Syllabus manager';
 $string['syllabus_choice'] = 'If you select both a file and URL, the URL will be displayed instead.';
 $string['syllabus_url_file'] = 'Please provide a:';
@@ -44,7 +58,7 @@ $string['make_private'] = 'Restrict';
 $string['make_public'] = 'Unrestrict';
 $string['confirm_deletion'] = 'Are you sure you want to delete this syllabus?';
 
-// strings for displaying syllabus
+// Strings for displaying syllabus.
 $string['cannot_view_private_syllabus'] = 'This syllabus is available only to enrolled students in the course.';
 $string['cannot_view_public_syllabus'] = 'This syllabus is available only to logged in users.';
 $string['no_syllabus_uploaded'] = 'Syllabus is not available yet.';
@@ -58,14 +72,14 @@ $string['preview'] = 'preview';
 $string['private'] = 'restricted';
 $string['modified'] = 'Last modified: ';
 
-// success strings
+// Success strings.
 $string['successful_add'] = 'Successfully added syllabus';
 $string['successful_delete'] = 'Successfully deleted syllabus';
 $string['successful_update'] = 'Successfully updated syllabus';
 $string['successful_restrict'] = 'Successfully restricted syllabus';
 $string['successful_unrestrict'] = 'Successfully unrestricted syllabus';
 
-// error strings
+// Error strings.
 $string['err_file_not_uploaded'] = 'Please upload a PDF.';
 $string['err_file_url_not_uploaded'] = 'Please upload a file or add a valid URL for your syllabus.';
 $string['err_missing_courseid'] = 'Missing required courseid';
@@ -77,9 +91,8 @@ $string['err_syllabus_convert'] = 'Cannot convert syllabus when both a restricte
 $string['err_invalid_url'] = 'Please enter a valid URL.';
 $string['err_cannot_manage'] = 'Sorry, but you do not have the capability to manage syllabi for course';
 
-// capability strings
+// Capability strings.
 $string['ucla_syllabus:managesyllabus'] = 'Ability to add, edit, and delete syllabus for a course';
-// web service
 $string['ws_header'] = 'Add web service subscription';
 $string['subject_area'] = 'Subject area';
 $string['subject_area_help'] = 'Subject area to monitor';
@@ -88,11 +101,11 @@ $string['leading_srs_rule'] = 'Numeric values only';
 $string['post_url'] = 'POST URL';
 $string['post_url_required'] = 'You must provide a POST url.';
 $string['contact_email'] = 'Contact email';
-$string['contact_email_help'] = 'This email will be used to report any problems 
+$string['contact_email_help'] = 'This email will be used to report any problems
     encountered while attempting to access the provided url.';
 $string['contact_email_required'] = 'You must provide a valid contact email.';
 $string['token'] = 'Token';
-$string['token_help'] = 'Use a token to verify the authenticity of the 
+$string['token_help'] = 'Use a token to verify the authenticity of the
     messages you receive on the POST url.';
 $string['select_action'] = 'Service action';
 $string['action_alert'] = 'Course alert';
@@ -106,16 +119,16 @@ $string['delete'] = 'Delete';
 
 $string['email_subject'] = 'UCLA|CCLE web service error';
 $string['email_msg'] = 'The subscribed URL did not respond, or returned the wrong response.
-    
+
 Make sure that your service is working.  The service will attempt to resend the message in 5 minutes.
-    
+
 data:
     SRS: {$a->srs}
     TERM: {$a->term}
     URL: {$a->service}
 ';
 
-// strings for alert notice
+// Strings for alert notice.
 $string['alert_msg'] = 'A syllabus has not been added to your site, would you like to add one now?';
 $string['alert_yes'] = 'Yes';
 $string['alert_no'] = 'No, don\'t ask again';
@@ -127,11 +140,11 @@ $string['alert_later_redirect'] = 'Syllabus reminder set.';
 $string['alert_msg_manual'] = 'We found a {$a->type} that might be a syllabus ' .
         'called "{$a->name}". Would you like to make this your official syllabus?';
 
-// strings for syllabus backup
-$string['backup_notice'] = 'Files uploaded via the syllabus tool will not 
+// Strings for syllabus backup.
+$string['backup_notice'] = 'Files uploaded via the syllabus tool will not
 be included in your backup.  You will need to re-upload those files manually.';
 
-// strings for syllabus icons
+// Strings for syllabus icons.
 $string['icon_public_world_syllabus'] = 'Syllabus (no login required)';
 $string['icon_public_ucla_syllabus'] = 'Syllabus (login required)';
 $string['icon_private_syllabus'] = 'Restricted syllabus (only enrolled students)';

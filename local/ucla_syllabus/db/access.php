@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -53,9 +52,8 @@ $capabilities = array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
         'legacy' => array(
-            'editingteacher' => CAP_ALLOW,            
+            'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         )
     ),
 );
-

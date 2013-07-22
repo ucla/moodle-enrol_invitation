@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -31,22 +30,22 @@ require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__).'/locallib.php');
 require_once(dirname(__FILE__).'/syllabus_form.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
-require_once($CFG->libdir . '/resourcelib.php');   // for embedding code
+require_once($CFG->libdir . '/resourcelib.php');
 
-// get script variables to be used later
-$id = required_param('id', PARAM_INT);   // course
+// Get script variables to be used later.
+$id = required_param('id', PARAM_INT);
 $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
-$ucla_syllabus_manager = new ucla_syllabus_manager($course);
+$syllabusmanager = new ucla_syllabus_manager($course);
 $coursecontext = context_course::instance($course->id);
-$can_manage_syllabus = $ucla_syllabus_manager->can_manage();
+$canmanagesyllabus = $syllabusmanager->can_manage();
 
-// see if user wants to do an action for a given syllabus type
+// See if user wants to do an action for a given syllabus type.
 $action = optional_param('action', null, PARAM_ALPHA);
 $type = optional_param('type', null, PARAM_ALPHA);
 
 require_course_login($course);
 
-// setup page
+// Set up page.
 $PAGE->set_url('/local/ucla_syllabus/index.php', array('id' => $id));
 $PAGE->set_title(format_string($course->fullname));
 $PAGE->set_heading(format_string($course->fullname));
@@ -59,8 +58,8 @@ $manualsyllabusid = optional_param('manualsyllabus', null, PARAM_INT);
 if (!empty($manualsyllabusid)) {
     // Check if manually uploaded syllabus is valid.
     $validsyllabus = false;
-    if ($can_manage_syllabus && !$ucla_syllabus_manager->has_syllabus()) {
-        $manualsyllabi = $ucla_syllabus_manager->get_all_manual_syllabi();
+    if ($canmanagesyllabus && !$syllabusmanager->has_syllabus()) {
+        $manualsyllabi = $syllabusmanager->get_all_manual_syllabi();
         foreach ($manualsyllabi as $syllabus) {
             if ($syllabus->cmid == $manualsyllabusid) {
                 $validsyllabus = true;
@@ -79,26 +78,26 @@ if (!empty($manualsyllabusid)) {
     }
 }
 
-// set editing button
-if ($can_manage_syllabus) {
+// Set editing button.
+if ($canmanagesyllabus) {
     $url = new moodle_url('/local/ucla_syllabus/index.php',
                     array('id' => $course->id));
     set_editing_mode_button($url);
-    
-    // setup form
-    $syllabus_form = new syllabus_form(null, 
-            array('courseid' => $course->id, 
+
+    // Set up form.
+    $syllabusform = new syllabus_form(null,
+            array('courseid' => $course->id,
                   'action' => $action,
                   'type' => $type,
-                  'ucla_syllabus_manager' => $ucla_syllabus_manager,
+                  'ucla_syllabus_manager' => $syllabusmanager,
                   'manualsyllabus' => $manualsyllabusid),
             'post',
             '',
-            array('class' => 'syllabus_form'));    
+            array('class' => 'syllabus_form'));
 
-    // If the cancel button is clicked, return to non-editing mode of syllabus page
-    if ($syllabus_form->is_cancelled()) { 
-        $url = new moodle_url('/local/ucla_syllabus/index.php', 
+    // If the cancel button is clicked, return to non-editing mode of syllabus page.
+    if ($syllabusform->is_cancelled()) {
+        $url = new moodle_url('/local/ucla_syllabus/index.php',
                 array('id' => $course->id,
                       'sesskey' => sesskey(),
                       'edit' => 'on'));
@@ -106,211 +105,209 @@ if ($can_manage_syllabus) {
     }
 }
 
-if (!empty($USER->editing) && $can_manage_syllabus) {        
-    // User uploaded/edited a syllabus file, so handle it
-    $data = $syllabus_form->get_data();
+if (!empty($USER->editing) && $canmanagesyllabus) {
+    // User uploaded/edited a syllabus file, so handle it.
+    $data = $syllabusform->get_data();
     if (!empty($data) && confirm_sesskey()) {
-        $result = $ucla_syllabus_manager->save_syllabus($data);        
+        $result = $syllabusmanager->save_syllabus($data);
         if ($result) {
-            // upload was successful, give success message to user (redirect to
-            // refresh site menu and prevent duplication submission of file)
+            // Upload was successful, give success message to user (redirect to
+            // refresh site menu and prevent duplication submission of file).
 
             $url = new moodle_url('/local/ucla_syllabus/index.php',
                     array('action' => UCLA_SYLLABUS_ACTION_VIEW,
                           'id' => $course->id));
             if (isset($data->entryid)) {
-                // syllabus was updated
-                $success_msg = get_string('successful_update', 'local_ucla_syllabus');     
+                // Syllabus was updated.
+                $successmessage = get_string('successful_update', 'local_ucla_syllabus');
             } else {
-                // syllabus was added
-               $success_msg = get_string('successful_add', 'local_ucla_syllabus');                
+                // Syllabus was added.
+                $successmessage = get_string('successful_add', 'local_ucla_syllabus');
             }
 
-            flash_redirect($url, $success_msg);
-        }       
-    }  else if ($action == UCLA_SYLLABUS_ACTION_DELETE) {
-        // user wants to delete syllabus
-        $syllabi = $ucla_syllabus_manager->get_syllabi();        
-        $todel = null;        
-        
+            flash_redirect($url, $successmessage);
+        }
+    } else if ($action == UCLA_SYLLABUS_ACTION_DELETE) {
+        // User wants to delete syllabus.
+        $syllabi = $syllabusmanager->get_syllabi();
+        $todel = null;
+
         if ($type == UCLA_SYLLABUS_TYPE_PUBLIC && !empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC])) {
             $todel = $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC];
         } else if ($type == UCLA_SYLLABUS_TYPE_PRIVATE && !empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE])) {
             $todel = $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE];
         }
-        
+
         if (empty($todel)) {
             print_error('err_syllabus_notexist', 'local_ucla_syllabus');
         } else {
             // CCLE-3685 - If the syllabus is the landing page and it is deleted
-            // then default the landing page back to "Site info"
-            // Only revert the landing page if only one syllabus exists and is 
-            // being deleted
-            if (is_null($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]) || 
+            // then default the landing page back to the "Site info" page.
+            // Only revert the landing page if only one syllabus exists and is
+            // being deleted.
+            if (is_null($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]) ||
                     is_null($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE])
                     ) {
                 require_once($CFG->dirroot.'/course/format/ucla/ucla_course_prefs.class.php');
                 require_once($CFG->dirroot.'/course/format/ucla/lib.php');
-                
-                $course_prefs = new ucla_course_prefs($course->id);
-                if ($course_prefs->get_preference('landing_page') == UCLA_FORMAT_DISPLAY_SYLLABUS) {
-                    // $course_prefs->set_preference('landing_page', 0, true);
-                    // would be better, but because of the null check, storing 
-                    // a course preference with a value of 0 is not possible
-                    $course_prefs->set_preference('landing_page', 0);
-                    $course_prefs->commit();
+
+                $courseprefs = new ucla_course_prefs($course->id);
+                if ($courseprefs->get_preference('landing_page') == UCLA_FORMAT_DISPLAY_SYLLABUS) {
+                    $courseprefs->set_preference('landing_page', 0);
+                    $courseprefs->commit();
                 }
             }
-            
-            $ucla_syllabus_manager->delete_syllabus($todel);
-            
+
+            $syllabusmanager->delete_syllabus($todel);
+
             $url = new moodle_url('/local/ucla_syllabus/index.php',
                     array('action' => UCLA_SYLLABUS_ACTION_VIEW,
                           'id' => $course->id));
-            $success_msg = get_string('successful_delete', 'local_ucla_syllabus');
-            flash_redirect($url, $success_msg);            
+            $successmessage = get_string('successful_delete', 'local_ucla_syllabus');
+            flash_redirect($url, $successmessage);
         }
     } else if ($action == UCLA_SYLLABUS_ACTION_CONVERT) {
-        // User is converting between public or private syllabus
-        $syllabi = $ucla_syllabus_manager->get_syllabi();
-        
+        // User is converting between public or private syllabus.
+        $syllabi = $syllabusmanager->get_syllabi();
+
         $convertto = 0;
         if ($type == UCLA_SYLLABUS_TYPE_PUBLIC) {
             $convertto = UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE;
         } else if ($type == UCLA_SYLLABUS_TYPE_PRIVATE) {
-            // Using the stricter version of public - require user login
+            // Using the stricter version of public - require user login.
             $convertto = UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN;
         }
-        
+
         if ($convertto == 0) {
              print_error('err_syllabus_notexist', 'local_ucla_syllabus');
         } else {
-            $ucla_syllabus_manager->convert_syllabus($syllabi[$type], $convertto);
-            
+            $syllabusmanager->convert_syllabus($syllabi[$type], $convertto);
+
             $url = new moodle_url('/local/ucla_syllabus/index.php',
                     array('action' => UCLA_SYLLABUS_ACTION_VIEW,
                           'id' => $course->id));
 
             if ($convertto == UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE) {
-                $success_msg = get_string('successful_restrict', 'local_ucla_syllabus');
+                $successmessage = get_string('successful_restrict', 'local_ucla_syllabus');
             } else {
-                $success_msg = get_string('successful_unrestrict', 'local_ucla_syllabus');
+                $successmessage = get_string('successful_unrestrict', 'local_ucla_syllabus');
             }
-            flash_redirect($url, $success_msg);
+            flash_redirect($url, $successmessage);
         }
     }
 
-    display_header(get_string('syllabus_manager', 'local_ucla_syllabus'));    
-    $syllabus_form->display();
-    
+    display_header(get_string('syllabus_manager', 'local_ucla_syllabus'));
+    $syllabusform->display();
+
 } else {
-    // else just display syllabus
+    // Just display syllabus.
     $title = ''; $body = '';
 
-    $syllabi = $ucla_syllabus_manager->get_syllabi();
+    $syllabi = $syllabusmanager->get_syllabi();
 
-     $syllabus_to_display = null;
+     $syllabustodisplay = null;
     if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]) &&
             $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]->can_view()) {
-        // see if logged in user can view private syllabus
-        $syllabus_to_display = $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE];
+        // See if logged in user can view private syllabus.
+        $syllabustodisplay = $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE];
     } else if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]) &&
             $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]->can_view()) {
-        // fallback on trying to see if user can view public syllabus
-        $syllabus_to_display = $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC];
+        // Fallback on trying to see if user can view public syllabus.
+        $syllabustodisplay = $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC];
     }
-    
-    // setup what to display
-    if (empty($syllabus_to_display)) {
-        // no syllabus, so display no info
+
+    // Set up what to display.
+    if (empty($syllabustodisplay)) {
+        // If there is no syllabus, then display no info.
         $title = get_string('display_name_default', 'local_ucla_syllabus');
 
-        $error_string = '';
+        $errorstring = '';
         if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC])) {
-            $error_string = get_string('cannot_view_public_syllabus', 'local_ucla_syllabus');
+            $errorstring = get_string('cannot_view_public_syllabus', 'local_ucla_syllabus');
         } else if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE])) {
-            $error_string = get_string('cannot_view_private_syllabus', 'local_ucla_syllabus');
+            $errorstring = get_string('cannot_view_private_syllabus', 'local_ucla_syllabus');
         } else {
-            $error_string = get_string('no_syllabus_uploaded', 'local_ucla_syllabus');
+            $errorstring = get_string('no_syllabus_uploaded', 'local_ucla_syllabus');
         }
 
-        $body = html_writer::tag('p', $error_string, array('class' => 'no_syllabus'));
+        $body = html_writer::tag('p', $errorstring, array('class' => 'no_syllabus'));
 
-        // if user can upload a syllabus, let them know about turning editing on
-        if ($can_manage_syllabus) {
-            $body .= html_writer::tag('p', 
+        // If user can upload a syllabus, let them know about turning editing on.
+        if ($canmanagesyllabus) {
+            $body .= html_writer::tag('p',
                     get_string('no_syllabus_uploaded_help', 'local_ucla_syllabus'));
-        }        
+        }
     } else {
-        $title = $syllabus_to_display->display_name;
+        $title = $syllabustodisplay->display_name;
 
-        // Give preference to URL
-        if(empty($syllabus_to_display->url)) {
-            $fullurl = $syllabus_to_display->get_file_url();
-            $mimetype = $syllabus_to_display->get_mimetype();
+        // Give preference to URL.
+        if (empty($syllabustodisplay->url)) {
+            $fullurl = $syllabustodisplay->get_file_url();
+            $mimetype = $syllabustodisplay->get_mimetype();
             $clicktoopen = get_string('err_noembed', 'local_ucla_syllabus');
-            $download_link = $syllabus_to_display->get_download_link();        
-            
+            $downloadlink = $syllabustodisplay->get_download_link();
+
         } else {
-            $fullurl = $syllabus_to_display->url;
+            $fullurl = $syllabustodisplay->url;
             $mimetype = 'text/html';
             $clicktoopen = get_string('err_noembed', 'local_ucla_syllabus');
-            $download_link = html_writer::link($syllabus_to_display->url, $syllabus_to_display->url);
+            $downloadlink = html_writer::link($syllabustodisplay->url, $syllabustodisplay->url);
         }
 
-        // add download link
-        $body .= html_writer::tag('div', $download_link, array('id' => 'download_link'));
+        // Add download link.
+        $body .= html_writer::tag('div', $downloadlink, array('id' => 'download_link'));
 
-        // try to embed file using resource functions
+        // Try to embed file using resource functions.
         if ($mimetype === 'application/pdf') {
             $body .= resourcelib_embed_pdf($fullurl, $title, $clicktoopen);
-        } else {            
+        } else {
             $body .= resourcelib_embed_general($fullurl, $title, $clicktoopen, $mimetype);
         }
-        
-        // if this is a preview syllabus, give some disclaimer text
-        $disclaimer_text = ''; $type_text = '';
-        if ($syllabus_to_display instanceof ucla_public_syllabus) {
-            if ($syllabus_to_display->is_preview) {
-                $type_text = get_string('preview', 'local_ucla_syllabus');
-                $disclaimer_text = get_string('preview_disclaimer', 'local_ucla_syllabus');
+
+        // If this is a preview syllabus, give some disclaimer text.
+        $disclaimertext = '';
+        $typetext = '';
+        if ($syllabustodisplay instanceof ucla_public_syllabus) {
+            if ($syllabustodisplay->is_preview) {
+                $typetext = get_string('preview', 'local_ucla_syllabus');
+                $disclaimertext = get_string('preview_disclaimer', 'local_ucla_syllabus');
             }
         } else {
-            $type_text = get_string('private', 'local_ucla_syllabus');
-            $disclaimer_text = get_string('private_disclaimer', 'local_ucla_syllabus');
-        }
-        
-        // Add modified date
-        $modified_text = '';
-        if(!empty($syllabus_to_display->timemodified)) {
-            $modified_text = get_string('modified', 'local_ucla_syllabus') 
-                    . userdate($syllabus_to_display->timemodified);
+            $typetext = get_string('private', 'local_ucla_syllabus');
+            $disclaimertext = get_string('private_disclaimer', 'local_ucla_syllabus');
         }
 
-        if (!empty($type_text)) {
-            $title .= sprintf(' (%s)*',$type_text);
-            $body .= html_writer::tag('p', '*' . $disclaimer_text,
+        // Add modified date.
+        $modifiedtext = '';
+        if (!empty($syllabustodisplay->timemodified)) {
+            $modifiedtext = get_string('modified', 'local_ucla_syllabus')
+                    . userdate($syllabustodisplay->timemodified);
+        }
+
+        if (!empty($typetext)) {
+            $title .= sprintf(' (%s)*', $typetext);
+            $body .= html_writer::tag('p', '*' . $disclaimertext,
                     array('class' => 'syllabus_disclaimer'));
         }
-        $body .= html_writer::tag('p', $modified_text, 
+        $body .= html_writer::tag('p', $modifiedtext,
                 array('class' => 'syllabus-modified'));
     }
-    
-    // now display content
+
+    // Now display content.
     display_header($title);
     echo $OUTPUT->container($body, 'ucla_syllabus-container');
-    
-    // log for statistics later
-    add_to_log($course->id, 'ucla_syllabus', 'view', 'index.php?id='.$course->id, '');    
+
+    // Log for statistics later.
+    add_to_log($course->id, 'ucla_syllabus', 'view', 'index.php?id='.$course->id, '');
 }
 
 echo $OUTPUT->footer();
 
-// SCRIPT FUNCTIONS
 
-function display_header($page_title) {
+// Function to display header.
+function display_header($pagetitle) {
     global $OUTPUT;
     echo $OUTPUT->header();
-    echo $OUTPUT->heading($page_title, 2, 'headingblock');           
-    flash_display();    // display any success messages
+    echo $OUTPUT->heading($pagetitle, 2, 'headingblock');
+    flash_display();    // Display any success messages.
 }

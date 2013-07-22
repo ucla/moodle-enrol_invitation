@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -32,9 +31,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-////////////////////////////////////////////////////////////////////////////////
-// Moodle core API                                                            //
-////////////////////////////////////////////////////////////////////////////////
+
+// Moodle core API.
 
 /**
  * Returns a small object with summary information about what a
@@ -74,7 +72,7 @@ function local_ucla_syllabus_user_complete($course, $user, $mod, $newmodule) {
  * @return boolean
  */
 function local_ucla_syllabus_print_recent_activity($course, $viewfullnames, $timestart) {
-    return false;  //  True if anything was printed, otherwise false
+    return false;  // True if anything was printed, otherwise false.
 }
 
 /**
@@ -98,7 +96,7 @@ function local_ucla_syllabus_get_recent_mod_activity(&$activities, &$index, $tim
 
 /**
  * Prints single activity item prepared by {@see newmodule_get_recent_mod_activity()}
-
+ *
  * @return void
  */
 function local_ucla_syllabus_print_recent_mod_activity($activity, $courseid, $detail, $modnames, $viewfullnames) {
@@ -126,9 +124,8 @@ function local_ucla_syllabus_get_extra_capabilities() {
     return array();
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// File API                                                                   //
-////////////////////////////////////////////////////////////////////////////////
+
+// File API.
 
 /**
  * Serves the files from the ucla_syllabus file areas.
@@ -152,54 +149,25 @@ function local_ucla_syllabus_get_extra_capabilities() {
 function local_ucla_syllabus_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options=array()) {
     require_once(dirname(__FILE__).'/locallib.php');
     global $DB, $CFG;
-    
-    // first get syllabus file
-    $syllabus = ucla_syllabus_manager::instance($args[0]);  // first argument should be ucla_syllabus id
-    
-    // do some sanity checks
+
+    // First, get syllabus file.
+    $syllabus = ucla_syllabus_manager::instance($args[0]);  // First argument should be syllabus ID.
+
+    // Do some sanity checks.
     if (empty($syllabus) || !(isset($syllabus->stored_file))) {
-        // no syllabus
-        send_file_not_found();        
-    } else if ($syllabus->courseid != $course->id || 
+        // There is no syllabus.
+        send_file_not_found();
+    } else if ($syllabus->courseid != $course->id ||
             $syllabus->stored_file->get_contextid() != $context->id) {
-        // given file doesn't belong to given course
+        // Given file doesn't belong to given course.
         print_error('err_syllabus_mismatch', 'local_ucla_syllabus');
     }
-    
-    // see if syllabus allows itself to be viewed
+
+    // See if syllabus allows itself to be viewed.
     if ($syllabus->can_view()) {
-        // finally send the file
+        // Finally, send the file.
         send_stored_file($syllabus->stored_file, 86400, 0, $forcedownload);
     } else {
         print_error('err_syllabus_not_allowed', 'local_ucla_syllabus');
     }
 }
-
-//////////////////////////////////////////////////////////////////////////////////
-//// Navigation API                                                             //
-//////////////////////////////////////////////////////////////////////////////////
-//
-///**
-// * Extends the global navigation tree by adding newmodule nodes if there is a relevant content
-// *
-// * This can be called by an AJAX request so do not rely on $PAGE as it might not be set up properly.
-// *
-// * @param navigation_node $navref An object representing the navigation tree node of the newmodule module instance
-// * @param stdClass $course
-// * @param stdClass $module
-// * @param cm_info $cm
-// */
-//function newmodule_extend_navigation(navigation_node $navref, stdclass $course, stdclass $module, cm_info $cm) {
-//}
-//
-///**
-// * Extends the settings navigation with the newmodule settings
-// *
-// * This function is called when the context for the page is a newmodule module. This is not called by AJAX
-// * so it is safe to rely on the $PAGE.
-// *
-// * @param settings_navigation $settingsnav {@link settings_navigation}
-// * @param navigation_node $newmodulenode {@link navigation_node}
-// */
-//function newmodule_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $newmodulenode=null) {
-//}
