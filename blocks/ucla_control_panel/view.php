@@ -39,24 +39,6 @@ if (isguestuser()) {
     redirect($CFG->wwwroot . '/course/view.php?id=' . $course_id);
 }
 
-// For Control Panel views logging purposes 
-if ($module_view == 'default') {
-    if ($section_id > 0) {
-        $infoparam = "Section $section_id - Common functions";
-    } else {
-        $infoparam = "Common functions";
-    }
-} else if ($module_view == 'more_advanced') {
-    $infoparam = "Advanced functions";
-} else {
-    $infoparam = "Admin functions";
-}
-
-$params = array('course_id' => $course_id, 'section' => $section_id, 'module' => $module_view);
-$log_url = new moodle_url('../blocks/ucla_control_panel/view.php', $params);
-
-add_to_log($course_id, 'course', "control panel view", $log_url, $infoparam);
-
 // Initialize $PAGE
 $PAGE->set_url('/blocks/ucla_control_panel/view.php', 
     array('course_id' => $course_id));
@@ -176,8 +158,13 @@ if ($no_elements) {
         $module_view));
 }
 
-//this is temporary fix for the bottom border
+// Log the tab the user is viewing.
+$params = array('course_id' => $course_id, 'section' => $section_id, 'module' => $module_view);
+$log_url = new moodle_url('../blocks/ucla_control_panel/view.php', $params);
+add_to_log($course_id, 'course', "control panel view", $log_url,
+        get_string($module_view, 'block_ucla_control_panel'));
 
+//this is temporary fix for the bottom border
 echo html_writer::end_tag('div');
 echo $OUTPUT->footer();
 

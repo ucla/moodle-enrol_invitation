@@ -381,9 +381,17 @@ if ($uploadform->is_cancelled()) {
         $newmodules = array($sectionid => $newmods);
         block_ucla_rearrange::move_modules_section_bulk($newmodules);
     }
-    
+
+    // The add_to_log function will truncate the info field if it is over 255
+    // characters long, which will remove the " - via control panel" postfix.
+    // So, we need to truncate the text if it is over 232 characters (255 mius
+    // 3 characters for the truncation (...) and 20 for the postfix text).
+    $name = strip_tags(format_string($data->name, true));
+    if (textlib::strlen($name) > 232) {
+        $name = textlib::substr($name, 0, 232)."...";
+    }
     add_to_log($data->course_id, $data->modulename, 'add', 
-            "/view.php?id=$data->coursemodule", $data->name . " - via Control Panel");
+            "/view.php?id=$data->coursemodule", $name . " - via control panel");
     
     $eventdata = new stdClass();
     $eventdata->modulename = $data->modulename;
