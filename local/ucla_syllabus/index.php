@@ -15,15 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is a one-line short description of the file
+ * Allows for display and management of syllabi.
  *
- * You can have a rather longer description of the file as well,
- * if you like, and it can span multiple lines.
+ * Includes core functions for course syllabus: uploading, editing, 
+ * displaying, removing, downloading, and making private. Responsible
+ * for actual interface of syllabus page.
  *
- * @package    local
- * @subpackage ucla_syllabus
- * @copyright  2012 UC Regents
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     local_ucla_syllabus
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
@@ -304,7 +304,11 @@ if (!empty($USER->editing) && $canmanagesyllabus) {
 echo $OUTPUT->footer();
 
 
-// Function to display header.
+/**
+ * Display the heading of the page.
+ * 
+ * @param string $pagetitle
+ */
 function display_header($pagetitle) {
     global $OUTPUT;
     echo $OUTPUT->header();

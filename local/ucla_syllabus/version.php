@@ -16,13 +16,12 @@
 
 
 /**
- * Defines the version of UCLA syllabus plugin
+ * Defines the version of UCLA syllabus plugin.
  *
  * This code fragment is called by moodle_needs_upgrading() and
  * /admin/index.php
  *
- * @package    local
- * @subpackage ucla_syllabus
+ * @package    local_ucla_syllabus
  * @copyright  2012 UC Regents
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

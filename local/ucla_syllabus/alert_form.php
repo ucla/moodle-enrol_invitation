@@ -17,8 +17,7 @@
 /**
  * Syllabus alert form definition.
  *
- * @package    local
- * @subpackage ucla_syllabus
+ * @package    local_ucla_syllabus
  * @copyright  2012 UC Regents
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,7 +26,20 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->libdir . '/formslib.php');
 
+/**
+ * Alert form class.
+ * 
+ * Used to create a form for alerting user about syllabus.
+ * 
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class alert_form extends moodleform {
+
+    /**
+     * Generates syllabus alert form for both manually uploaded and regular
+     * syllabi.
+     */
     public function definition() {
         $mform = $this->_form;
 

@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * The web client to be used in interacting with the syllabus.
+ * 
+ * @package     local_ucla_syllabus
+ * @subpackage  webservice
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 require_once(dirname(__FILE__) . '/../../../config.php');
 
@@ -35,7 +43,13 @@ $url = optional_param('url', '', PARAM_URL);
 $filename = optional_param('file_name_real', '', PARAM_RAW);
 $delete = optional_param('deleted', false, PARAM_BOOL);
 
-// Decode file size.
+/**
+ * Decods the size of the file.
+ * 
+ * @param   int $bytes
+ * @param   int $decimals
+ * @return  string
+ */
 function human_filesize($bytes, $decimals = 2) {
     $sz = 'BKMGTP';
     $factor = floor((strlen($bytes) - 1) / 3);

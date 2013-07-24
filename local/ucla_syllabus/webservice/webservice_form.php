@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Form for requesting web service.
+ * 
+ * @package     local_ucla_syllabus
+ * @subpackage  webservice
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 if (!defined('MOODLE_INTERNAL')) {
     // It must be included from a Moodle page.
@@ -22,8 +30,23 @@ if (!defined('MOODLE_INTERNAL')) {
 
 require_once($CFG->libdir.'/formslib.php');
 
+/**
+ * Syllabus webservice form class.
+ * 
+ * Creates a form usable by the web service for describing any
+ * syllabus webservice events.
+ * 
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class syllabus_ws_form extends moodleform {
 
+    /**
+     * Define form.
+     * 
+     * Extracts information from $DB and $USER to appropriately
+     * fill our the web service form.
+     */
     public function definition() {
         global $DB, $USER;
 

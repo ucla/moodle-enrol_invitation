@@ -14,8 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Database events.
+ * 
+ * This file contains the event handlers for the Moodle event API.
+ * 
+ * @package local_ucla_syllabus
+ * @subpackage db
+ * @copyright 2012 UC Regents
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
-// These are the events that are being listened for.
 $handlers = array (
     'ucla_syllabus_added' => array (
         'handlerfile'      => '/local/ucla_syllabus/webservice/eventlib.php',

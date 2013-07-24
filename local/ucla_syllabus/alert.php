@@ -14,9 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/*
+/**
+ * Syllabus alert file.
+ * 
  * Responds to syllabus alert form. Handles setting of user preferences and
  * redirecting.
+ * 
+ * @package     local_ucla_syllabus
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
