@@ -17,7 +17,7 @@ require_login();
 require_capability('local/ucla:bulk_users', get_context_instance(CONTEXT_SYSTEM));
 // END UCLA MOD: CCLE-2970
 admin_externalpage_setup('userbulk');
-require_capability('moodle/role:assign', get_context_instance(CONTEXT_SYSTEM)); //TODO: use some enrol cap
+require_capability('moodle/role:assign', context_system::instance()); //TODO: use some enrol cap
 $return = $CFG->wwwroot.'/'.$CFG->admin.'/user/user_bulk.php';
 //If no users selected then return to user_bulk.php
 if (empty($SESSION->bulk_users)) {
@@ -90,13 +90,13 @@ if(!empty($processed)) {
          */
         $ids = explode(',', $info);
         if(!empty($ids[2])) {
-            $context = get_context_instance(CONTEXT_COURSE, $ids[1]);
+            $context = context_course::instance($ids[1]);
             role_assign(5, $ids[0], $context->id); //TODO: horrible!!
         } else {
             if( empty($ids[1] ) ) {
                 continue;
             }
-            $context = get_context_instance(CONTEXT_COURSE, $ids[1]);
+            $context = context_course::instance($ids[1]);
             role_unassign(5, $ids[0], $context->id);
         }
     }

@@ -46,36 +46,16 @@ $currentgroup = groups_get_activity_group($cm, true);
 
 // Group Check
 if (empty($currentgroup)) {
-    // all users who can attempt scoes
-    if (!$students = get_users_by_capability($contextmodule, 'mod/scorm:savetrack', '', '', '', '', '', '', false)) {
-        $nostudents = true;
-        $allowedlist = '';
-    } else {
-        $allowedlist = array_keys($students);
-    }
+    // All users who can attempt scoes.
+    $students = get_users_by_capability($contextmodule, 'mod/scorm:savetrack', 'u.id' , '', '', '', '', '', false);
+    $allowedlist = empty($students) ? array() : array_keys($students);
 } else {
-    // all users who can attempt scoes and who are in the currently selected group
-    if (!$groupstudents = get_users_by_capability($contextmodule, 'mod/scorm:savetrack', '', '', '', '', $currentgroup, '', false)) {
-        $nostudents = true;
-        $groupstudents = array();
-    }
-    $allowedlist = array_keys($groupstudents);
+    // All users who can attempt scoes and who are in the currently selected group.
+    $groupstudents = get_users_by_capability($contextmodule, 'mod/scorm:savetrack', 'u.id', '', '', '', $currentgroup, '', false);
+    $allowedlist = empty($groupstudents) ? array() : array_keys($groupstudents);
 }
 
 $params = array();
-list($usql, $params) = $DB->get_in_or_equal($allowedlist);
-$params[] = $scoid;
-
-// Determine Sco keys to be used
-if (scorm_version_check($scorm->version, SCORM_13)) {
-    $maxkey = 'cmi.score.max';
-    $minkey = 'cmi.score.min';
-    $scorekey = 'cmi.score.raw';
-} else {
-    $maxkey = 'cmi.core.score.max';
-    $minkey = 'cmi.core.score.min';
-    $scorekey = 'cmi.core.score.raw';
-}
 $bands = 11;
 $bandwidth = 10;
 
@@ -86,10 +66,11 @@ for ($i = 0; $i < $bands; $i++) {
     $graphdata[$i] = 0;
 }
 
-
-// Do this only if we have students to report
-if(!$nostudents) {
-    // Construct the SQL
+// Do this only if we have students to report.
+if (!empty($allowedlist)) {
+    list($usql, $params) = $DB->get_in_or_equal($allowedlist);
+    $params[] = $scoid;
+    // Construct the SQL.
     $select = 'SELECT DISTINCT '.$DB->sql_concat('st.userid', '\'#\'', 'COALESCE(st.attempt, 0)').' AS uniqueid, ';
     $select .= 'st.userid AS userid, st.scormid AS scormid, st.attempt AS attempt, st.scoid AS scoid ';
     $from = 'FROM {scorm_scoes_track} st ';
@@ -98,17 +79,17 @@ if(!$nostudents) {
 
     foreach ($attempts as $attempt) {
         if ($trackdata = scorm_get_tracks($scoid, $attempt->userid, $attempt->attempt)) {
-            if (isset($trackdata->$scorekey)) {
-                $score = $trackdata->$scorekey;
-                if (!isset($trackdata->$minkey) || empty($trackdata->$minkey)) {
+            if (isset($trackdata->score_raw)) {
+                $score = $trackdata->score_raw;
+                if (empty($trackdata->score_min)) {
                     $minmark = 0;
                 } else {
-                    $minmark = $trackdata->$minkey;
+                    $minmark = $trackdata->score_min;
                 }
-                if (!isset($trackdata->$maxkey) || empty($trackdata->$maxkey)) {
+                if (empty($trackdata->score_max)) {
                     $maxmark = 100;
                 } else {
-                    $maxmark = $trackdata->$maxkey;
+                    $maxmark = $trackdata->score_max;
                 }
                 $range = ($maxmark - $minmark);
                 if (empty($range)) {

@@ -49,7 +49,7 @@ $PAGE->set_url('/mod/forum/post.php', array(
 //these page_params will be passed as hidden variables later in the form.
 $page_params = array('reply'=>$reply, 'forum'=>$forum, 'edit'=>$edit);
 
-$sitecontext = get_context_instance(CONTEXT_SYSTEM);
+$sitecontext = context_system::instance();
 
 if (!isloggedin() or isguestuser()) {
 
@@ -80,7 +80,7 @@ if (!isloggedin() or isguestuser()) {
     if (!$cm = get_coursemodule_from_instance('forum', $forum->id, $course->id)) { // For the logs
         print_error('invalidcoursemodule');
     } else {
-        $modcontext = get_context_instance(CONTEXT_MODULE, $cm->id);
+        $modcontext = context_module::instance($cm->id);
     }
 
     $PAGE->set_cm($cm, $course, $forum);
@@ -107,7 +107,7 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum
         print_error("invalidcoursemodule");
     }
 
-    $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+    $coursecontext = context_course::instance($course->id);
 
     if (! forum_user_can_post_discussion($forum, $groupid, -1, $cm)) {
         if (!isguestuser()) {
@@ -175,8 +175,8 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum
     // Ensure lang, theme, etc. is set up properly. MDL-6926
     $PAGE->set_cm($cm, $course, $forum);
 
-    $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
-    $modcontext    = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $coursecontext = context_course::instance($course->id);
+    $modcontext    = context_module::instance($cm->id);
 
     if (! forum_user_can_post($forum, $discussion, $USER, $cm, $course, $modcontext)) {
         if (!isguestuser()) {
@@ -252,7 +252,7 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum
     if (!$cm = get_coursemodule_from_instance("forum", $forum->id, $course->id)) {
         print_error('invalidcoursemodule');
     } else {
-        $modcontext = get_context_instance(CONTEXT_MODULE, $cm->id);
+        $modcontext = context_module::instance($cm->id);
     }
 
     $PAGE->set_cm($cm, $course, $forum);
@@ -299,7 +299,7 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum
     }
 
     require_login($course, false, $cm);
-    $modcontext = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $modcontext = context_module::instance($cm->id);
 
     if ( !(($post->userid == $USER->id && has_capability('mod/forum:deleteownpost', $modcontext))
                 || has_capability('mod/forum:deleteanypost', $modcontext)) ) {
@@ -416,7 +416,7 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum
     if (!$cm = get_coursemodule_from_instance("forum", $forum->id, $forum->course)) { // For the logs
         print_error('invalidcoursemodule');
     } else {
-        $modcontext = get_context_instance(CONTEXT_MODULE, $cm->id);
+        $modcontext = context_module::instance($cm->id);
     }
     if (!has_capability('mod/forum:splitdiscussions', $modcontext)) {
         print_error('cannotsplit', 'forum');
@@ -484,7 +484,7 @@ if (!empty($forum)) {      // User is starting a new discussion in a forum
 
 if (!isset($coursecontext)) {
     // Has not yet been set by post.php.
-    $coursecontext = get_context_instance(CONTEXT_COURSE, $forum->course);
+    $coursecontext = context_course::instance($forum->course);
 }
 
 
@@ -493,7 +493,7 @@ if (!isset($coursecontext)) {
 if (!$cm = get_coursemodule_from_instance('forum', $forum->id, $course->id)) { // For the logs
     print_error('invalidcoursemodule');
 }
-$modcontext = get_context_instance(CONTEXT_MODULE, $cm->id);
+$modcontext = context_module::instance($cm->id);
 require_login($course, false, $cm);
 
 if (isguestuser()) {
@@ -507,7 +507,15 @@ if (!isset($forum->maxattachments)) {  // TODO - delete this once we add a field
 
 require_once('post_form.php');
 
-$mform_post = new mod_forum_post_form('post.php', array('course'=>$course, 'cm'=>$cm, 'coursecontext'=>$coursecontext, 'modcontext'=>$modcontext, 'forum'=>$forum, 'post'=>$post));
+$thresholdwarning = forum_check_throttling($forum, $cm);
+$mform_post = new mod_forum_post_form('post.php', array('course' => $course,
+                                                        'cm' => $cm,
+                                                        'coursecontext' => $coursecontext,
+                                                        'modcontext' => $modcontext,
+                                                        'forum' => $forum,
+                                                        'post' => $post,
+                                                        'thresholdwarning' => $thresholdwarning,
+                                                        'edit' => $edit), 'post', '', array('id' => 'mformforum'));
 
 $draftitemid = file_get_submitted_draft_itemid('attachments');
 file_prepare_draft_area($draftitemid, $modcontext->id, 'mod_forum', 'attachment', empty($post->id)?null:$post->id, mod_forum_post_form::attachment_options($forum));
@@ -681,7 +689,7 @@ if ($fromform = $mform_post->get_data()) {
 
     } else if ($fromform->discussion) { // Adding a new post to an existing discussion
         // Before we add this we must check that the user will not exceed the blocking threshold.
-        forum_check_throttling($forum, $cm, false);
+        forum_check_blocking_threshold($thresholdwarning);
 
         unset($fromform->groupid);
 
@@ -734,7 +742,7 @@ if ($fromform = $mform_post->get_data()) {
 
     } else { // Adding a new discussion.
         // Before we add this we must check that the user will not exceed the blocking threshold.
-        forum_check_throttling($forum, $cm, false);
+        forum_check_blocking_threshold($thresholdwarning);
 
         if (!forum_user_can_post_discussion($forum, $fromform->groupid, -1, $cm, $modcontext)) {
             print_error('cannotcreatediscussion', 'forum');
@@ -876,13 +884,14 @@ if ($forum->type == 'qanda'
     echo $OUTPUT->notification(get_string('qandanotify','forum'));
 }
 
-// If we are not editing a post we need to check the posting threshold.
-if (!$edit) {
-    forum_check_throttling($forum, $cm);
+// If there is a warning message and we are not editing a post we need to handle the warning.
+if (!empty($thresholdwarning) && !$edit) {
+    // Here we want to throw an exception if they are no longer allowed to post.
+    forum_check_blocking_threshold($thresholdwarning);
 }
 
 if (!empty($parent)) {
-    if (! $discussion = $DB->get_record('forum_discussions', array('id' => $parent->discussion))) {
+    if (!$discussion = $DB->get_record('forum_discussions', array('id' => $parent->discussion))) {
         print_error('notpartofdiscussion', 'forum');
     }
 
@@ -897,32 +906,13 @@ if (!empty($parent)) {
 } else {
     if (!empty($forum->intro)) {
         echo $OUTPUT->box(format_module_intro('forum', $forum, $cm->id), 'generalbox', 'intro');
+
+        if (!empty($CFG->enableplagiarism)) {
+            require_once($CFG->libdir.'/plagiarismlib.php');
+            echo plagiarism_print_disclosure($cm->id);
+        }
     }
 }
-
-//Start SSC Modification - Logic to let instructors know if announcements forum is hidden
-//bchaidez/kfongson - SSC-1306
-$setvisible = optional_param('setvisible', 0, PARAM_INT);
-if($setvisible == 1 && has_capability('moodle/course:manageactivities', $coursecontext)) {
-    $DB->set_field('course_modules', 'visible', 1, array('id' => $cm->id));
-    rebuild_course_cache($course->id);
-}
-
-$sesskey = sesskey();
-if ($forum->type == 'news' && !instance_is_visible('forum', $forum)) {
-    // If the user has permission to hide/unhide the forum, show the link
-    if(has_capability('moodle/course:manageactivities', $coursecontext)) {
-        $unhideforumurl = new moodle_url('/mod/forum/post.php',
-                array('forum' => $forum->id, 'sesskey' => $sesskey, 'setvisible' => 1));
-        $unhidelinkhtml = html_writer::link($unhideforumurl, get_string('unhidelink', 'local_ucla'));
-        $warninghtml = get_string('announcementshidden', 'local_ucla') . ' ' . $unhidelinkhtml;
-    } else {
-        $warninghtml = get_string('askinstructortounhide', 'local_ucla');
-    }
-
-    echo $OUTPUT->box($warninghtml, 'errorbox announcementshidden');
-}
-// End SSC Modification
 
 if (!empty($formheading)) {
     echo $OUTPUT->heading($formheading, 2, array('class' => 'accesshide'));

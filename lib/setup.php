@@ -90,6 +90,54 @@ if (!isset($CFG->wwwroot) or $CFG->wwwroot === 'http://example.com/moodle') {
     exit(1);
 }
 
+// Ignore $CFG->behat_wwwroot and use the same wwwroot.
+if (!empty($CFG->behat_switchcompletely)) {
+    $CFG->behat_wwwroot = $CFG->wwwroot;
+
+} else if (empty($CFG->behat_wwwroot)) {
+    // Default URL for acceptance testing, only accessible from localhost.
+    $CFG->behat_wwwroot = 'http://localhost:8000';
+}
+
+
+// Test environment is requested if:
+// * Behat is running (constant set hooking the behat init process before requiring config.php).
+// * If we are accessing though the built-in web server (cli-server).
+// * If $CFG->behat_switchcompletely has been set (maintains CLI scripts behaviour, which ATM is only preventive).
+// Test environment is enabled if:
+// * User has previously enabled through admin/tool/behat/cli/util.php --enable.
+// Both are required to switch to test mode
+if (!defined('BEHAT_SITE_RUNNING') && !empty($CFG->behat_dataroot) &&
+        !empty($CFG->behat_prefix) && file_exists($CFG->behat_dataroot)) {
+
+    $CFG->behat_dataroot = realpath($CFG->behat_dataroot);
+
+    $switchcompletely = !empty($CFG->behat_switchcompletely) && php_sapi_name() !== 'cli';
+    $builtinserver = php_sapi_name() === 'cli-server';
+    $behatrunning = defined('BEHAT_TEST');
+    $testenvironmentrequested = $switchcompletely || $builtinserver || $behatrunning;
+
+    // Only switch to test environment if it has been enabled.
+    $testenvironmentenabled = file_exists($CFG->behat_dataroot . '/behat/test_environment_enabled.txt');
+
+    if ($testenvironmentenabled && $testenvironmentrequested) {
+
+        // Constant used to inform that the behat test site is being used,
+        // this includes all the processes executed by the behat CLI command like
+        // the site reset, the steps executed by the browser drivers when simulating
+        // a user session and a real session when browsing manually to $CFG->behat_wwwroot
+        // like the browser driver does automatically.
+        // Different from BEHAT_TEST as only this last one can perform CLI
+        // actions like reset the site or use data generators.
+        define('BEHAT_SITE_RUNNING', true);
+
+        $CFG->wwwroot = $CFG->behat_wwwroot;
+        $CFG->passwordsaltmain = 'moodle';
+        $CFG->prefix = $CFG->behat_prefix;
+        $CFG->dataroot = $CFG->behat_dataroot;
+    }
+}
+
 // Define admin directory
 if (!isset($CFG->admin)) {   // Just in case it isn't defined in config.php
     $CFG->admin = 'admin';   // This is relative to the wwwroot and dirroot
@@ -138,6 +186,22 @@ if (!defined('PHPUNIT_TEST')) {
     define('PHPUNIT_TEST', false);
 }
 
+// When set to true MUC (Moodle caching) will be disabled as much as possible.
+// A special cache factory will be used to handle this situation and will use special "disabled" equivalents objects.
+// This ensure we don't attempt to read or create the config file, don't use stores, don't provide persistence or
+// storage of any kind.
+if (!defined('CACHE_DISABLE_ALL')) {
+    define('CACHE_DISABLE_ALL', false);
+}
+
+// When set to true MUC (Moodle caching) will not use any of the defined or default stores.
+// The Cache API will continue to function however this will force the use of the cachestore_dummy so all requests
+// will be interacting with a static property and will never go to the proper cache stores.
+// Useful if you need to avoid the stores for one reason or another.
+if (!defined('CACHE_DISABLE_STORES')) {
+    define('CACHE_DISABLE_STORES', false);
+}
+
 // Servers should define a default timezone in php.ini, but if they don't then make sure something is defined.
 // This is a quick hack.  Ideally we should ask the admin for a value.  See MDL-22625 for more on this.
 if (function_exists('date_default_timezone_set') and function_exists('date_default_timezone_get')) {
@@ -174,6 +238,7 @@ if (defined('WEB_CRON_EMULATED_CLI')) {
 if (file_exists("$CFG->dataroot/climaintenance.html")) {
     if (!CLI_SCRIPT) {
         header('Content-type: text/html; charset=utf-8');
+        header('X-UA-Compatible: IE=edge');
         /// Headers to make it not cacheable and json
         header('Cache-Control: no-store, no-cache, must-revalidate');
         header('Cache-Control: post-check=0, pre-check=0', false);
@@ -196,10 +261,10 @@ if (file_exists("$CFG->dataroot/climaintenance.html")) {
 
 if (CLI_SCRIPT) {
     // sometimes people use different PHP binary for web and CLI, make 100% sure they have the supported PHP version
-    if (version_compare(phpversion(), '5.3.2') < 0) {
+    if (version_compare(phpversion(), '5.3.3') < 0) {
         $phpversion = phpversion();
         // do NOT localise - lang strings would not work here and we CAN NOT move it to later place
-        echo "Moodle 2.1 or later requires at least PHP 5.3.2 (currently using version $phpversion).\n";
+        echo "Moodle 2.5 or later requires at least PHP 5.3.3 (currently using version $phpversion).\n";
         echo "Some servers may have multiple PHP versions installed, are you using the correct executable?\n";
         exit(1);
     }
@@ -222,7 +287,7 @@ umask(0000);
 
 // exact version of currently used yui2 and 3 library
 $CFG->yui2version = '2.9.0';
-$CFG->yui3version = '3.5.1';
+$CFG->yui3version = '3.9.1';
 
 
 // special support for highly optimised scripts that do not need libraries and DB connection
@@ -336,21 +401,6 @@ global $COURSE;
 global $OUTPUT;
 
 /**
- * Shared memory cache.
- * @global object $MCACHE
- * @name $MCACHE
- */
-global $MCACHE;
-
-/**
- * Cache used within grouplib to cache data within current request only.
- *
- * @global object $GROUPLLIB_CACHE
- * @name $GROUPLIB_CACHE
- */
-global $GROUPLIB_CACHE;
-
-/**
  * Full script path including all params, slash arguments, scheme and host.
  *
  * Note: Do NOT use for getting of current page URL or detection of https,
@@ -415,6 +465,13 @@ if (!PHPUNIT_TEST or PHPUNIT_UTIL) {
     set_error_handler('default_error_handler', E_ALL | E_STRICT);
 }
 
+// Acceptance tests needs special output to capture the errors,
+// but not necessary for behat CLI command.
+if (defined('BEHAT_SITE_RUNNING') && !defined('BEHAT_TEST')) {
+    require_once(__DIR__ . '/behat/lib.php');
+    set_error_handler('behat_error_handler', E_ALL | E_STRICT);
+}
+
 // If there are any errors in the standard libraries we want to know!
 error_reporting(E_ALL | E_STRICT);
 
@@ -468,6 +525,7 @@ require_once($CFG->libdir .'/sessionlib.php');      // All session and cookie re
 require_once($CFG->libdir .'/editorlib.php');       // All text editor related functions and classes
 require_once($CFG->libdir .'/messagelib.php');      // Messagelib functions
 require_once($CFG->libdir .'/modinfolib.php');      // Cached information on course-module instances
+require_once($CFG->dirroot.'/cache/lib.php');       // Cache API
 
 // make sure PHP is not severly misconfigured
 setup_validate_php_configuration();
@@ -477,7 +535,7 @@ setup_DB();
 
 if (PHPUNIT_TEST and !PHPUNIT_UTIL) {
     // make sure tests do not run in parallel
-    phpunit_util::acquire_test_lock();
+    test_lock::acquire('phpunit');
     $dbhash = null;
     try {
         if ($dbhash = $DB->get_field('config', 'value', array('name'=>'phpunittest'))) {
@@ -582,42 +640,6 @@ if (!empty($CFG->version) and $CFG->version < 2007101509) {
     die;
 }
 
-// Shared-Memory cache init -- will set $MCACHE
-// $MCACHE is a global object that offers at least add(), set() and delete()
-// with similar semantics to the memcached PHP API http://php.net/memcache
-// Ensure we define rcache - so we can later check for it
-// with a really fast and unambiguous $CFG->rcache === false
-if (!empty($CFG->cachetype)) {
-    if (empty($CFG->rcache)) {
-        $CFG->rcache = false;
-    } else {
-        $CFG->rcache = true;
-    }
-
-    // do not try to initialize if cache disabled
-    if (!$CFG->rcache) {
-        $CFG->cachetype = '';
-    }
-
-    if ($CFG->cachetype === 'memcached' && !empty($CFG->memcachedhosts)) {
-        if (!init_memcached()) {
-            debugging("Error initialising memcached");
-            $CFG->cachetype = '';
-            $CFG->rcache = false;
-        }
-    } else if ($CFG->cachetype === 'eaccelerator') {
-        if (!init_eaccelerator()) {
-            debugging("Error initialising eaccelerator cache");
-            $CFG->cachetype = '';
-            $CFG->rcache = false;
-        }
-    }
-
-} else { // just make sure it is defined
-    $CFG->cachetype = '';
-    $CFG->rcache    = false;
-}
-
 // Calculate and set $CFG->ostype to be used everywhere. Possible values are:
 // - WINDOWS: for any Windows flavour.
 // - UNIX: for the rest
@@ -698,6 +720,7 @@ try {
     if (empty($CFG->version)) {
         $SITE = new stdClass();
         $SITE->id = 1;
+        $SITE->shortname = null;
     } else {
         throw $e;
     }
@@ -791,6 +814,9 @@ moodle_setlocale();
 
 // Create the $PAGE global - this marks the PAGE and OUTPUT fully initialised, this MUST be done at the end of setup!
 if (!empty($CFG->moodlepageclass)) {
+    if (!empty($CFG->moodlepageclassfile)) {
+        require_once($CFG->moodlepageclassfile);
+    }
     $classname = $CFG->moodlepageclass;
 } else {
     $classname = 'moodle_page';
@@ -918,6 +944,19 @@ if (!empty($_SERVER['HTTP_USER_AGENT']) and strpos($_SERVER['HTTP_USER_AGENT'], 
     }
 }
 
+// Switch to CLI maintenance mode if required, we need to do it here after all the settings are initialised.
+if (isset($CFG->maintenance_later) and $CFG->maintenance_later <= time()) {
+    if (!file_exists("$CFG->dataroot/climaintenance.html")) {
+        require_once("$CFG->libdir/adminlib.php");
+        enable_cli_maintenance_mode();
+    }
+    unset_config('maintenance_later');
+    if (AJAX_SCRIPT) {
+        die;
+    } else if (!CLI_SCRIPT) {
+        redirect(new moodle_url('/'));
+    }
+}
 
 // note: we can not block non utf-8 installations here, because empty mysql database
 // might be converted to utf-8 in admin/index.php during installation

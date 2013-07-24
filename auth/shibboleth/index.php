@@ -6,6 +6,12 @@
 
     $PAGE->set_url('/auth/shibboleth/index.php');
 
+    // Support for WAYFless URLs.
+    $target = optional_param('target', '', PARAM_LOCALURL);
+    if (!empty($target)) {
+        $SESSION->wantsurl = $target;
+    }
+
     if (isloggedin() && !isguestuser()) {      // Nothing to do
         if (isset($SESSION->wantsurl) and (strpos($SESSION->wantsurl, $CFG->wwwroot) === 0)) {
             $urltogo = $SESSION->wantsurl;    /// Because it's an address in this site
@@ -72,7 +78,7 @@
             }
 
             /// Go to my-moodle page instead of homepage if defaulthomepage enabled
-            if (!has_capability('moodle/site:config',get_context_instance(CONTEXT_SYSTEM)) and !empty($CFG->defaulthomepage) && $CFG->defaulthomepage == HOMEPAGE_MY and !isguestuser()) {
+            if (!has_capability('moodle/site:config',context_system::instance()) and !empty($CFG->defaulthomepage) && $CFG->defaulthomepage == HOMEPAGE_MY and !isguestuser()) {
                 if ($urltogo == $CFG->wwwroot or $urltogo == $CFG->wwwroot.'/' or $urltogo == $CFG->wwwroot.'/index.php') {
                     $urltogo = $CFG->wwwroot.'/my/';
                 }

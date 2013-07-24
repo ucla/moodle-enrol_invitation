@@ -24,6 +24,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['addedby'] = 'Added by {$a}';
 $string['addgroup'] = 'Add user into group';
 $string['addgroupstogrouping'] = 'Add group to grouping';
 $string['addgroupstogroupings'] = 'Add/remove groups';
@@ -62,6 +63,7 @@ $string['erroraddremoveuser'] = 'Error adding/removing user {$a} to group';
 $string['erroreditgroup'] = 'Error creating/updating group {$a}';
 $string['erroreditgrouping'] = 'Error creating/updating grouping {$a}';
 $string['errorinvalidgroup'] = 'Error, invalid group {$a}';
+$string['errorremovenotpermitted'] = 'You do not have permission to remove automatically-added group member {$a}';
 $string['errorselectone'] = 'Please select a single group before choosing this option';
 $string['errorselectsome'] = 'Please select one or more groups before choosing this option';
 $string['evenallocation'] = 'Note: To keep group allocation even, the actual number of members per group differs from the number you specified.';
@@ -69,12 +71,14 @@ $string['existingmembers'] = 'Existing members: {$a}';
 $string['filtergroups'] = 'Filter groups by:';
 $string['group'] = 'Group';
 $string['groupaddedsuccesfully'] = 'Group {$a} added successfully';
+$string['groupaddedtogroupingsuccesfully'] = 'Group {$a->groupname} added to grouping {$a->groupingname} successfully';
 $string['groupby'] = 'Specify';
 $string['groupdescription'] = 'Group description';
 $string['groupinfo'] = 'Info about selected group';
 $string['groupinfomembers'] = 'Info about selected members';
 $string['groupinfopeople'] = 'Info about selected people';
 $string['grouping'] = 'Grouping';
+$string['groupingaddedsuccesfully'] = 'Grouping {$a} added successfully';
 $string['grouping_help'] = 'A grouping is a collection of groups within a course. If a grouping is selected, students assigned to groups within the grouping will be able to work together.';
 $string['groupingsection'] = 'Grouping access';
 $string['groupingsection_help'] = 'A grouping is a collection of groups within a course. If a grouping is selected here, only students assigned to groups within this grouping will have access to the section.';
@@ -107,6 +111,7 @@ $string['groupnameexists'] = 'The group name \'{$a}\' already exists in this cou
 $string['groupnotamember'] = 'Sorry, you are not a member of that group';
 $string['groups'] = 'Groups';
 $string['groupscount'] = 'Groups ({$a})';
+$string['groupsettingsheader'] = 'Groups';
 $string['groupsgroupings'] = 'Groups &amp; groupings';
 $string['groupsinselectedgrouping'] = 'Groups in:';
 $string['groupsnone'] = 'No groups';

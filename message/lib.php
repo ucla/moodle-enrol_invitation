@@ -26,12 +26,6 @@ require_once($CFG->libdir.'/eventslib.php');
 
 define ('MESSAGE_SHORTLENGTH', 300);
 
-//$PAGE isnt set if we're being loaded by cron which doesnt display popups anyway
-if (isset($PAGE)) {
-    //TODO: this is a mega crazy hack - it is not acceptable to call anything when including lib!!! (skodak)
-    $PAGE->set_popup_notification_allowed(false); // We are in a message window (so don't pop up a new one)
-}
-
 define ('MESSAGE_DISCUSSION_WIDTH',600);
 define ('MESSAGE_DISCUSSION_HEIGHT',500);
 
@@ -492,7 +486,7 @@ function message_print_usergroup_selector($viewing, $courses, $coursecontexts, $
         $options[MESSAGE_VIEW_UNREAD_MESSAGES] = $strunreadmessages;
     }
 
-    $str = get_string('mycontacts', 'message');
+    $str = get_string('contacts', 'message');
     $options[MESSAGE_VIEW_CONTACTS] = $str;
 
     $options[MESSAGE_VIEW_RECENT_CONVERSATIONS] = get_string('mostrecentconversations', 'message');
@@ -544,7 +538,7 @@ function message_get_course_contexts($courses) {
     $coursecontexts = array();
 
     foreach($courses as $course) {
-        $coursecontexts[$course->id] = get_context_instance(CONTEXT_COURSE, $course->id);
+        $coursecontexts[$course->id] = context_course::instance($course->id);
     }
 
     return $coursecontexts;
@@ -850,7 +844,7 @@ function message_print_recent_notifications($user=null) {
 
     $showicontext = false;
     $showotheruser = false;
-    message_print_recent_messages_table($notifications, $user, $showotheruser, $showicontext);
+    message_print_recent_messages_table($notifications, $user, $showotheruser, $showicontext, true);
 }
 
 /**
@@ -860,6 +854,7 @@ function message_print_recent_notifications($user=null) {
  * @param object $user the current user
  * @param bool $showotheruser display information on the other user?
  * @param bool $showicontext show text next to the action icons?
+ * @param bool $forcetexttohtml Force text to go through @see text_to_html() via @see format_text()
  * @return void
  */
 function message_print_recent_messages_table($messages, $user = null, $showotheruser = true, $showicontext = false, $forcetexttohtml = false, $showactionlinks = true) {
@@ -925,7 +920,7 @@ function message_print_recent_messages_table($messages, $user = null, $showother
         }
 
         echo html_writer::tag('span', userdate($message->timecreated, $dateformat), array('class' => 'messagedate'));
-        echo html_writer::tag('span', format_text($messagetoprint, FORMAT_HTML), array('class' => 'themessage'));
+        echo html_writer::tag('span', format_text($messagetoprint, $forcetexttohtml?FORMAT_MOODLE:FORMAT_HTML), array('class' => 'themessage'));
         echo message_format_contexturl($message);
         echo html_writer::end_tag('div');//end singlemessage
     }
@@ -1042,11 +1037,14 @@ function message_print_search_results($frm, $showicontext=false, $currentuser=nu
     if ($personsearch) {
         if (optional_param('mycourses', 0, PARAM_BOOL)) {
             $users = array();
-            $mycourses = enrol_get_my_courses();
+            $mycourses = enrol_get_my_courses('id');
+            $mycoursesids = array();
             foreach ($mycourses as $mycourse) {
-                if (is_array($susers = message_search_users($mycourse->id, $personsearchstring))) {
-                    foreach ($susers as $suser) $users[$suser->id] = $suser;
-                }
+                $mycoursesids[] = $mycourse->id;
+            }
+            $susers = message_search_users($mycoursesids, $personsearchstring);
+            foreach ($susers as $suser) {
+                $users[$suser->id] = $suser;
             }
         } else {
             $users = message_search_users(SITEID, $personsearchstring);
@@ -1300,7 +1298,10 @@ function message_print_user ($user=false, $iscontact=false, $isblocked=false, $i
         echo $OUTPUT->user_picture($USER, array('size' => 20, 'courseid' => SITEID));
     } else {
         echo $OUTPUT->user_picture($user, array('size' => 20, 'courseid' => SITEID));
-        echo '&nbsp;';
+
+        $link = new moodle_url("/message/index.php?id=$user->id");
+        echo $OUTPUT->action_link($link, fullname($user), null, array('title' =>
+                get_string('sendmessageto', 'message', fullname($user))));
 
         $return = false;
         $script = null;
@@ -1309,27 +1310,12 @@ function message_print_user ($user=false, $iscontact=false, $isblocked=false, $i
         } else {
             message_contact_link($user->id, 'add', $return, $script, $includeicontext);
         }
-        echo '&nbsp;';
+
         if ($isblocked) {
             message_contact_link($user->id, 'unblock', $return, $script, $includeicontext);
         } else {
             message_contact_link($user->id, 'block', $return, $script, $includeicontext);
         }
-
-        $popupoptions = array(
-                'height' => MESSAGE_DISCUSSION_HEIGHT,
-                'width' => MESSAGE_DISCUSSION_WIDTH,
-                'menubar' => false,
-                'location' => false,
-                'status' => true,
-                'scrollbars' => true,
-                'resizable' => true);
-
-        $link = new moodle_url("/message/index.php?id=$user->id");
-        //$action = new popup_action('click', $link, "message_$user->id", $popupoptions);
-        $action = null;
-        echo $OUTPUT->action_link($link, fullname($user), $action, array('title' => get_string('sendmessageto', 'message', fullname($user))));
-
     }
 }
 
@@ -1381,14 +1367,14 @@ function message_contact_link($userid, $linktype='add', $return=false, $script=n
                 $iconpath = 't/block';
                 break;
             case 'unblock':
-                $iconpath = 't/userblue';
+                $iconpath = 't/unblock';
                 break;
             case 'remove':
-                $iconpath = 'i/cross_red_big';
+                $iconpath = 't/removecontact';
                 break;
             case 'add':
             default:
-                $iconpath = 't/addgreen';
+                $iconpath = 't/addcontact';
         }
 
         $img = '<img src="'.$OUTPUT->pix_url($iconpath).'" class="iconsmall" alt="'.$safealttext.'" />';
@@ -1435,9 +1421,9 @@ function message_history_link($userid1, $userid2, $return=false, $keywords='', $
     }
 
     if ($linktext == 'icon') {  // Icon only
-        $fulllink = '<img src="'.$OUTPUT->pix_url('t/log') . '" class="iconsmall" alt="'.$strmessagehistory.'" />';
+        $fulllink = '<img src="'.$OUTPUT->pix_url('t/messages') . '" class="iconsmall" alt="'.$strmessagehistory.'" />';
     } else if ($linktext == 'both') {  // Icon and standard name
-        $fulllink = '<img src="'.$OUTPUT->pix_url('t/log') . '" class="iconsmall" alt="" />';
+        $fulllink = '<img src="'.$OUTPUT->pix_url('t/messages') . '" class="iconsmall" alt="" />';
         $fulllink .= '&nbsp;'.$strmessagehistory;
     } else if ($linktext) {    // Custom name
         $fulllink = $linktext;
@@ -1470,26 +1456,32 @@ function message_history_link($userid1, $userid2, $return=false, $keywords='', $
 
 
 /**
- * Search through course users
+ * Search through course users.
  *
- * If $coursid specifies the site course then this function searches
- * through all undeleted and confirmed users
- * @param int $courseid The course in question.
- * @param string $searchtext the text to search for
- * @param string $sort the column name to order by
- * @param string $exceptions comma separated list of user IDs to exclude
- * @return array  An array of {@link $USER} records.
+ * If $courseids contains the site course then this function searches
+ * through all undeleted and confirmed users.
+ *
+ * @param int|array $courseids Course ID or array of course IDs.
+ * @param string $searchtext the text to search for.
+ * @param string $sort the column name to order by.
+ * @param string|array $exceptions comma separated list or array of user IDs to exclude.
+ * @return array An array of {@link $USER} records.
  */
-function message_search_users($courseid, $searchtext, $sort='', $exceptions='') {
+function message_search_users($courseids, $searchtext, $sort='', $exceptions='') {
     global $CFG, $USER, $DB;
 
-    $fullname = $DB->sql_fullname();
-
-    if (!empty($exceptions)) {
-        $except = ' AND u.id NOT IN ('. $exceptions .') ';
-    } else {
-        $except = '';
+    // Basic validation to ensure that the parameter $courseids is not an empty array or an empty value.
+    if (!$courseids) {
+        $courseids = array(SITEID);
     }
+
+    // Allow an integer to be passed.
+    if (!is_array($courseids)) {
+        $courseids = array($courseids);
+    }
+
+    $fullname = $DB->sql_fullname();
+    $ufields = user_picture::fields('u');
 
     if (!empty($sort)) {
         $order = ' ORDER BY '. $sort;
@@ -1497,32 +1489,58 @@ function message_search_users($courseid, $searchtext, $sort='', $exceptions='') 
         $order = '';
     }
 
-    $ufields = user_picture::fields('u');
-    if (!$courseid or $courseid == SITEID) {
-        $params = array($USER->id, "%$searchtext%");
+    $params = array(
+        'userid' => $USER->id,
+        'query' => "%$searchtext%"
+    );
+
+    if (empty($exceptions)) {
+        $exceptions = array();
+    } else if (!empty($exceptions) && is_string($exceptions)) {
+        $exceptions = explode(',', $exceptions);
+    }
+
+    // Ignore self and guest account.
+    $exceptions[] = $USER->id;
+    $exceptions[] = $CFG->siteguest;
+
+    // Exclude exceptions from the search result.
+    list($except, $params_except) = $DB->get_in_or_equal($exceptions, SQL_PARAMS_NAMED, 'param', false);
+    $except = ' AND u.id ' . $except;
+    $params = array_merge($params_except, $params);
+
+    if (in_array(SITEID, $courseids)) {
+        // Search on site level.
         return $DB->get_records_sql("SELECT $ufields, mc.id as contactlistid, mc.blocked
                                        FROM {user} u
                                        LEFT JOIN {message_contacts} mc
-                                            ON mc.contactid = u.id AND mc.userid = ?
+                                            ON mc.contactid = u.id AND mc.userid = :userid
                                       WHERE u.deleted = '0' AND u.confirmed = '1'
-                                            AND (".$DB->sql_like($fullname, '?', false).")
+                                            AND (".$DB->sql_like($fullname, ':query', false).")
                                             $except
                                      $order", $params);
     } else {
-//TODO: add enabled enrolment join here (skodak)
-        $context = get_context_instance(CONTEXT_COURSE, $courseid);
-        $contextlists = get_related_contexts_string($context);
+        // Search in courses.
 
-        // everyone who has a role assignment in this course or higher
-        $params = array($USER->id, "%$searchtext%");
+        // Getting the context IDs or each course.
+        $contextids = array();
+        foreach ($courseids as $courseid) {
+            $context = context_course::instance($courseid);
+            $contextids = array_merge($contextids, $context->get_parent_context_ids(true));
+        }
+        list($contextwhere, $contextparams) = $DB->get_in_or_equal(array_unique($contextids), SQL_PARAMS_NAMED, 'context');
+        $params = array_merge($params, $contextparams);
+
+        // Everyone who has a role assignment in this course or higher.
+        // TODO: add enabled enrolment join here (skodak)
         $users = $DB->get_records_sql("SELECT DISTINCT $ufields, mc.id as contactlistid, mc.blocked
                                          FROM {user} u
                                          JOIN {role_assignments} ra ON ra.userid = u.id
                                          LEFT JOIN {message_contacts} mc
-                                              ON mc.contactid = u.id AND mc.userid = ?
+                                              ON mc.contactid = u.id AND mc.userid = :userid
                                         WHERE u.deleted = '0' AND u.confirmed = '1'
-                                              AND ra.contextid $contextlists
-                                              AND (".$DB->sql_like($fullname, '?', false).")
+                                              AND (".$DB->sql_like($fullname, ':query', false).")
+                                              AND ra.contextid $contextwhere
                                               $except
                                        $order", $params);
 
@@ -1546,8 +1564,8 @@ function message_search_users($courseid, $searchtext, $sort='', $exceptions='') 
 function message_search($searchterms, $fromme=true, $tome=true, $courseid='none', $userid=0) {
     global $CFG, $USER, $DB;
 
-    // If user is searching all messages check they are allowed to before doing anything else
-    if ($courseid == SITEID && !has_capability('moodle/site:readallmessages', get_context_instance(CONTEXT_SYSTEM))) {
+    // If user is searching all messages check they are allowed to before doing anything else.
+    if ($courseid == SITEID && !has_capability('moodle/site:readallmessages', context_system::instance())) {
         print_error('accessdenied','admin');
     }
 
@@ -1860,8 +1878,7 @@ function message_print_message_history($user1, $user2 ,$search = '', $messagelim
     echo html_writer::end_tag('td');
 
     echo html_writer::start_tag('td', array('align' => 'center'));
-    echo html_writer::empty_tag('img', array('src' => $OUTPUT->pix_url('t/left'), 'alt' => get_string('from')));
-    echo html_writer::empty_tag('img', array('src' => $OUTPUT->pix_url('t/right'), 'alt' => get_string('to')));
+    echo html_writer::empty_tag('img', array('src' => $OUTPUT->pix_url('i/twoway'), 'alt' => ''));
     echo html_writer::end_tag('td');
 
     echo html_writer::start_tag('td', array('align' => 'center', 'id' => 'user2'));
@@ -1979,7 +1996,12 @@ function message_format_message($message, $format='', $keywords='', $class='othe
         $messagetext = highlight($keywords, $messagetext);
     }
 
-    return '<div class="message '.$class.'"><a name="m'.$message->id.'"></a> <span class="time">'.$time.'</span>: <span class="content">'.$messagetext.'</span></div>';
+    return <<<TEMPLATE
+<div class='message $class'>
+    <a name="m'.{$message->id}.'"></a>
+    <span class="message-meta"><span class="time">$time</span></span>: <span class="text">$messagetext</span>
+</div>
+TEMPLATE;
 }
 
 /**
@@ -2041,7 +2063,7 @@ function message_post_message($userfrom, $userto, $message, $format) {
     $eventdata->smallmessage     = $message;//store the message unfiltered. Clean up on output.
 
     $s = new stdClass();
-    $s->sitename = format_string($SITE->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, SITEID)));
+    $s->sitename = format_string($SITE->shortname, true, array('context' => context_course::instance(SITEID)));
     $s->url = $CFG->wwwroot.'/message/index.php?user='.$userto->id.'&id='.$userfrom->id;
 
     $emailtagline = get_string_manager()->get_string('emailtagline', 'message', $s, $userto->lang);

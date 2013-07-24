@@ -9,7 +9,7 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/local/ucla/lib.php');
-require_once($CFG->libdir . '/phpunit/classes/data_generator.php');
+require_once($CFG->libdir . '/testing/generator/lib.php');
 
 /**
  * local_ucla data generator

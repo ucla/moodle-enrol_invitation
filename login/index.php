@@ -27,6 +27,12 @@
 require('../config.php');
 require_once($CFG->dirroot .'/local/ucla/lib.php');
 
+// Try to prevent searching for sites that allow sign-up.
+if (!isset($CFG->additionalhtmlhead)) {
+    $CFG->additionalhtmlhead = '';
+}
+$CFG->additionalhtmlhead .= '<meta name="robots" content="noindex" />';
+
 redirect_if_major_upgrade_required();
 
 $testsession = optional_param('testsession', 0, PARAM_INT); // test session works properly
@@ -39,7 +45,7 @@ if ($cancel) {
 //HTTPS is required in this page when $CFG->loginhttps enabled
 $PAGE->https_required();
 
-$context = get_context_instance(CONTEXT_SYSTEM);
+$context = context_system::instance();
 $PAGE->set_url("$CFG->httpswwwroot/login/index.php");
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('login');
@@ -149,8 +155,6 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
         die;
     }
 
-    update_login_count();
-
     if ($user) {
 
         // language setup
@@ -245,13 +249,6 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
                 exit;
             }
         }
-
-        reset_login_count();
-
-        // START SSC Modification for auto-login
-        // daveng - CCLE-2590
-        auto_login_as_guest();
-        // END SSC Modification
 
         // test the session actually works by redirecting to self
         $SESSION->wantsurl = $urltogo;

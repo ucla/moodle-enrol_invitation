@@ -84,7 +84,7 @@
     require_once($CFG->dirroot . '/comment/lib.php');
     comment::init();
 
-    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $context = context_module::instance($cm->id);
     require_capability('mod/data:viewentry', $context);
 
 /// If we have an empty Database then redirect because this page is useless without data
@@ -275,7 +275,7 @@
         $USER->editing = $edit;
     }
 
-    $courseshortname = format_string($course->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id)));
+    $courseshortname = format_string($course->shortname, true, array('context' => context_course::instance($course->id)));
 
 /// RSS and CSS and JS meta
     $meta = '';
@@ -765,7 +765,7 @@ if ($showactivity) {
     if ($mode == '' && !empty($CFG->enableportfolios) && !empty($records)) {
         require_once($CFG->libdir . '/portfoliolib.php');
         $button = new portfolio_add_button();
-        $button->set_callback_options('data_portfolio_caller', array('id' => $cm->id), '/mod/data/locallib.php');
+        $button->set_callback_options('data_portfolio_caller', array('id' => $cm->id), 'mod_data');
         if (data_portfolio_caller::has_files($data)) {
             $button->set_formats(array(PORTFOLIO_FORMAT_RICHHTML, PORTFOLIO_FORMAT_LEAP2A)); // no plain html for us
         }

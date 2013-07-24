@@ -93,5 +93,5 @@ YUI.add('moodle-block_community-comments', function(Y) {
     }
 
 }, '@VERSION@', {
-    requires:['base', 'moodle-enrol-notification']
+    requires:['base', 'moodle-core-notification']
 });

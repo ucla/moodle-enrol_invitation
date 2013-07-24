@@ -47,11 +47,17 @@ class user_editadvanced_form extends moodleform {
         $mform->setType('username', PARAM_RAW);
 
         $auths = get_plugin_list('auth');
-        $auth_options = array();
+        $enabled = get_string('pluginenabled', 'core_plugin');
+        $disabled = get_string('plugindisabled', 'core_plugin');
+        $auth_options = array($enabled=>array(), $disabled=>array());
         foreach ($auths as $auth => $unused) {
-            $auth_options[$auth] = get_string('pluginname', "auth_{$auth}");
+            if (is_enabled_auth($auth)) {
+                $auth_options[$enabled][$auth] = get_string('pluginname', "auth_{$auth}");
+            } else {
+                $auth_options[$disabled][$auth] = get_string('pluginname', "auth_{$auth}");
+            }
         }
-        $mform->addElement('select', 'auth', get_string('chooseauthmethod','auth'), $auth_options);
+        $mform->addElement('selectgroups', 'auth', get_string('chooseauthmethod','auth'), $auth_options);
         $mform->addHelpButton('auth', 'chooseauthmethod', 'auth');
 
         $mform->addElement('advcheckbox', 'suspended', get_string('suspended','auth'));
@@ -139,9 +145,9 @@ class user_editadvanced_form extends moodleform {
         }
 
         // print picture
-        if (!empty($CFG->gdversion) and empty($USER->newadminuser)) {
+        if (empty($USER->newadminuser)) {
             if ($user) {
-                $context = get_context_instance(CONTEXT_USER, $user->id, MUST_EXIST);
+                $context = context_user::instance($user->id, MUST_EXIST);
                 $fs = get_file_storage();
                 $hasuploadedpicture = ($fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.png') || $fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.jpg'));
                 if (!empty($user->picture) && $hasuploadedpicture) {

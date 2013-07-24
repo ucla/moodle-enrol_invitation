@@ -46,6 +46,7 @@ $maxbytes  = optional_param('maxbytes', 0, PARAM_INT);          // Maxbytes
 $req_path  = optional_param('p', '', PARAM_RAW);                // Path
 $accepted_types  = optional_param_array('accepted_types', '*', PARAM_RAW);
 $saveas_filename = optional_param('title', '', PARAM_FILE);     // save as file name
+$areamaxbytes  = optional_param('areamaxbytes', FILE_AREA_MAX_BYTES_UNLIMITED, PARAM_INT); // Area max bytes.
 $saveas_path   = optional_param('savepath', '/', PARAM_PATH);   // save as file path
 $search_text   = optional_param('s', '', PARAM_CLEANHTML);
 $linkexternal  = optional_param('linkexternal', '', PARAM_ALPHA);
@@ -56,7 +57,6 @@ require_login($course, false, $cm);
 $PAGE->set_context($context);
 
 echo $OUTPUT->header(); // send headers
-@header('Content-type: text/html; charset=utf-8');
 
 // If uploaded file is larger than post_max_size (php.ini) setting, $_POST content will be empty.
 if (empty($_POST) && !empty($action)) {
@@ -94,8 +94,8 @@ switch ($action) {
     // global search
     case 'gsearch':
         $params = array();
-        $params['context'] = array(get_context_instance_by_id($contextid), get_system_context());
-        $params['currentcontext'] = get_context_instance_by_id($contextid);
+        $params['context'] = array(context::instance_by_id($contextid), get_system_context());
+        $params['currentcontext'] = context::instance_by_id($contextid);
         $repos = repository::get_instances($params);
         $list = array();
         foreach($repos as $repo){
@@ -209,7 +209,7 @@ switch ($action) {
                 $record->filepath = trim($record->filepath, '/');
                 $record->filepath = '/'.$record->filepath.'/';
             }
-            $usercontext = get_context_instance(CONTEXT_USER, $USER->id);
+            $usercontext = context_user::instance($USER->id);
             $now = time();
             $record->contextid = $usercontext->id;
             $record->timecreated = $now;
@@ -266,7 +266,7 @@ switch ($action) {
                     $event['existingfile'] = new stdClass;
                     $event['existingfile']->filepath = $saveas_path;
                     $event['existingfile']->filename = $saveas_filename;
-                    $event['existingfile']->url      = moodle_url::make_draftfile_url($itemid, $saveas_path, $saveas_filename)->out();;
+                    $event['existingfile']->url      = moodle_url::make_draftfile_url($itemid, $saveas_path, $saveas_filename)->out();
                 } else {
 
                     $storedfile = $fs->create_file_from_reference($record, $repo_id, $reference);
@@ -289,7 +289,7 @@ switch ($action) {
 
                 // If the moodle file is an alias we copy this alias, otherwise we copy the file
                 // {@link repository::copy_to_area()}.
-                $fileinfo = $repo->copy_to_area($reference, $record, $maxbytes);
+                $fileinfo = $repo->copy_to_area($reference, $record, $maxbytes, $areamaxbytes);
 
                 echo json_encode($fileinfo);
                 die;
@@ -304,6 +304,11 @@ switch ($action) {
                 // Check if exceed maxbytes.
                 if ($maxbytes != -1 && filesize($downloadedfile['path']) > $maxbytes) {
                     throw new file_exception('maxbytes');
+                }
+
+                // Check if we exceed the max bytes of the area.
+                if (file_is_draft_area_limit_reached($itemid, $areamaxbytes, filesize($downloadedfile['path']))) {
+                    throw new file_exception('maxareabytes');
                 }
 
                 $info = repository::move_to_filepool($downloadedfile['path'], $record);

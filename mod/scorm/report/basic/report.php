@@ -22,6 +22,7 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
+require_once($CFG->libdir . '/csvlib.class.php');
 
 class scorm_basic_report extends scorm_default_report {
     /**
@@ -34,7 +35,7 @@ class scorm_basic_report extends scorm_default_report {
     function display($scorm, $cm, $course, $download) {
         global $CFG, $DB, $OUTPUT, $PAGE;
 
-        $contextmodule= get_context_instance(CONTEXT_MODULE, $cm->id);
+        $contextmodule= context_module::instance($cm->id);
         $action = optional_param('action', '', PARAM_ALPHA);
         $attemptids = optional_param_array('attemptid', array(), PARAM_RAW);
         $attemptsmode = optional_param('attemptsmode', SCORM_REPORT_ATTEMPTS_ALL_STUDENTS, PARAM_INT);
@@ -82,21 +83,23 @@ class scorm_basic_report extends scorm_default_report {
 
         if (empty($currentgroup)) {
             // all users who can attempt scoes
-            if (!$students = get_users_by_capability($contextmodule, 'mod/scorm:savetrack', '', '', '', '', '', '', false)) {
+            if (!$students = get_users_by_capability($contextmodule, 'mod/scorm:savetrack', 'u.id', '', '', '', '', '', false)) {
                 echo $OUTPUT->notification(get_string('nostudentsyet'));
                 $nostudents = true;
                 $allowedlist = '';
             } else {
                 $allowedlist = array_keys($students);
             }
+            unset($students);
         } else {
             // all users who can attempt scoes and who are in the currently selected group
-            if (!$groupstudents = get_users_by_capability($contextmodule, 'mod/scorm:savetrack', '', '', '', '', $currentgroup, '', false)) {
+            if (!$groupstudents = get_users_by_capability($contextmodule, 'mod/scorm:savetrack', 'u.id', '', '', '', $currentgroup, '', false)) {
                 echo $OUTPUT->notification(get_string('nostudentsingroup'));
                 $nostudents = true;
                 $groupstudents = array();
             }
             $allowedlist = array_keys($groupstudents);
+            unset($groupstudents);
         }
 
         if ( !$nostudents ) {
@@ -261,13 +264,9 @@ class scorm_basic_report extends scorm_default_report {
                 }
                 $rownum=1;
             } else if ($download=='CSV') {
-                $filename .= ".txt";
-                header("Content-Type: application/download\n");
-                header("Content-Disposition: attachment; filename=\"$filename\"");
-                header("Expires: 0");
-                header("Cache-Control: must-revalidate,post-check=0,pre-check=0");
-                header("Pragma: public");
-                echo implode("\t", $headers)." \n";
+                $csvexport = new csv_export_writer("tab");
+                $csvexport->set_filename($filename, ".txt");
+                $csvexport->add_data($headers);
             }
             $params = array();
             list($usql, $params) = $DB->get_in_or_equal($allowedlist, SQL_PARAMS_NAMED);
@@ -475,9 +474,8 @@ class scorm_basic_report extends scorm_default_report {
                             $colnum++;
                         }
                         $rownum++;
-                    } else if ($download=='CSV') {
-                        $text = implode("\t", $row);
-                        echo $text." \n";
+                    } else if ($download == 'CSV') {
+                        $csvexport->add_data($row);
                     }
                 }
                 if (!$download) {
@@ -536,6 +534,7 @@ class scorm_basic_report extends scorm_default_report {
                 $workbook->close();
                 exit;
             } else if ($download == 'CSV') {
+                $csvexport->download_file();
                 exit;
             }
         } else {

@@ -19,8 +19,7 @@
  *
  * This plugin allows you to set up paid courses, using authorize.net.
  *
- * @package    enrol
- * @subpackage authorize
+ * @package    enrol_authorize
  * @copyright  2010 Eugene Venter
  * @author     Eugene Venter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -54,7 +53,7 @@ function authorize_print_orders($courseid, $userid) {
     $searchtype = optional_param('searchtype', 'orderid', PARAM_ALPHA);
     $status = optional_param('status', AN_STATUS_NONE, PARAM_INT);
 
-    $coursecontext = get_context_instance(CONTEXT_COURSE, $courseid);
+    $coursecontext = context_course::instance($courseid);
 
     $searchmenu = array('orderid' => $authstrs->orderid, 'transid' => $authstrs->transid, 'cclastfour' => $authstrs->cclastfour);
     $buttons = "<form method='post' action='index.php' autocomplete='off'><div>";
@@ -65,7 +64,7 @@ function authorize_print_orders($courseid, $userid) {
     $buttons .= "<input type='submit' value='$strs->search' />";
     $buttons .= "</div></form>";
 
-    if (has_capability('enrol/authorize:uploadcsv', get_context_instance(CONTEXT_USER, $USER->id))) {
+    if (has_capability('enrol/authorize:uploadcsv', context_user::instance($USER->id))) {
         $buttons .= "<form method='get' action='uploadcsv.php'><div><input type='submit' value='".get_string('uploadcsv', 'enrol_authorize')."' /></div></form>";
     }
 
@@ -277,7 +276,7 @@ function authorize_print_order($orderid)
         print_error('nousers', '', "$CFG->wwwroot/enrol/authorize/index.php");
     }
 
-    $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+    $coursecontext = context_course::instance($course->id);
     if ($USER->id != $order->userid) { // Current user viewing someone else's order
         require_capability('enrol/authorize:managepayments', $coursecontext);
     }
@@ -290,7 +289,7 @@ function authorize_print_order($orderid)
     if (empty($do))
     {
         if (empty($statusandactions->actions)) {
-            if ((AN_METHOD_ECHECK == $order->paymentmethod) && has_capability('enrol/authorize:uploadcsv', get_context_instance(CONTEXT_USER, $USER->id))) {
+            if ((AN_METHOD_ECHECK == $order->paymentmethod) && has_capability('enrol/authorize:uploadcsv', context_user::instance($USER->id))) {
                 $buttons .= "<form method='get' action='uploadcsv.php'><div><input type='submit' value='".get_string('uploadcsv', 'enrol_authorize')."' /></div></form>";
             }
         }
@@ -415,8 +414,9 @@ function authorize_print_order($orderid)
         }
         $a = new stdClass;
         $a->upto = $upto;
-        $extrahtml = '<label for="amount">'.get_string('howmuch', 'enrol_authorize').'</label> ' .
-                     '<input id="amount" type="text" size="5" name="amount" value="'.$amount.'" /> ' .
+        $inputattrs = array('id' => 'amount', 'type' => 'text', 'size' => '5', 'name' => 'amount', 'value' => $amount);
+        $extrahtml = html_writer::label(get_string('howmuch', 'enrol_authorize'), 'amount'). ' '.
+                     html_writer::empty_tag('input', $inputattrs). ' '.
                      get_string('canbecredit', 'enrol_authorize', $a) . '<br />';
         $table->data[] = array("<b>$strs->confirm:</b>",
                                authorize_print_action_button($orderid, ORDER_REFUND, 0, true, $authstrs->unenrolstudent, $strs->no, $extrahtml));
@@ -576,7 +576,7 @@ function authorize_get_status_action($order)
     $ret = new stdClass();
     $ret->actions = array();
 
-    $canmanage = has_capability('enrol/authorize:managepayments', get_context_instance(CONTEXT_COURSE, $order->courseid));
+    $canmanage = has_capability('enrol/authorize:managepayments', context_course::instance($order->courseid));
 
     if (floatval($order->transid) == 0) { // test transaction or new order
         if ($order->timecreated < $newordertime) {

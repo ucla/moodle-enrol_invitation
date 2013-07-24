@@ -34,14 +34,14 @@
             'id' => $courseid));
 
     if ($contextid) {
-        $context = get_context_instance_by_id($contextid, MUST_EXIST);
+        $context = context::instance_by_id($contextid, MUST_EXIST);
         if ($context->contextlevel != CONTEXT_COURSE) {
             print_error('invalidcontext');
         }
         $course = $DB->get_record('course', array('id'=>$context->instanceid), '*', MUST_EXIST);
     } else {
         $course = $DB->get_record('course', array('id'=>$courseid), '*', MUST_EXIST);
-        $context = get_context_instance(CONTEXT_COURSE, $course->id, MUST_EXIST);
+        $context = context_course::instance($course->id, MUST_EXIST);
     }
     // not needed anymore
     unset($contextid);
@@ -49,10 +49,10 @@
 
     require_login($course);
 
-    $systemcontext = get_context_instance(CONTEXT_SYSTEM);
+    $systemcontext = context_system::instance();
     $isfrontpage = ($course->id == SITEID);
 
-    $frontpagectx = get_context_instance(CONTEXT_COURSE, SITEID);
+    $frontpagectx = context_course::instance(SITEID);
 
     if ($isfrontpage) {
         $PAGE->set_pagelayout('admin');
@@ -64,20 +64,11 @@
 
     $rolenamesurl = new moodle_url("$CFG->wwwroot/user/index.php?contextid=$context->id&sifirst=&silast=");
 
-    $allroles = get_all_roles();
-    $roles = get_profile_roles($context);
-    $allrolenames = array();
+    $rolenames = role_fix_names(get_profile_roles($context), $context, ROLENAME_ALIAS, true);
     if ($isfrontpage) {
-        $rolenames = array(0=>get_string('allsiteusers', 'role'));
+        $rolenames[0] = get_string('allsiteusers', 'role');
     } else {
-        $rolenames = array(0=>get_string('allparticipants'));
-    }
-
-    foreach ($allroles as $role) {
-        $allrolenames[$role->id] = strip_tags(role_get_name($role, $context));   // Used in menus etc later on
-        if (isset($roles[$role->id])) {
-            $rolenames[$role->id] = $allrolenames[$role->id];
-        }
+        $rolenames[0] = get_string('allparticipants');
     }
 
     // make sure other roles may not be selected by any means
@@ -199,7 +190,7 @@
         $courselist = array();
         $popupurl = new moodle_url('/user/index.php?roleid='.$roleid.'&sifirst=&silast=');
         foreach ($mycourses as $mycourse) {
-            $coursecontext = get_context_instance(CONTEXT_COURSE, $mycourse->id);
+            $coursecontext = context_course::instance($mycourse->id);
             $courselist[$mycourse->id] = format_string($mycourse->shortname, true, array('context' => $coursecontext));
         }
         if (has_capability('moodle/site:viewparticipants', $systemcontext)) {
@@ -312,10 +303,19 @@
     }
 
     /// Define a table showing a list of users in the current role selection
+    $tablecolumns = array();
+    $tableheaders = array();
+    if ($bulkoperations && $mode === MODE_BRIEF) {
+        $tablecolumns[] = 'select';
+        $tableheaders[] = get_string('select');
+    }
+    $tablecolumns[] = 'userpic';
+    $tablecolumns[] = 'fullname';
 
-    $tablecolumns = array('userpic', 'fullname');
     $extrafields = get_extra_user_fields($context);
-    $tableheaders = array(get_string('userpic'), get_string('fullnameuser'));
+    $tableheaders[] = get_string('userpic');
+    $tableheaders[] = get_string('fullnameuser');
+
     if ($mode === MODE_BRIEF) {
         foreach ($extrafields as $field) {
             $tablecolumns[] = $field;
@@ -335,7 +335,7 @@
         $tableheaders[] = get_string('lastaccess');
     }
 
-    if ($bulkoperations) {
+    if ($bulkoperations && $mode === MODE_USERDETAILS) {
         $tablecolumns[] = 'select';
         $tableheaders[] = get_string('select');
     }
@@ -497,14 +497,15 @@
         $heading .= ": $a->number";
 
         if (user_can_assign($context, $roleid)) {
-            $heading .= ' <a href="'.$CFG->wwwroot.'/'.$CFG->admin.'/roles/assign.php?roleid='.$roleid.'&amp;contextid='.$context->id.'">';
-            $heading .= '<img src="'.$OUTPUT->pix_url('i/edit') . '" class="icon" alt="" /></a>';
+            $headingurl = new moodle_url($CFG->wwwroot . '/' . $CFG->admin . '/roles/assign.php',
+                    array('roleid' => $roleid, 'contextid' => $context->id));
+            $heading .= $OUTPUT->action_icon($headingurl, new pix_icon('t/edit', get_string('edit')));
         }
         echo $OUTPUT->heading($heading, 3);
     } else {
         if ($course->id != SITEID && has_capability('moodle/course:enrolreview', $context)) {
             $editlink = $OUTPUT->action_icon(new moodle_url('/enrol/users.php', array('id' => $course->id)),
-                                             new pix_icon('i/edit', get_string('edit')));
+                                             new pix_icon('t/edit', get_string('edit')));
         } else {
             $editlink = '';
         }
@@ -588,8 +589,8 @@
 
                     context_instance_preload($user);
 
-                    $context = get_context_instance(CONTEXT_COURSE, $course->id);
-                    $usercontext = get_context_instance(CONTEXT_USER, $user->id);
+                    $context = context_course::instance($course->id);
+                    $usercontext = context_user::instance($user->id);
 
                     $countries = get_string_manager()->get_list_of_countries();
 
@@ -728,7 +729,7 @@
                     }
                 }
 
-                $usercontext = get_context_instance(CONTEXT_USER, $user->id);
+                $usercontext = context_user::instance($user->id);
 
                 if ($piclink = ($USER->id == $user->id || has_capability('moodle/user:viewdetails', $context) || has_capability('moodle/user:viewdetails', $usercontext))) {
                     $profilelink = '<strong><a href="'.$CFG->wwwroot.'/user/view.php?id='.$user->id.'&amp;course='.$course->id.'">'.fullname($user).'</a></strong>';
@@ -736,7 +737,12 @@
                     $profilelink = '<strong>'.fullname($user).'</strong>';
                 }
 
-                $data = array ($OUTPUT->user_picture($user, array('size' => 35, 'courseid'=>$course->id)), $profilelink);
+                $data = array();
+                if ($bulkoperations) {
+                    $data[] = '<input type="checkbox" class="usercheckbox" name="user'.$user->id.'" />';
+                }
+                $data[] = $OUTPUT->user_picture($user, array('size' => 35, 'courseid'=>$course->id));
+                $data[] = $profilelink;
 
                 if ($mode === MODE_BRIEF) {
                     foreach ($extrafields as $field) {
@@ -759,7 +765,7 @@
                     foreach ($ras AS $key=>$ra) {
                         $rolename = $allrolenames[$ra['roleid']] ;
                         if ($ra['ctxlevel'] == CONTEXT_COURSECAT) {
-                            $rastring .= $rolename. ' @ ' . '<a href="'.$CFG->wwwroot.'/course/category.php?id='.$ra['ctxinstanceid'].'">'.s($ra['ccname']).'</a>';
+                            $rastring .= $rolename. ' @ ' . '<a href="'.$CFG->wwwroot.'/course/index.php?categoryid='.$ra['ctxinstanceid'].'">'.s($ra['ccname']).'</a>';
                         } elseif ($ra['ctxlevel'] == CONTEXT_SYSTEM) {
                             $rastring .= $rolename. ' - ' . get_string('globalrole','role');
                         } else {
@@ -774,9 +780,6 @@
                     }
                 }
 
-                if ($bulkoperations) {
-                    $data[] = '<input type="checkbox" class="usercheckbox" name="user'.$user->id.'" />';
-                }
                 $table->add_data($data);
             }
         }
@@ -811,7 +814,8 @@
         $PAGE->requires->js_init_call('M.core_user.init_participation', null, false, $module);
     }
 
-    if (has_capability('moodle/site:viewparticipants', $context) && $totalcount > ($perpage*3)) {
+    // Show a search box if all participants don't fit on a single screen
+    if ($totalcount > $perpage) {
         echo '<form action="index.php" class="searchform"><div><input type="hidden" name="id" value="'.$course->id.'" />';
         echo '<label for="search">' . get_string('search', 'search') . ' </label>';
         echo '<input type="text" id="search" name="search" value="'.s($search).'" />&nbsp;<input type="submit" value="'.get_string('search').'" /></div></form>'."\n";

@@ -1,4 +1,3 @@
-
 M.tool_assignmentupgrade = {
     init_upgrade_table: function(Y) {
 
@@ -56,7 +55,7 @@ M.tool_assignmentupgrade = {
             assignmentsinput = Y.one('input.selectedassignments');
             assignmentsinput.set('value', selectedassignments.join(','));
             if (selectedassignments.length == 0) {
-                alert(M.str.assign.noassignmentsselected);
+                alert(M.str.tool_assignmentupgrade.noassignmentsselected);
                 e.preventDefault();
             }
         });

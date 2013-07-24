@@ -528,7 +528,8 @@ class moodle1_converter extends base_converter {
      * CONTEXT_SYSTEM and CONTEXT_COURSE ignore the $instance as they represent a
      * single system or the course being restored.
      *
-     * @see get_context_instance()
+     * @see context_system::instance()
+     * @see context_course::instance()
      * @param int $level the context level, like CONTEXT_COURSE or CONTEXT_MODULE
      * @param int $instance the instance id, for example $course->id for courses or $cm->id for activity modules
      * @return int the context id
@@ -1209,6 +1210,14 @@ class moodle1_file_manager implements loggable {
      */
     public function migrate_file($sourcepath, $filepath = '/', $filename = null, $sortorder = 0, $timecreated = null, $timemodified = null) {
 
+        // Normalise Windows paths a bit.
+        $sourcepath = str_replace('\\', '/', $sourcepath);
+
+        // PARAM_PATH must not be used on full OS path!
+        if ($sourcepath !== clean_param($sourcepath, PARAM_PATH)) {
+            throw new moodle1_convert_exception('file_invalid_path', $sourcepath);
+        }
+
         $sourcefullpath = $this->basepath.'/'.$sourcepath;
 
         if ($sourcefullpath !== clean_param($sourcefullpath, PARAM_PATH)) {
@@ -1276,6 +1285,7 @@ class moodle1_file_manager implements loggable {
 
         // Check the trailing slash in the $rootpath
         if (substr($rootpath, -1) === '/') {
+            debugging('moodle1_file_manager::migrate_directory() expects $rootpath without the trailing slash', DEBUG_DEVELOPER);
             $rootpath = substr($rootpath, 0, strlen($rootpath) - 1);
         }
 

@@ -36,7 +36,7 @@ require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->dirroot . '/course/request_form.php');
 
 require_login();
-require_capability('moodle/site:approvecourse', get_context_instance(CONTEXT_SYSTEM));
+require_capability('moodle/site:approvecourse', context_system::instance());
 
 $approve = optional_param('approve', 0, PARAM_INT);
 $reject = optional_param('reject', 0, PARAM_INT);
@@ -117,11 +117,8 @@ if (empty($pending)) {
     $table = new html_table();
     $table->attributes['class'] = 'pendingcourserequests generaltable';
     $table->align = array('center', 'center', 'center', 'center', 'center', 'center');
-    // START UCLA MOD CCLE-2389 - override table strings and add a site type & requested category columns
-    $table->head = array(get_string('shortnamecourse', 'tool_uclasiteindicator'), get_string('fullnamecourse', 'tool_uclasiteindicator'),
-            get_string('sitetype', 'tool_uclasiteindicator'), get_string('sitecat', 'tool_uclasiteindicator'),
-            get_string('requestedby'), get_string('summary'), get_string('requestreason', 'tool_uclasiteindicator'), get_string('action'));
-    // END UCLA MOD CCLE-2389
+    $table->head = array(get_string('shortnamecourse'), get_string('fullnamecourse'), get_string('requestedby'),
+            get_string('summary'), get_string('category'), get_string('requestreason'), get_string('action'));
 
     foreach ($pending as $course) {
         $course = new course_request($course);
@@ -132,6 +129,8 @@ if (empty($pending)) {
         // START UCLA MOD CCLE-2389 - Get site request obj
         $request = new siteindicator_request($course->id);
 
+        $category = $course->get_category();
+
         $row = array();
         $row[] = format_string($course->shortname);
         $row[] = format_string($course->fullname);
@@ -141,6 +140,7 @@ if (empty($pending)) {
         // END UCLA MOD CCLE-2389
         $row[] = fullname($course->get_requester());
         $row[] = $course->summary;
+        $row[] = $category->get_formatted_name();
         $row[] = format_string($course->reason);
         $row[] = $OUTPUT->single_button(new moodle_url($baseurl, array('approve' => $course->id, 'sesskey' => sesskey())), get_string('approve'), 'get') .
                  $OUTPUT->single_button(new moodle_url($baseurl, array('reject' => $course->id)), get_string('rejectdots'), 'get');

@@ -23,4 +23,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['messages:addinstance'] = 'Add a new messages block';
+$string['messages:myaddinstance'] = 'Add a new messages block to My home';
 $string['pluginname'] = 'Messages';

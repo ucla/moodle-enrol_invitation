@@ -318,20 +318,6 @@ class quiz_statistics_report extends quiz_default_report {
         echo $OUTPUT->heading(get_string('questionstatistics', 'quiz_statistics'));
         echo html_writer::table($questionstatstable);
     }
-    public function format_text($text, $format, $qa, $component, $filearea, $itemid,
-            $clean = false) {
-        $formatoptions = new stdClass();
-        $formatoptions->noclean = !$clean;
-        $formatoptions->para = false;
-        $text = $qa->rewrite_pluginfile_urls($text, $component, $filearea, $itemid);
-        return format_text($text, $format, $formatoptions);
-    }
-
-    /** @return the result of applying {@link format_text()} to the question text. */
-    public function format_questiontext($qa) {
-        return $this->format_text($this->questiontext, $this->questiontextformat,
-        $qa, 'question', 'questiontext', $this->id);
-    }
 
     /**
      * @param object $question question data.
@@ -966,13 +952,16 @@ class quiz_statistics_report extends quiz_default_report {
     protected function everything_download_options() {
         $downloadoptions = $this->table->get_download_menu();
 
+        $downloadelements = new stdClass();
+        $downloadelements->formatsmenu = html_writer::select($downloadoptions, 'download',
+                $this->table->defaultdownloadformat, false);
+        $downloadelements->downloadbutton = '<input type="submit" value="' .
+                get_string('download') . '"/>';
+
         $output = '<form action="'. $this->table->baseurl .'" method="post">';
         $output .= '<div class="mdl-align">';
         $output .= '<input type="hidden" name="everything" value="1"/>';
-        $output .= '<input type="submit" value="' .
-                get_string('downloadeverything', 'quiz_statistics') . '"/>';
-        $output .= html_writer::select($downloadoptions, 'download',
-                $this->table->defaultdownloadformat, false);
+        $output .= html_writer::tag('label', get_string('downloadeverything', 'quiz_statistics', $downloadelements));
         $output .= '</div></form>';
 
         return $output;

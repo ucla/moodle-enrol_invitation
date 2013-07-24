@@ -1576,7 +1576,7 @@ function quiz_attempt_submitted_handler($event) {
     }
 
     return quiz_send_notification_messages($course, $quiz, $attempt,
-            get_context_instance(CONTEXT_MODULE, $cm->id), $cm);
+            context_module::instance($cm->id), $cm);
 }
 
 /**
@@ -1602,7 +1602,7 @@ function quiz_attempt_overdue_handler($event) {
     }
 
     return quiz_send_overdue_message($course, $quiz, $attempt,
-            get_context_instance(CONTEXT_MODULE, $cm->id), $cm);
+            context_module::instance($cm->id), $cm);
 }
 
 /**

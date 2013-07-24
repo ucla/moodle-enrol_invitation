@@ -215,7 +215,7 @@ class required_capability_exception extends moodle_exception {
         $capabilityname = get_capability_string($capability);
         if ($context->contextlevel == CONTEXT_MODULE and preg_match('/:view$/', $capability)) {
             // we can not go to mod/xx/view.php because we most probably do not have cap to view it, let's go to course instead
-            $paranetcontext = get_context_instance_by_id(get_parent_contextid($context));
+            $paranetcontext = context::instance_by_id(get_parent_contextid($context));
             $link = get_context_url($paranetcontext);
         } else {
             $link = get_context_url($context);
@@ -738,8 +738,8 @@ function initialise_cfg() {
 
     try {
         if ($DB) {
-            $localcfg = $DB->get_records_menu('config', array(), '', 'name,value');
-            foreach ($localcfg as $name=>$value) {
+            $localcfg = get_config('core');
+            foreach ($localcfg as $name => $value) {
                 if (property_exists($CFG, $name)) {
                     // config.php settings always take precedence
                     continue;
@@ -1165,8 +1165,8 @@ function disable_output_buffering() {
  */
 function redirect_if_major_upgrade_required() {
     global $CFG;
-    $lastmajordbchanges = 2012051700;
-    if (empty($CFG->version) or (int)$CFG->version < $lastmajordbchanges or
+    $lastmajordbchanges = 2013041800.00;
+    if (empty($CFG->version) or (float)$CFG->version < $lastmajordbchanges or
             during_initial_install() or !empty($CFG->adminsetuppending)) {
         try {
             @session_get_instance()->terminate_current();
@@ -1179,6 +1179,30 @@ function redirect_if_major_upgrade_required() {
         echo bootstrap_renderer::plain_redirect_message(htmlspecialchars($url));
         exit;
     }
+}
+
+/**
+ * Makes sure that upgrade process is not running
+ *
+ * To be inserted in the core functions that can not be called by pluigns during upgrade.
+ * Core upgrade should not use any API functions at all.
+ * See {@link http://docs.moodle.org/dev/Upgrade_API#Upgrade_code_restrictions}
+ *
+ * @throws moodle_exception if executed from inside of upgrade script and $warningonly is false
+ * @param bool $warningonly if true displays a warning instead of throwing an exception
+ * @return bool true if executed from outside of upgrade process, false if from inside upgrade process and function is used for warning only
+ */
+function upgrade_ensure_not_running($warningonly = false) {
+    global $CFG;
+    if (!empty($CFG->upgraderunning)) {
+        if (!$warningonly) {
+            throw new moodle_exception('cannotexecduringupgrade');
+        } else {
+            debugging(get_string('cannotexecduringupgrade', 'error'), DEBUG_DEVELOPER);
+            return false;
+        }
+    }
+    return true;
 }
 
 /**
@@ -1331,41 +1355,6 @@ function make_cache_directory($directory, $exceptiononerror = true) {
     return make_writable_directory("$CFG->cachedir/$directory", $exceptiononerror);
 }
 
-
-/**
- * Initialises an Memcached instance
- * @global memcached $MCACHE
- * @return boolean Returns true if an mcached instance could be successfully initialised
- */
-function init_memcached() {
-    global $CFG, $MCACHE;
-
-    include_once($CFG->libdir . '/memcached.class.php');
-    $MCACHE = new memcached;
-    if ($MCACHE->status()) {
-        return true;
-    }
-    unset($MCACHE);
-    return false;
-}
-
-/**
- * Initialises an eAccelerator instance
- * @global eaccelerator $MCACHE
- * @return boolean Returns true if an eAccelerator instance could be successfully initialised
- */
-function init_eaccelerator() {
-    global $CFG, $MCACHE;
-
-    include_once($CFG->libdir . '/eaccelerator.class.php');
-    $MCACHE = new eaccelerator;
-    if ($MCACHE->status()) {
-        return true;
-    }
-    unset($MCACHE);
-    return false;
-}
-
 /**
  * Checks if current user is a web crawler.
  *
@@ -1388,11 +1377,17 @@ function is_web_crawler() {
             return true;
         } else if (strpos($_SERVER['HTTP_USER_AGENT'], '[ZSEBOT]') !== false ) {  // Zoomspider
             return true;
-        } else if (strpos($_SERVER['HTTP_USER_AGENT'], 'MSNBOT') !== false ) {  // MSN Search
+        } else if (stripos($_SERVER['HTTP_USER_AGENT'], 'msnbot') !== false ) {  // MSN Search
+            return true;
+        } else if (strpos($_SERVER['HTTP_USER_AGENT'], 'bingbot') !== false ) {  // Bing
             return true;
         } else if (strpos($_SERVER['HTTP_USER_AGENT'], 'Yandex') !== false ) {
             return true;
         } else if (strpos($_SERVER['HTTP_USER_AGENT'], 'AltaVista') !== false ) {
+            return true;
+        } else if (stripos($_SERVER['HTTP_USER_AGENT'], 'baiduspider') !== false ) {  // Baidu
+            return true;
+        } else if (strpos($_SERVER['HTTP_USER_AGENT'], 'Teoma') !== false ) {  // Ask.com
             return true;
         }
     }
@@ -1512,7 +1507,12 @@ border-color:black; background-color:#ffffee; border-style:solid; border-radius:
 width: 80%; -moz-border-radius: 20px; padding: 15px">
 ' . $message . '
 </div>';
-        if (!empty($CFG->debug) && $CFG->debug >= DEBUG_DEVELOPER) {
+        // Check whether debug is set.
+        $debug = (!empty($CFG->debug) && $CFG->debug >= DEBUG_DEVELOPER);
+        // Also check we have it set in the config file. This occurs if the method to read the config table from the
+        // database fails, reading from the config table is the first database interaction we have.
+        $debug = $debug || (!empty($CFG->config_php_settings['debug'])  && $CFG->config_php_settings['debug'] >= DEBUG_DEVELOPER );
+        if ($debug) {
             if (!empty($debuginfo)) {
                 $debuginfo = s($debuginfo); // removes all nasty JS
                 $debuginfo = str_replace("\n", '<br />', $debuginfo); // keep newlines
@@ -1571,15 +1571,13 @@ width: 80%; -moz-border-radius: 20px; padding: 15px">
         }
 
         // In the name of protocol correctness, monitoring and performance
-        // profiling, set the appropriate error headers for machine consumption
-        if (isset($_SERVER['SERVER_PROTOCOL'])) {
-            // Avoid it with cron.php. Note that we assume it's HTTP/1.x
-            // The 503 ode here means our Moodle does not work at all, the error happened too early
-            @header($_SERVER['SERVER_PROTOCOL'] . ' 503 Service Unavailable');
-        }
+        // profiling, set the appropriate error headers for machine consumption.
+        $protocol = (isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0');
+        @header($protocol . ' 503 Service Unavailable');
 
         // better disable any caching
         @header('Content-Type: text/html; charset=utf-8');
+        @header('X-UA-Compatible: IE=edge');
         @header('Cache-Control: no-store, no-cache, must-revalidate');
         @header('Cache-Control: post-check=0, pre-check=0', false);
         @header('Pragma: no-cache');
@@ -1644,15 +1642,15 @@ width: 80%; -moz-border-radius: 20px; padding: 15px">
      * @param string $meta meta tag
      * @return string html page
      */
-    protected static function plain_page($title, $content, $meta = '') {
+    public static function plain_page($title, $content, $meta = '') {
         if (function_exists('get_string') && function_exists('get_html_lang')) {
             $htmllang = get_html_lang();
         } else {
             $htmllang = '';
         }
 
-        return '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" ' . $htmllang . '>
+        return '<!DOCTYPE html>
+<html ' . $htmllang . '>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 '.$meta.'

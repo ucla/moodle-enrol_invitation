@@ -32,7 +32,7 @@ $id      = required_param('id', PARAM_INT);             // Course Module ID
 $mode    = optional_param('mode', '', PARAM_ALPHA);
 $link = optional_param('link', 0, PARAM_INT);
 
-$cm = get_coursemodule_from_id('lesson', $id, 0, false, MUST_EXIST);;
+$cm = get_coursemodule_from_id('lesson', $id, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
 $lesson = new lesson($DB->get_record('lesson', array('id' => $cm->instance), '*', MUST_EXIST));
 
@@ -47,7 +47,7 @@ if ($link !== 0) {
 }
 $PAGE->set_url($url);
 
-$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+$context = context_module::instance($cm->id);
 
 switch ($mode) {
     case 'add':
@@ -160,7 +160,7 @@ switch ($mode) {
 add_to_log($course->id, 'lesson', 'view highscores', "highscores.php?id=$cm->id", $lesson->name, $cm->id);
 
 $lessonoutput = $PAGE->get_renderer('mod_lesson');
-echo $lessonoutput->header($lesson, $cm, 'highscores');
+echo $lessonoutput->header($lesson, $cm, 'highscores', false, null, get_string('viewhighscores', 'lesson'));
 
 switch ($mode) {
     case 'add':

@@ -86,11 +86,9 @@ class blog_edit_form extends moodleform {
                     $contextid = $entry->courseassoc;
                 }
 
-                if (has_capability('moodle/blog:associatecourse', $context)) {
-                    $mform->addElement('header', 'assochdr', get_string('associations', 'blog'));
-                    $mform->addElement('advcheckbox', 'courseassoc', get_string('associatewithcourse', 'blog', $a), null, null, array(0, $contextid));
-                    $mform->setDefault('courseassoc', $contextid);
-                }
+                $mform->addElement('header', 'assochdr', get_string('associations', 'blog'));
+                $mform->addElement('advcheckbox', 'courseassoc', get_string('associatewithcourse', 'blog', $a), null, null, array(0, $contextid));
+                $mform->setDefault('courseassoc', $contextid);
 
             } else if ((!empty($entry->modassoc) || !empty($modid))) {
                 if (!empty($modid)) {
@@ -98,9 +96,9 @@ class blog_edit_form extends moodleform {
                     $a = new stdClass();
                     $a->modtype = get_string('modulename', $mod->modname);
                     $a->modname = $mod->name;
-                    $context = get_context_instance(CONTEXT_MODULE, $modid);
+                    $context = context_module::instance($modid);
                 } else {
-                    $context = get_context_instance_by_id($entry->modassoc);
+                    $context = context::instance_by_id($entry->modassoc);
                     $cm = $DB->get_record('course_modules', array('id' => $context->instanceid));
                     $a = new stdClass();
                     $a->modtype = $DB->get_field('modules', 'name', array('id' => $cm->module));
@@ -118,7 +116,7 @@ class blog_edit_form extends moodleform {
 
         $this->add_action_buttons();
         $mform->addElement('hidden', 'action');
-        $mform->setType('action', PARAM_ACTION);
+        $mform->setType('action', PARAM_ALPHANUMEXT);
         $mform->setDefault('action', '');
 
         $mform->addElement('hidden', 'entryid');
@@ -141,14 +139,9 @@ class blog_edit_form extends moodleform {
 
         // validate course association
         if (!empty($data['courseassoc'])) {
-            $coursecontext = context::instance_by_id($data['courseassoc'], IGNORE_MISSING);
+            $coursecontext = context::instance_by_id($data['courseassoc']);
 
-            $canassociatecourse = has_capability('moodle/blog:associatecourse', $coursecontext);
-            if ($coursecontext->contextlevel == CONTEXT_COURSE && $canassociatecourse) {
-                if (!is_enrolled($coursecontext) and !is_viewing($coursecontext)) {
-                    $errors['courseassoc'] = get_string('studentnotallowed', '', fullname($USER, true));
-                }
-            } else {
+            if ($coursecontext->contextlevel != CONTEXT_COURSE) {
                 $errors['courseassoc'] = get_string('error');
             }
         }
@@ -156,10 +149,9 @@ class blog_edit_form extends moodleform {
         // validate mod association
         if (!empty($data['modassoc'])) {
             $modcontextid = $data['modassoc'];
-            $modcontext = context::instance_by_id($modcontextid, IGNORE_MISSING);
+            $modcontext = context::instance_by_id($modcontextid);
 
-            $canassociatemodule = has_capability('moodle/blog:associatecourse', $modcontext);
-            if ($modcontext->contextlevel == CONTEXT_MODULE && $canassociatemodule) {
+            if ($modcontext->contextlevel == CONTEXT_MODULE) {
                 // get context of the mod's course
                 $coursecontext = $modcontext->get_course_context(true);
 
@@ -170,11 +162,6 @@ class blog_edit_form extends moodleform {
                     }
                 } else {
                     $data['courseassoc'] = $coursecontext->id;
-                }
-
-                // ensure the user has access to each mod's course
-                if (!is_enrolled($modcontext) and !is_viewing($modcontext)) {
-                    $errors['modassoc'] = get_string('studentnotallowed', '', fullname($USER, true));
                 }
             } else {
                 $errors['modassoc'] = get_string('error');

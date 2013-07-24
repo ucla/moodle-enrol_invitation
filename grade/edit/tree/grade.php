@@ -50,7 +50,7 @@ if (!$course = $DB->get_record('course', array('id' => $courseid))) {
 
 $PAGE->set_pagelayout('incourse');
 require_login($course);
-$context = get_context_instance(CONTEXT_COURSE, $course->id);
+$context = context_course::instance($course->id);
 if (!has_capability('moodle/grade:manage', $context)) {
     require_capability('moodle/grade:edit', $context);
 }
@@ -201,7 +201,6 @@ if ($mform->is_cancelled()) {
         $data->feedbackformat = $old_grade_grade->feedbackformat;
     }
 
-    // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
     // Only log a grade override if they actually changed the student grade.
     if ($data->finalgrade != $old_grade_grade->finalgrade) {
         $url = '/report/grader/index.php?id=' . $course->id;
@@ -212,7 +211,6 @@ if ($mform->is_cancelled()) {
         $info = "{$grade_item->itemname}: $fullname";
         add_to_log($course->id, 'grade', 'update', $url, $info);
     }
-    // END UCLA MOD: CCLE-3980
 
     // update final grade or feedback
     // when we set override grade the first time, it happens here
@@ -228,7 +226,6 @@ if ($mform->is_cancelled()) {
         }
         $grade_grade->set_overridden($data->overridden);
 
-        // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
         if ($data->overridden == 0 && $data->overridden != $old_grade_grade->overridden) {
             // Log removing an override.
             // The addition of an override is logged above.
@@ -241,7 +238,6 @@ if ($mform->is_cancelled()) {
             $info = "{$grade_item->itemname}: $fullname";
             add_to_log($course->id, 'grade', 'update', $url, $info);
         }
-        // END UCLA MOD: CCLE-3980
     }
 
     if (has_capability('moodle/grade:manage', $context) or has_capability('moodle/grade:hide', $context)) {

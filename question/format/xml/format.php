@@ -410,7 +410,7 @@ class qformat_xml extends qformat_default {
         $qo = $this->import_headers($question);
 
         // 'header' parts particular to multichoice
-        $qo->qtype = MULTICHOICE;
+        $qo->qtype = 'multichoice';
         $single = $this->getpath($question, array('#', 'single', 0, '#'), 'true');
         $qo->single = $this->trans_single($single);
         $shuffleanswers = $this->getpath($question,
@@ -503,7 +503,7 @@ class qformat_xml extends qformat_default {
             $qo->penalty = 0.3333333;
         }
 
-        $this->import_hints($qo, $question, false, false, $this->get_format($qo->questiontextformat));
+        $this->import_hints($qo, $question, true, false, $this->get_format($qo->questiontextformat));
 
         return $qo;
     }
@@ -519,7 +519,7 @@ class qformat_xml extends qformat_default {
         $qo = $this->import_headers($question);
 
         // 'header' parts particular to true/false
-        $qo->qtype = TRUEFALSE;
+        $qo->qtype = 'truefalse';
 
         // In the past, it used to be assumed that the two answers were in the file
         // true first, then false. Howevever that was not always true. Now, we
@@ -577,7 +577,7 @@ class qformat_xml extends qformat_default {
         $qo = $this->import_headers($question);
 
         // header parts particular to shortanswer
-        $qo->qtype = SHORTANSWER;
+        $qo->qtype = 'shortanswer';
 
         // get usecase
         $qo->usecase = $this->getpath($question, array('#', 'usecase', 0, '#'), $qo->usecase);
@@ -607,7 +607,7 @@ class qformat_xml extends qformat_default {
         // get common parts
         $qo = $this->import_headers($question);
         // header parts particular to shortanswer
-        $qo->qtype = DESCRIPTION;
+        $qo->qtype = 'description';
         $qo->defaultmark = 0;
         $qo->length = 0;
         return $qo;
@@ -623,7 +623,7 @@ class qformat_xml extends qformat_default {
         $qo = $this->import_headers($question);
 
         // header parts particular to numerical
-        $qo->qtype = NUMERICAL;
+        $qo->qtype = 'numerical';
 
         // get answers array
         $answers = $question['#']['answer'];
@@ -725,7 +725,7 @@ class qformat_xml extends qformat_default {
         $qo = $this->import_headers($question);
 
         // header parts particular to essay
-        $qo->qtype = ESSAY;
+        $qo->qtype = 'essay';
 
         $qo->responseformat = $this->getpath($question,
                 array('#', 'responseformat', 0, '#'), 'editor');
@@ -735,6 +735,10 @@ class qformat_xml extends qformat_default {
                 array('#', 'attachments', 0, '#'), 0);
         $qo->graderinfo = $this->import_text_with_files($question,
                 array('#', 'graderinfo', 0), '', $this->get_format($qo->questiontextformat));
+        $qo->responsetemplate['text'] = $this->getpath($question,
+                array('#', 'responsetemplate', 0, '#', 'text', 0, '#'), '', true);
+        $qo->responsetemplate['format'] = $this->trans_format($this->getpath($question,
+                array('#', 'responsetemplate', 0, '@', 'format'), $this->get_format($qo->questiontextformat)));
 
         return $qo;
     }
@@ -749,7 +753,7 @@ class qformat_xml extends qformat_default {
         $qo = $this->import_headers($question);
 
         // header parts particular to calculated
-        $qo->qtype = CALCULATED;
+        $qo->qtype = 'calculated';
         $qo->synchronize = $this->getpath($question, array('#', 'synchronize', 0, '#'), 0);
         $single = $this->getpath($question, array('#', 'single', 0, '#'), 'true');
         $qo->single = $this->trans_single($single);
@@ -907,50 +911,19 @@ class qformat_xml extends qformat_default {
             return false;
         }
         unset($lines); // No need to keep this in memory.
+        return $this->import_questions($xml['quiz']['#']['question']);
+    }
 
-        // Set up array to hold all our questions
+    /**
+     * @param array $xml the xmlized xml
+     * @return stdClass[] question objects to pass to question type save_question_options
+     */
+    public function import_questions($xml) {
         $questions = array();
 
         // Iterate through questions
-        foreach ($xml['quiz']['#']['question'] as $question) {
-            $questiontype = $question['@']['type'];
-
-            if ($questiontype == 'multichoice') {
-                $qo = $this->import_multichoice($question);
-            } else if ($questiontype == 'truefalse') {
-                $qo = $this->import_truefalse($question);
-            } else if ($questiontype == 'shortanswer') {
-                $qo = $this->import_shortanswer($question);
-            } else if ($questiontype == 'numerical') {
-                $qo = $this->import_numerical($question);
-            } else if ($questiontype == 'description') {
-                $qo = $this->import_description($question);
-            } else if ($questiontype == 'matching' || $questiontype == 'match') {
-                $qo = $this->import_match($question);
-            } else if ($questiontype == 'cloze' || $questiontype == 'multianswer') {
-                $qo = $this->import_multianswer($question);
-            } else if ($questiontype == 'essay') {
-                $qo = $this->import_essay($question);
-            } else if ($questiontype == 'calculated') {
-                $qo = $this->import_calculated($question);
-            } else if ($questiontype == 'calculatedsimple') {
-                $qo = $this->import_calculated($question);
-                $qo->qtype = 'calculatedsimple';
-            } else if ($questiontype == 'calculatedmulti') {
-                $qo = $this->import_calculated($question);
-                $qo->qtype = 'calculatedmulti';
-            } else if ($questiontype == 'category') {
-                $qo = $this->import_category($question);
-
-            } else {
-                // Not a type we handle ourselves. See if the question type wants
-                // to handle it.
-                if (!$qo = $this->try_importing_using_qtypes(
-                        $question, null, null, $questiontype)) {
-                    $this->error(get_string('xmltypeunsupported', 'qformat_xml', $questiontype));
-                    $qo = null;
-                }
-            }
+        foreach ($xml as $questionxml) {
+            $qo = $this->import_question($questionxml);
 
             // Stick the result in the $questions array
             if ($qo) {
@@ -958,6 +931,53 @@ class qformat_xml extends qformat_default {
             }
         }
         return $questions;
+    }
+
+    /**
+     * @param array $questionxml xml describing the question
+     * @return null|stdClass an object with data to be fed to question type save_question_options
+     */
+    protected function import_question($questionxml) {
+        $questiontype = $questionxml['@']['type'];
+
+        if ($questiontype == 'multichoice') {
+            return $this->import_multichoice($questionxml);
+        } else if ($questiontype == 'truefalse') {
+            return $this->import_truefalse($questionxml);
+        } else if ($questiontype == 'shortanswer') {
+            return $this->import_shortanswer($questionxml);
+        } else if ($questiontype == 'numerical') {
+            return $this->import_numerical($questionxml);
+        } else if ($questiontype == 'description') {
+            return $this->import_description($questionxml);
+        } else if ($questiontype == 'matching' || $questiontype == 'match') {
+            return $this->import_match($questionxml);
+        } else if ($questiontype == 'cloze' || $questiontype == 'multianswer') {
+            return $this->import_multianswer($questionxml);
+        } else if ($questiontype == 'essay') {
+            return $this->import_essay($questionxml);
+        } else if ($questiontype == 'calculated') {
+            return $this->import_calculated($questionxml);
+        } else if ($questiontype == 'calculatedsimple') {
+            $qo = $this->import_calculated($questionxml);
+            $qo->qtype = 'calculatedsimple';
+            return $qo;
+        } else if ($questiontype == 'calculatedmulti') {
+            $qo = $this->import_calculated($questionxml);
+            $qo->qtype = 'calculatedmulti';
+            return $qo;
+        } else if ($questiontype == 'category') {
+            return $this->import_category($questionxml);
+
+        } else {
+            // Not a type we handle ourselves. See if the question type wants
+            // to handle it.
+            if (!$qo = $this->try_importing_using_qtypes($questionxml, null, null, $questiontype)) {
+                $this->error(get_string('xmltypeunsupported', 'qformat_xml', $questiontype));
+                return null;
+            }
+            return $qo;
+        }
     }
 
     // EXPORT FUNCTIONS START HERE
@@ -1268,6 +1288,10 @@ class qformat_xml extends qformat_default {
                 $expout .= $this->write_files($fs->get_area_files($contextid, 'qtype_essay',
                         'graderinfo', $question->id));
                 $expout .= "    </graderinfo>\n";
+                $expout .= "    <responsetemplate " .
+                        $this->format($question->options->responsetemplateformat) . ">\n";
+                $expout .= $this->writetext($question->options->responsetemplate, 3);
+                $expout .= "    </responsetemplate>\n";
                 break;
 
             case 'calculated':
@@ -1370,7 +1394,7 @@ class qformat_xml extends qformat_default {
                         $expout .= "<dataset_definition>\n";
                         $expout .= "    <status>".$this->writetext($def->status)."</status>\n";
                         $expout .= "    <name>".$this->writetext($def->name)."</name>\n";
-                        if ($question->qtype == CALCULATED) {
+                        if ($question->qtype == 'calculated') {
                             $expout .= "    <type>calculated</type>\n";
                         } else {
                             $expout .= "    <type>calculatedsimple</type>\n";

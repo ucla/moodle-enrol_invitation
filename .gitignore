@@ -9,6 +9,7 @@
 #
 # See gitignore(5) man page for more details
 #
+/config_private.php
 /config.php
 /lib/editor/tinymce/extra/tools/temp/
 *~
@@ -30,4 +31,6 @@ phpunit.xml
 composer.phar
 composer.lock
 /vendor/
-/config_private.php
+/behat.yml
+*/yui/build/*/*-coverage.js
+/lib/yuilib/*/build/*/*-coverage.js

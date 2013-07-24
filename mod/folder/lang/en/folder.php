@@ -44,9 +44,12 @@ $string['page-mod-folder-x'] = 'Any folder module page';
 $string['page-mod-folder-view'] = 'Folder module main page';
 $string['pluginadministration'] = 'Folder administration';
 $string['pluginname'] = 'Folder';
-
-// START UCLA MOD: CCLE-3260 - Show folders collapsed by default
-// Adding option to show folders expanded or collapsed by default
-$string['show_expanded'] = 'Show folders expanded';
-$string['config_show_expanded'] = 'If enabled, will display folders expanded by default. Else, folders will display collapsed.';
-// END UCLA MOD: CCLE-3260
+$string['display'] = 'Display folder contents';
+$string['display_help'] = 'If you choose to display the folder contents on a course page, there  will be no link to a separate page and the title will not be displayed.
+The description will be displayed only if "Display description on course page" is checked.<br />
+Also note that participants view actions can not be logged in this case.';
+$string['displaypage'] = 'On a separate page';
+$string['displayinline'] = 'Inline on a course page';
+$string['noautocompletioninline'] = 'Automatic completion on viewing of activity can not be selected together with "Display inline" option';
+$string['showexpanded'] = 'Show sub-folders expanded';
+$string['showexpanded_help'] = 'If enabled, will display sub-folders expanded by default. Else, sub-folders will display collapsed.';

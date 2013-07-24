@@ -32,6 +32,7 @@ $url = new moodle_url('/message/edit.php');
 $url->param('id', $userid);
 
 $PAGE->set_url($url);
+$PAGE->set_popup_notification_allowed(false); // We are within the messaging system so don't show message popups
 
 require_login();
 
@@ -43,8 +44,8 @@ if (!$user = $DB->get_record('user', array('id' => $userid))) {
     print_error('invaliduserid');
 }
 
-$systemcontext   = get_context_instance(CONTEXT_SYSTEM);
-$personalcontext = get_context_instance(CONTEXT_USER, $user->id);
+$systemcontext   = context_system::instance();
+$personalcontext = context_user::instance($user->id);
 
 $PAGE->set_context($personalcontext);
 $PAGE->set_pagelayout('course');
@@ -157,9 +158,9 @@ $preferences->blocknoncontacts  =  get_user_preferences( 'message_blocknoncontac
 //$preferences->beepnewmessage    =  get_user_preferences( 'message_beepnewmessage', '', $user->id);
 
 /// Display page header
-$streditmymessage = get_string('editmymessage', 'message');
-$PAGE->set_title($streditmymessage);
-$PAGE->set_heading($streditmymessage);
+$strmessaging = get_string('messaging', 'message');
+$PAGE->set_title($strmessaging);
+$PAGE->set_heading($strmessaging);
 
 // Grab the renderer
 $renderer = $PAGE->get_renderer('core', 'message');

@@ -2,10 +2,10 @@ M.mod_assign = {};
 
 M.mod_assign.init_tree = function(Y, expand_all, htmlid) {
     Y.use('yui2-treeview', function(Y) {
-        var tree = new YAHOO.widget.TreeView(htmlid);
+        var tree = new Y.YUI2.widget.TreeView(htmlid);
 
         tree.subscribe("clickEvent", function(node, event) {
-            // we want normal clicking which redirects to url
+            // We want normal clicking which redirects to url.
             return false;
         });
 
@@ -15,7 +15,6 @@ M.mod_assign.init_tree = function(Y, expand_all, htmlid) {
         tree.render();
     });
 };
-
 
 M.mod_assign.init_grading_table = function(Y) {
     Y.use('node', function(Y) {
@@ -82,12 +81,21 @@ M.mod_assign.init_grading_table = function(Y) {
                 alert(M.str.assign.nousersselected);
                 e.preventDefault();
             } else {
-                if (!confirm(eval('M.str.assign.batchoperationconfirm' + operation.get('value')))) {
+                action = operation.get('value');
+                prefix = 'plugingradingbatchoperation_';
+                if (action.indexOf(prefix) == 0) {
+                    pluginaction = action.substr(prefix.length);
+                    plugin = pluginaction.split('_')[0];
+                    action = pluginaction.substr(plugin.length + 1);
+                    confirmmessage = eval('M.str.assignfeedback_' + plugin + '.batchoperationconfirm' + action);
+                } else {
+                    confirmmessage = eval('M.str.assign.batchoperationconfirm' + operation.get('value'));
+                }
+                if (!confirm(confirmmessage)) {
                     e.preventDefault();
                 }
             }
         });
-
 
         Y.use('node-menunav', function(Y) {
             var menus = Y.all('.gradingtable .actionmenu');
@@ -99,13 +107,8 @@ M.mod_assign.init_grading_table = function(Y) {
                     submenus.each(function (n) {
                         n.removeClass('yui3-loading');
                     });
-
                 }, "#" + menu.getAttribute('id'));
-
-
             });
-
-
         });
         var quickgrade = Y.all('.gradingtable .quickgrade');
         quickgrade.each(function(quick) {
@@ -148,3 +151,61 @@ M.mod_assign.init_grade_change = function(Y) {
         });
     }
 };
+
+M.mod_assign.init_plugin_summary = function(Y, subtype, type, submissionid) {
+    suffix = subtype + '_' + type + '_' + submissionid;
+    classname = 'contract_' + suffix;
+    contract = Y.one('.' + classname);
+    if (contract) {
+        contract.on('click', function(e) {
+            img = e.target;
+            imgclasses = img.getAttribute('class').split(' ');
+            for (i = 0; i < imgclasses.length; i++) {
+                classname = imgclasses[i];
+                if (classname.indexOf('contract_') == 0) {
+                    thissuffix = classname.substr(9);
+                }
+            }
+            fullclassname = 'full_' + thissuffix;
+            full = Y.one('.' + fullclassname);
+            if (full) {
+                full.hide(false);
+            }
+            summaryclassname = 'summary_' + thissuffix;
+            summary = Y.one('.' + summaryclassname);
+            if (summary) {
+                summary.show(false);
+            }
+        });
+    }
+    classname = 'expand_' + suffix;
+    expand = Y.one('.' + classname);
+
+    full = Y.one('.full_' + suffix);
+    if (full) {
+        full.hide(false);
+        full.toggleClass('hidefull');
+    }
+    if (expand) {
+        expand.on('click', function(e) {
+            img = e.target;
+            imgclasses = img.getAttribute('class').split(' ');
+            for (i = 0; i < imgclasses.length; i++) {
+                classname = imgclasses[i];
+                if (classname.indexOf('expand_') == 0) {
+                    thissuffix = classname.substr(7);
+                }
+            }
+            summaryclassname = 'summary_' + thissuffix;
+            summary = Y.one('.' + summaryclassname);
+            if (summary) {
+                summary.hide(false);
+            }
+            fullclassname = 'full_' + thissuffix;
+            full = Y.one('.' + fullclassname);
+            if (full) {
+                full.show(false);
+            }
+        });
+    }
+}

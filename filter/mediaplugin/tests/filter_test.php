@@ -58,6 +58,8 @@ class filter_mediaplugin_testcase extends advanced_testcase {
             '<a href="http://moodle.org/testfile/test.ram">test</a>',
             '<a href="http://www.youtube.com/watch?v=JghQgA2HMX8" class="href=css">test file</a>',
             '<a href="http://www.youtube-nocookie.com/watch?v=JghQgA2HMX8" class="href=css">test file</a>',
+            '<a href="http://youtu.be/JghQgA2HMX8" class="href=css">test file</a>',
+            '<a href="http://y2u.be/JghQgA2HMX8" class="href=css">test file</a>',
             '<a class="youtube" href="http://www.youtube.com/watch?v=JghQgA2HMX8">test file</a>',
             '<a href="http://youtu.be/JghQgA2HMX8" class="href=css">test file</a>',
             '<a href="http://y2u.be/JghQgA2HMX8" class="href=css">test file</a>',

@@ -17,8 +17,7 @@
 /**
  * Authorize.Net enrolment plugin - support for user self unenrolment.
  *
- * @package    enrol
- * @subpackage authorize
+ * @package    enrol_authorize
  * @copyright  2010 Eugene Venter
  * @author     Eugene Venter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -33,7 +32,7 @@ require_once('import_form.php');
 
 /// Require capabilities
 require_login();
-require_capability('enrol/authorize:uploadcsv', get_context_instance(CONTEXT_SYSTEM));
+require_capability('enrol/authorize:uploadcsv', context_system::instance());
 
 /// Print header
 $struploadcsv = get_string('uploadcsv', 'enrol_authorize');
@@ -202,7 +201,7 @@ function authorize_process_csv($filename) {
             $ignoredlines .= $transid . ": Could not find this course: " . $order->courseid . "\n";
             continue;
         }
-        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+        $coursecontext = context_course::instance($course->id, IGNORE_MISSING);
         if (!$coursecontext) {
             $ignored++;
             $ignoredlines .= $transid . ": Could not find course context: " . $order->courseid . "\n";
@@ -248,7 +247,7 @@ function authorize_process_csv($filename) {
         $eventdata->name              = 'authorize_enrolment';
         $eventdata->userfrom          = $admin;
         $eventdata->userto            = $admin;
-        $eventdata->subject           = format_string($SITE->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, SITEID))).': Authorize.net CSV ERROR LOG';
+        $eventdata->subject           = format_string($SITE->fullname, true, array('context' => context_course::instance(SITEID))).': Authorize.net CSV ERROR LOG';
         $eventdata->fullmessage       = $ignoredlines;
         $eventdata->fullmessageformat = FORMAT_PLAIN;
         $eventdata->fullmessagehtml   = '';

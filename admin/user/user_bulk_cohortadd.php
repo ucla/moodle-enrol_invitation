@@ -36,7 +36,7 @@ $dir  = optional_param('dir', 'asc', PARAM_ALPHA);
 require_capability('local/ucla:bulk_users', get_context_instance(CONTEXT_SYSTEM));
 // END UCLA MOD: CCLE-2970
 admin_externalpage_setup('userbulk');
-require_capability('moodle/cohort:assign', get_context_instance(CONTEXT_SYSTEM));
+require_capability('moodle/cohort:assign', context_system::instance());
 
 $users = $SESSION->bulk_users;
 
@@ -49,7 +49,7 @@ foreach ($allcohorts as $c) {
         // external cohorts can not be modified
         continue;
     }
-    $context = get_context_instance_by_id($c->contextid);
+    $context = context::instance_by_id($c->contextid);
     if (!has_capability('moodle/cohort:assign', $context)) {
         continue;
     }

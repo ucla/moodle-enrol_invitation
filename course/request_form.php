@@ -37,13 +37,14 @@ if (!defined('MOODLE_INTERNAL')) {
 
 require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
 require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir.'/coursecatlib.php');
 
 /**
  * A form for a user to request a course.
  */
 class course_request_form extends moodleform {
     function definition() {
-        global $DB, $USER;
+        global $CFG, $DB, $USER;
 
         $mform =& $this->_form;
         
@@ -97,12 +98,19 @@ class course_request_form extends moodleform {
         $mform->addElement('text', 'fullname', get_string('fullnamecourse', 'tool_uclasiteindicator'), 'maxlength="254" size="50"');
         $mform->addHelpButton('fullname', 'fullnamecourse', 'tool_uclasiteindicator');
         $mform->addRule('fullname', get_string('missingfullname'), 'required', null, 'client');
-        $mform->setType('fullname', PARAM_MULTILANG);
+        $mform->setType('fullname', PARAM_TEXT);
 
         $mform->addElement('text', 'shortname', get_string('shortnamecourse', 'tool_uclasiteindicator'), 'maxlength="100" size="20"');
         $mform->addHelpButton('shortname', 'shortnamecourse', 'tool_uclasiteindicator');
         $mform->addRule('shortname', get_string('missingshortname'), 'required', null, 'client');
-        $mform->setType('shortname', PARAM_MULTILANG);
+        $mform->setType('shortname', PARAM_TEXT);
+
+        if (!empty($CFG->requestcategoryselection)) {
+            $displaylist = coursecat::make_categories_list();
+            $mform->addElement('select', 'category', get_string('coursecategory'), $displaylist);
+            $mform->setDefault('category', $CFG->defaultrequestcategory);
+            $mform->addHelpButton('category', 'coursecategory');
+        }
 
         $mform->addElement('editor', 'summary_editor', get_string('summary'), null, course_request::summary_editor_options());
         $mform->addHelpButton('summary_editor', 'coursesummary', 'tool_uclasiteindicator');

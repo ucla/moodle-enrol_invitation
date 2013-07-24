@@ -39,7 +39,7 @@ class theme_uclashared_core_renderer extends core_renderer {
      *  Displays what user you are logged in as, and if needed, along with the 
      *  user you are logged-in-as.
      **/
-    function login_info() {
+    function login_info($withlinks = NULL) {
         global $CFG, $DB, $USER;
 
         $course = $this->page->course;

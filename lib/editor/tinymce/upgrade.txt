@@ -1,0 +1,20 @@
+This files describes API changes in /lib/editor/tinymce/* - TinyMCE editor,
+information provided here is intended especially for developers.
+
+
+=== 2.5 ===
+
+* update filter related code to use short filter names instead
+  of original paths, ex.: 'filter/tex' ---> 'tex'
+
+=== 2.4 ===
+
+new features:
+
+* subplugin support - see http://docs.moodle.org/dev/TinyMCE_plugins
+
+
+changes:
+
+* Editor directory exception was removed from Moodle JS loader, use moodle_url instance
+  if you want to prevent standard caching.
