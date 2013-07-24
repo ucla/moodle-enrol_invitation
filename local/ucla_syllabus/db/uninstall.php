@@ -15,16 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Syllabus uninstallation file.
+ * 
  * @see uninstall_plugin()
  *
- * @package    local
- * @subpackage ucla_syllabus
+ * @package    local_ucla_syllabus
+ * @subpackage db
  * @copyright  2012 UC Regents
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
- * Custom uninstallation procedure
+ * Custom uninstallation function.
+ * 
+ * @return bool
  */
 function xmldb_local_ucla_syllabus_uninstall() {
     return true;

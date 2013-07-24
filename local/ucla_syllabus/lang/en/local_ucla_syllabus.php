@@ -17,9 +17,11 @@
 /**
  * English strings for UCLA syllabus plugin
  *
- * @package    local
- * @subpackage ucla_syllabus
+ * @package    local_ucla_syllabus
+ * @subpackage lang
+ * @subpackage en
  * @copyright  2012 UC Regents
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();

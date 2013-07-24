@@ -14,18 +14,45 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Class and function library for syllabus plugin.
+ * 
+ * @package     local_ucla_syllabus
+ * @subpackage  webservice
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 
-
+/**
+ * Syllabus webservice item class.
+ * 
+ * A class for containing the various requests that could be
+ * encountered by our web service.
+ * 
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class syllabus_ws_item {
-
+    /** @var int Number of times a service will be requested before reporting an error. */
     const MAX_ATTEMPTS = 3;
 
+    /** @var mixed Data that may be sent for use during a service request. */
     private $_data;
+
+    /** @var mixed Criteria that must be met by/for a web service to complete. */
     private $_criteria;
+
+    /** @var int Number of requests for service that have been attempted. */
     private $_attempt;
 
+    /**
+     * Create a Web Service object out of the given data.
+     * 
+     * @param mixed $record
+     * @param mixed $criteria
+     */
     public function __construct($record, $criteria) {
         $this->_data = $record;
         $this->_criteria = $criteria;
@@ -33,15 +60,16 @@ class syllabus_ws_item {
     }
 
     /**
-     * POST $payload to specified URL if the criteria matches
+     * POST $payload to specified URL if the criteria matches.
      *
-     * @param type $payload 
+     * @param   object $payload
+     * @return  bool, true if successful, false if we run out of tries
      */
     public function notify($payload) {
 
         if ($this->_match_criteria()) {
 
-            // Attempt to POST at most MAX_TRIES times.
+            // Attempt to POST at most MAX_ATTEMPTS times.
             while (self::MAX_ATTEMPTS > $this->_attempt) {
 
                 if ($this->_post($payload)) {
@@ -52,7 +80,7 @@ class syllabus_ws_item {
                 $this->_attempt++;
             }
 
-            // If we kept ran out of tries, then report.
+            // If we kept trying and ran out of tries, then report.
             if ($this->_attempt == self::MAX_ATTEMPTS) {
                 $this->_contact($payload);
                 return false;
@@ -62,6 +90,12 @@ class syllabus_ws_item {
         return true;
     }
 
+    /**
+     * Sends an email to the specified recipient.
+     *
+     * @param   array $payload contains message, subject, and recipient
+     * @return  bool, true if email sent successfully
+     */
     private function _contact($payload) {
 
         // Send email message.
@@ -76,10 +110,20 @@ class syllabus_ws_item {
     }
 
 
+    /**
+     * Checks to see if all service criteria are met.
+     * 
+     * @return bool, true if met
+     */
     private function _match_criteria() {
         return $this->_match_subject() || $this->_match_srs();
     }
 
+    /**
+     * Checks to see if the subject area data are within the criteria.
+     * 
+     * @return bool, true if they are
+     */
     private function _match_subject() {
         if (!empty($this->_data->subjectarea) && !empty($this->_criteria['subjectarea'])) {
             return intval($this->_data->subjectarea) === intval($this->_criteria['subjectarea']);
@@ -88,6 +132,11 @@ class syllabus_ws_item {
         return false;
     }
 
+    /**
+     * Check to see if the SRS data is within the criteria.
+     * 
+     * @return bool, true if they are
+     */
     private function _match_srs() {
         if (!empty($this->_data->leadingsrs) && !empty($this->_criteria['srs'])) {
             return (strpos($this->_criteria['srs'], $this->_data->leadingsrs) === 0);
@@ -96,6 +145,12 @@ class syllabus_ws_item {
         return false;
     }
 
+    /**
+     * Perform a curl request regarding the web service.
+     * 
+     * @param   object $payload
+     * @return  bool, true if request is successful
+     */
     private function _post($payload) {
         $ch = curl_init();
 
@@ -129,29 +184,47 @@ class syllabus_ws_item {
         return false;
     }
 
-
+    /**
+     * Hashes the web service data.
+     * 
+     * @param   object $payload the data to be hashed
+     * @return  string the encoded hash of payload
+     */
     private function _hash_payload($payload) {
         $sig = hash_hmac('sha256', $payload, $this->_data->token);
         return base64_encode($sig);
     }
 }
 
+/**
+ * Syllabus webservice manager class.
+ * 
+ * Class for managing a course's syllabus, including handling
+ * any events.
+ * 
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class syllabus_ws_manager {
-
-    // Types of events we'll handle.
+    /** @var int Constant encoding for transfer action. */
     const ACTION_TRANSFER = 0;
+
+    /** @var int Constant encoding for alert action. */
     const ACTION_ALERT = 1;
 
-    // Status messages.
+    /** @var int Constant encoding for successful status. */
     const STATUS_OK = 0;
+
+    /** @var int Constant encoding for failed status. */
     const STATUS_FAIL = 1;
 
     /**
      * Handle an event action.  
      *
-     * @param type $event
-     * @param type $criteria
-     * @param type $payload 
+     * @param   object $event
+     * @param   object $criteria
+     * @param   object $payload
+     * @return  bool
      */
     static public function handle($event, $criteria, $payload) {
         global $DB;
@@ -171,6 +244,12 @@ class syllabus_ws_manager {
         return $result;
     }
 
+    /**
+     * Setup a new course for the syllabus plugin.
+     * 
+     * @param   object $course
+     * @return  array of $criteria and $payload
+     */
     static public function setup($course) {
         global $DB;
 
@@ -196,13 +275,15 @@ class syllabus_ws_manager {
     }
 
     /**
+     * Set up syllabus criteria.
+     * 
      * Given a syllabus object, setup the criteria for which 
      * subscribers to the webservice will be notified and set up
      * the payload that they are expecting.
      *
-     * @param object $syllabus
-     * @param object $course
-     * @return array of $criteria and $payload 
+     * @param   object $syllabus
+     * @param   object $course
+     * @return  array of $criteria and $payload 
      */
     static public function setup_transfer($syllabus, $course) {
 
@@ -225,6 +306,12 @@ class syllabus_ws_manager {
         return array($criteria, $payload);
     }
 
+    /**
+     * Set up the alerts for a course.
+     * 
+     * @param   object $course
+     * @return  array of $criteria and $payload
+     */
     static public function setup_alert($course) {
         global $CFG;
 
@@ -243,7 +330,12 @@ class syllabus_ws_manager {
         return array($criteria, $payload);
     }
 
-
+    /**
+     * Set up the deletion of a course.
+     * 
+     * @param   object $course
+     * @return  array of $criteria and $payload
+     */
     static public function setup_delete($course) {
         list($criteria, $payload) = self::setup($course);
         $payload['deleted'] = 'true';
@@ -254,8 +346,8 @@ class syllabus_ws_manager {
     /**
      * Add a new subscription to the webservice.
      *
-     * @param type $data
-     * @return boolean 
+     * @param   object $data
+     * @return  bool returns to escape function
      */
     static public function add_subscription($data) {
         global $DB;
@@ -273,7 +365,7 @@ class syllabus_ws_manager {
     }
 
     /**
-     * Return list of events we're handling
+     * Return list of events we're handling.
      * 
      * @return array
      */
@@ -289,7 +381,7 @@ class syllabus_ws_manager {
     /**
      * Return list of subject areas.
      *
-     * @return type 
+     * @return array 
      */
     static public function get_subject_areas() {
         global $DB;
@@ -300,16 +392,31 @@ class syllabus_ws_manager {
         return array_merge(array(0 => 'Select subject area'), $records);
     }
 
+    /**
+     * Return object containing list of web service subscriptions.
+     * 
+     * @return object result of records query
+     */
     static public function get_subscriptions() {
         global $DB;
         return $DB->get_records('ucla_syllabus_webservice');
     }
 
+    /**
+     * Update the web service subscriptions.
+     * 
+     * @param object $record
+     */
     static public function update_subscription($record) {
         global $DB;
         $DB->update_record('ucla_syllabus_webservice', $record);
     }
 
+    /**
+     * Delete a web service subscription.
+     * 
+     * @param int $id the subscription to delete
+     */
     static public function delete_subscription($id) {
         global $DB;
         $DB->delete_records('ucla_syllabus_webservice', array('id' => $id));
@@ -317,9 +424,8 @@ class syllabus_ws_manager {
 
     /**
      * Checks if a given course is subscribed to syllabus web service.
-     *
-     * @global type $DB
-     * @param type $courseid 
+     * 
+     * @param int $courseid the course to check
      */
     static public function is_subscribed($courseid) {
         global $DB;
@@ -343,9 +449,9 @@ class syllabus_ws_manager {
 
         // Get subject area.
         $query = "SELECT rs.id
-            FROM {ucla_reg_classinfo} AS urc
-            JOIN {ucla_reg_subjectarea} AS rs ON rs.subjarea = urc.subj_area
-            WHERE urc.srs = :srs AND urc.term = :term";
+                    FROM {ucla_reg_classinfo} AS urc
+                    JOIN {ucla_reg_subjectarea} AS rs ON rs.subjarea = urc.subj_area
+                   WHERE urc.srs = :srs AND urc.term = :term";
 
         $course->subjarea = $DB->get_field_sql($query,
                 array('srs' => $course->srs, 'term' => $course->term));

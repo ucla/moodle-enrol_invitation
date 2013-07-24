@@ -17,9 +17,9 @@
 /**
  * Event handlers for non-webservices events.
  *
- * @package    local
- * @subpackage ucla_syllabus
+ * @package    local_ucla_syllabus
  * @copyright  2013 UC Regents
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');

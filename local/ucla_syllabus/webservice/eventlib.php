@@ -14,15 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * File for handling all syllabus events.
+ * 
+ * Contains functions for:
+ *      - adding/updating a syllabus,
+ *      - deleting a syllabus, and
+ *      - responding to course alerts to syllabus.
+ * 
+ * @package     local_ucla_syllabus
+ * @subpackage  webservice
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 
 // Handling the following events.
 require_once($CFG->dirroot . '/local/ucla_syllabus/webservice/lib.php');
 require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
 
 /**
- * Handle syllabus add/update
+ * Handle syllabus add/update.
  * 
- * @param type $data syllabus id
+ * @param   mixed $data syllabus id
+ * @return  bool true if operation is successful
  */
 function ucla_syllabus_updated($data) {
 
@@ -98,9 +113,10 @@ function ucla_syllabus_updated($data) {
 }
 
 /**
- * Handle deletion of syllabus
+ * Handle deletion of syllabus.
  * 
- * @param type $data 
+ * @param   mixed $data
+ * @return  bool, true if operation successful
  */
 function ucla_syllabus_deleted($data) {
     global $DB;
@@ -159,10 +175,13 @@ function ucla_syllabus_deleted($data) {
 }
 
 /**
- * Event handler for course alert.  This handles crosslisted courses by 
- * sending the 
+ * Event handler for course alert.
  * 
- * @param type $data course object
+ * This handles crosslisted courses by sending multiple alerts 
+ * in those cases.
+ * 
+ * @param   mixed $data course object
+ * @return  bool true if operation is successful for all courses
  */
 function ucla_course_alert($data) {
 
@@ -180,6 +199,6 @@ function ucla_course_alert($data) {
             $result &= syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_ALERT, $criteria, $payload);
         }
 
-        return (boolean)$result;
+        return (bool)$result;
     }
 }

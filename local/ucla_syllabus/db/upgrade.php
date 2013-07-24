@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This file keeps track of upgrades to the UCLA syllabus plugin
+ * This file keeps track of upgrades to the UCLA syllabus plugin.
  *
  * Sometimes, changes between versions involve alterations to database
  * structures and other major things that may break installations. The upgrade
@@ -24,8 +24,8 @@
  * it cannot do itself, it will tell you what you need to do.  The commands in
  * here will all be database-neutral, using the functions defined in DLL libraries.
  *
- * @package    local
- * @subpackage ucla_syllabus
+ * @package    local_ucla_syllabus
+ * @subpackage db
  * @copyright  2012 UC Regents
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -33,7 +33,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Execute UCLA syllabus plugin upgrade from the given old version
+ * Execute UCLA syllabus plugin upgrade from the given old version.
  *
  * @param int $oldversion
  * @return bool

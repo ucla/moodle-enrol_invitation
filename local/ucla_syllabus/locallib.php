@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Internal library of functions for UCLA syllabus
+ * Internal library of functions for UCLA syllabus.
  *
  * All the core Moodle functions, neeeded to allow the module to work
  * integrated in Moodle should be placed here.
@@ -23,15 +23,14 @@
  * logic, should go to locallib.php. This will help to save some memory when
  * Moodle is performing actions across all modules.
  *
- * @package    local
- * @subpackage ucla_syllabus
+ * @package    local_ucla_syllabus
  * @copyright  2012 UC Regents
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-/** Constants */
+// Constants for syllabus management.
 define('UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC', 1);
 define('UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN', 2);
 define('UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE', 3);
@@ -45,10 +44,27 @@ define('UCLA_SYLLABUS_ACTION_EDIT', 'edit');
 define('UCLA_SYLLABUS_ACTION_VIEW', 'view');
 define('UCLA_SYLLABUS_ACTION_CONVERT', 'convert');
 
+/**
+ * Syllabus manager class.
+ * 
+ * Main syllabus class. Used to access all syllabus functionality and
+ * information.
+ * 
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class ucla_syllabus_manager {
+    /** @var int The ID of the course for the syllabus. */
     private $courseid;
+
+    /** @var array Configuration for the file picker. */
     private $filemanagerconfig;
 
+    /**
+     * Construct a syllabus manager.
+     * 
+     * @param stdClass $course
+     */
     public function __construct($course) {
         $this->courseid = $course->id;
 
@@ -66,7 +82,7 @@ class ucla_syllabus_manager {
      * CCLE-3792: Instructional collab sites can host syllabus files 
      * (along with SRS based courses).
      *
-     * @return boolean
+     * @return bool
      */
     public function can_host_syllabi() {
         global $CFG;
@@ -80,7 +96,7 @@ class ucla_syllabus_manager {
     /**
      * Returns if logged in user has the ability to manage syllabi for course.
      * 
-     * @return boolean
+     * @return bool
      */
     public function can_manage() {
         $coursecontext = context_course::instance($this->courseid);
@@ -99,7 +115,7 @@ class ucla_syllabus_manager {
         // Do some sanity checks.
 
         // Make sure parameter is valid object.
-        if (!is_object($syllabus) || !($syllabus instanceof ucla_sylabus) ||
+        if (!is_object($syllabus) || !($syllabus instanceof ucla_syllabus) ||
                 empty($syllabus->id)) {
             print_error('err_syllabus_notexist', 'local_ucla_syllabus');
         }
@@ -127,11 +143,11 @@ class ucla_syllabus_manager {
     }
 
     /**
-     * Convert between public or private syllabuses
+     * Convert between public or private syllabi.
      * 
-     * @param ucla_syllabus $syllabus   Expecting an object that is derived from
-     *                                  the ucla_syllabus class
-     * @param $converto   UCLA_SYLLABUS_TYPE_PUBLIC | UCLA_SYLLABUS_TYPE_PRIVATE
+     * @param stdClass $syllabus   Expecting an object that is derived from
+     *                             the ucla_syllabus class
+     * @param int $convertto    UCLA_SYLLABUS_TYPE_PUBLIC | UCLA_SYLLABUS_TYPE_PRIVATE
      */
     public function convert_syllabus($syllabus, $convertto) {
         global $DB;
@@ -141,7 +157,7 @@ class ucla_syllabus_manager {
         }
 
         // Make sure parameter is valid object.
-        if (!is_object($syllabus) || !($syllabus instanceof ucla_sylabus) ||
+        if (!is_object($syllabus) || !($syllabus instanceof ucla_syllabus) ||
                 empty($syllabus->id)) {
             print_error('err_syllabus_notexist', 'local_ucla_syllabus');
         }
@@ -178,8 +194,6 @@ class ucla_syllabus_manager {
     /**
      * Returns an array of file and url resources that might be a manually
      * uploaded syllabus.
-     * 
-     * @global moodle_database $DB
      *
      * @param int $timestart        Optional. If given, will restrict the search
      *                              to only course modules added on or after
@@ -208,29 +222,29 @@ class ucla_syllabus_manager {
 
         // Check file and url resources.
         $sql = "(
-                    SELECT  cm.id AS cmid,
+                     SELECT cm.id AS cmid,
                             r.name AS name,
                             m.name AS type
-                    FROM    {resource} r
-                    JOIN    {course_modules} cm ON (r.id=cm.instance)
-                    JOIN    {modules} m ON (cm.module=m.id)
-                    WHERE   cm.course=:courseid1 AND
+                       FROM {resource} r
+                       JOIN {course_modules} cm ON (r.id=cm.instance)
+                       JOIN {modules} m ON (cm.module=m.id)
+                      WHERE cm.course=:courseid1 AND
                             m.name='resource' AND " .
                             $DB->sql_like('r.name', ':searchstring1', false, false) .
                             $timesql
-                . ") UNION ALL
+             . ") UNION ALL
                 (
-                    SELECT  cm.id AS cmid,
+                     SELECT cm.id AS cmid,
                             u.name AS name,
                             m.name AS type
-                    FROM    {url} u
-                    JOIN    {course_modules} cm ON (u.id=cm.instance)
-                    JOIN    {modules} m ON (cm.module=m.id)
-                    WHERE   cm.course=:courseid2 AND
+                       FROM {url} u
+                       JOIN {course_modules} cm ON (u.id=cm.instance)
+                       JOIN {modules} m ON (cm.module=m.id)
+                      WHERE cm.course=:courseid2 AND
                             m.name='url' AND " .
                             $DB->sql_like('u.name', ':searchstring2', false, false) .
                             $timesql
-                . ")";
+             . ")";
         $manualsyllabi = $DB->get_records_sql($sql,
                 array('courseid1' => $this->courseid,
                       'courseid2' => $this->courseid,
@@ -297,7 +311,6 @@ class ucla_syllabus_manager {
     /**
      * Returns an array of syllabi for course indexed by type.
      * 
-     * @global moodle_database $DB
      * @return array
      */
     public function get_syllabi() {
@@ -330,8 +343,6 @@ class ucla_syllabus_manager {
      * Checks if given course has a private syllabus. If so, then returns 
      * syllabus id, otherwise false.
      * 
-     * @global moodle_database $DB
-     * 
      * @param int $courseid
      * 
      * @return int              Returns false if no syllabus found
@@ -350,8 +361,6 @@ class ucla_syllabus_manager {
     /**
      * Checks if given course has a public syllabus. If so, then returns 
      * syllabus id, otherwise false.
-     * 
-     * @global moodle_database $DB
      * 
      * @param int $courseid
      * 
@@ -373,9 +382,7 @@ class ucla_syllabus_manager {
      * Checks if course has any type of syllabus. If so, then returns true,
      * otherwise false.
      *
-     * @global moodle_database $DB
-     *
-     * @return boolean
+     * @return bool
      */
     public function has_syllabus() {
         global $DB;
@@ -384,6 +391,12 @@ class ucla_syllabus_manager {
                 array('courseid' => $this->courseid));
     }
 
+    /**
+     * Returns an appropriately public or private syllabus.
+     * 
+     * @param int $entryid
+     * @return mixed, a public/private syllabus, or null
+     */
     public static function instance($entryid) {
         global $DB;
 
@@ -457,7 +470,7 @@ class ucla_syllabus_manager {
         // Then save file, with link to syllabus.
         $coursecontext = context_course::instance($this->courseid);
         file_save_draft_area_files($data->syllabus_file,
-                $coursecontext->id, 'local_ucla_syllabus', 'syllabus'.
+                $coursecontext->id, 'local_ucla_syllabus', 'syllabus',
                 $recordid, $this->filemanagerconfig);
 
         // No errors, so trigger events.
@@ -468,10 +481,21 @@ class ucla_syllabus_manager {
 
 }
 
-abstract class ucla_sylabus {
-    /* In following format:
-     * [columns from ucla_syllabus table]
-     * ['stored_file'] => stored_file object
+/**
+ * Syllabus class.
+ * 
+ * Class for properties shared between public and private syllabi.
+ * 
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+abstract class ucla_syllabus {
+    /** 
+     * Syllabus properties.
+     * 
+     * @var mixed In following format:
+     *                  [columns from ucla_syllabus table]
+     *                  ['stored_file'] => stored_file object
      */
     private $properties = null;
 
@@ -496,8 +520,9 @@ abstract class ucla_sylabus {
     }
 
     /**
-     * Magic getting method
+     * Magic getting method.
      * 
+     * @param string $name
      * @return mixed
      */
     public function __get($name) {
@@ -509,16 +534,17 @@ abstract class ucla_sylabus {
         }
 
         if (!isset($this->properties) || !isset($this->properties->$name)) {
-            debugging('ucla_sylabus called with invalid $name: ' . $name);
+            debugging('ucla_syllabus called with invalid $name: ' . $name);
             return null;
         }
         return $this->properties->$name;
     }
 
     /**
-     * Magic isset method
+     * Magic isset method.
      * 
-     * @return boolean
+     * @param string $name
+     * @return bool
      */
     public function __isset($name) {
         // Lazy load stored_file, since it is pretty complex.
@@ -529,8 +555,10 @@ abstract class ucla_sylabus {
     }
 
     /**
-     * Magic setter method
+     * Magic setter method.
      * 
+     * @param string $name name of property to set
+     * @param mixed $value value to set the property
      * @return mixed
      */
     public function __set($name, $value) {
@@ -538,9 +566,10 @@ abstract class ucla_sylabus {
     }
 
     /**
-     * Magic unset method
+     * Magic unset method.
      * 
-     * @return boolean
+     * @param string $name
+     * @return bool
      */
     public function __unset($name) {
         unset($this->properties->$name);
@@ -549,14 +578,13 @@ abstract class ucla_sylabus {
     /**
      * Determine if user can view syllabus.
      * 
-     * @return boolean
+     * @return bool
      */
     abstract public function can_view();
 
     /**
      * Returns link to download syllabus file.
      * 
-     * @param object $syllabus  Result from syllabus getter methods
      * @return string   Returns html to generate link to syllabus
      */
     public function get_download_link() {
@@ -639,11 +667,21 @@ abstract class ucla_sylabus {
     }
 }
 
-class ucla_private_syllabus extends ucla_sylabus {
+/**
+ * Private syllabus class.
+ * 
+ * Inherits abilities from ucla_syllabus class, but defines
+ * its own viewing function which differrs from those of
+ * public syllabi.
+ * 
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class ucla_private_syllabus extends ucla_syllabus {
     /**
      * Determine if user can view syllabus.
      * 
-     * @return boolean
+     * @return bool
      */
     public function can_view() {
         // Need to check if we have URL.
@@ -657,11 +695,21 @@ class ucla_private_syllabus extends ucla_sylabus {
     }
 }
 
-class ucla_public_syllabus extends ucla_sylabus {
+/**
+ * Public syllabus class.
+ * 
+ * Inherits abilities from ucla_syllabus class, but defines
+ * its own viewing function which differrs from those of 
+ * private syllabi.
+ * 
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class ucla_public_syllabus extends ucla_syllabus {
     /**
      * Determine if user can view syllabus.
      * 
-     * @return boolean
+     * @return bool
      */
     public function can_view() {
         $retval = false;

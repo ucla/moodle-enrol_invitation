@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Capability definitions for the newmodule module
+ * Capability definitions for the newmodule module.
  *
  * The capabilities are loaded into the database table when the module is
  * installed or updated. Whenever the capability definitions are updated,
@@ -37,10 +37,10 @@
  *           block/recent_activity:view
  *           moodle/site:deleteuser
  *
- * The variable name for the capability definitions array is $capabilities
+ * The variable name for the capability definitions array is $capabilities.
  *
- * @package    local
- * @subpackage ucla_syllabus
+ * @package    local_ucla_syllabus
+ * @subpackage db
  * @copyright  2012 UC Regents
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

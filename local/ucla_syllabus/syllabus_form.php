@@ -17,8 +17,7 @@
 /**
  * Syllabus form definition.
  *
- * @package    local
- * @subpackage ucla_syllabus
+ * @package    local_ucla_syllabus
  * @copyright  2012 UC Regents
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,13 +29,35 @@ require_once($CFG->libdir . '/formslib.php');
 require_once($CFG->libdir . '/validateurlsyntax.php');
 require_once(dirname(__FILE__).'/webservice/lib.php');
 
+/**
+ * Syllabus form class.
+ * 
+ * Defines the form required for performing some action with
+ * a syllabus.
+ * 
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class syllabus_form extends moodleform {
+    /** @var int The ID of the course for the syllabus. */
     private $courseid;
+
+    /** @var int The action the form wishes to take (defined in locallib.php). */
     private $action;
+
+    /** @var int The type of syllabus (defined in locallib.php). */
     private $type;
+
+    /** @var object The syllabus manager. */
     private $syllabusmanager;
+
+    /** @var object The manually uploaded syllabus (if applicable). */
     private $manualsyllabus;
 
+    /**
+     * Extracts information from configuration, database, output, and user
+     * variables to create the proper form.
+     */
     public function definition() {
         global $CFG, $DB, $OUTPUT, $USER;
 
@@ -76,6 +97,8 @@ class syllabus_form extends moodleform {
     }
 
     /**
+     * Validates syllabus form.
+     * 
      * Make sure the following is true:
      *  - access_type is valid value
      *  - make sure that only 1 public syllabus is being uploaded
@@ -141,7 +164,7 @@ class syllabus_form extends moodleform {
         return $err;
     }
 
-    // PRIVATE FUNCTIONS.
+    // Private functions.
 
     /**
      * Handles display of the private syllabus.
@@ -287,6 +310,8 @@ class syllabus_form extends moodleform {
 
     /**
      * Displays form fields related to private syllabus.
+     * 
+     * @param object $existingsyllabus
      */
     private function display_private_syllabus_form($existingsyllabus) {
         $mform = $this->_form;
@@ -359,6 +384,8 @@ class syllabus_form extends moodleform {
 
     /**
      * Displays form fields related to public syllabus.
+     * 
+     * @param object $existingsyllabus
      */
     private function display_public_syllabus_form($existingsyllabus) {
         $mform = $this->_form;
@@ -454,7 +481,7 @@ class syllabus_form extends moodleform {
      * Helper function to generate output to display syllabus information for
      * use in a form.
      *
-     * @param ucla_sylabus $syllabus
+     * @param ucla_syllabus $syllabus
      */
     protected function display_syllabus_info($syllabus) {
         global $CFG;
