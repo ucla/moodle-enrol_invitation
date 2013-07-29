@@ -1545,10 +1545,39 @@ if ($displayforms) {
             GROUP BY contextlevel, ra.component, r.id
             ORDER BY c.contextlevel ASC, r.sortorder ASC";
     $results = $DB->get_records_sql($sql);
+    
+    foreach ($results as $result) {
+        // Only display View Users buttons for the Course, Category and System Contexts.
+        if ($result->contextlevel == CONTEXT_COURSECAT || $result->contextlevel == CONTEXT_COURSE || 
+                $result->contextlevel == CONTEXT_SYSTEM) {
+            $result->count = supportconsole_simple_form("userswithrole", 
+                html_writer::empty_tag('input', array(
+                    'type' => 'hidden',
+                    'name' => 'role',
+                    'value' => $result->name,
+                ))
+                .html_writer::empty_tag('input', array(
+                    'type' => 'hidden',
+                    'name' => 'contextlevel',
+                    'value' => $result->contextlevel,
+                ))
+                .html_writer::empty_tag('input', array(
+                    'type' => 'hidden',
+                    'name' => 'count',
+                    'value' => $result->count,
+                ))
+                . html_writer::empty_tag('input', array(
+                    'type' => 'hidden',
+                    'name' => 'component',
+                    'value' => $result->component,
+                )), ($result->count==1) ? get_string('viewuser', 'tool_uclasupportconsole') : 
+            get_string('viewusers', 'tool_uclasupportconsole', $result->count));
+        }
+    }
 
     $admin_result = get_config(null, 'siteadmins');
     if (empty($admin_result) && empty($result)) {
-       $sectionhtml .= html_writer::error_text("There are no enrollments");
+        $sectionhtml .= $OUTPUT->error_text(get_string('noenrollments', 'tool_uclasupportconsole'));
     } else {
         // get siteadmins, they are a different breed
         $admin_cnt = count(explode(',', $admin_result));
@@ -1556,7 +1585,28 @@ if ($displayforms) {
         $adminrow->name = 'Site administrators';
         $adminrow->contextlevel = CONTEXT_SYSTEM;
         $adminrow->component = 'admin';
-        $adminrow->count = $admin_cnt;
+        $adminrow->count = supportconsole_simple_form("userswithrole", 
+            html_writer::empty_tag('input', array(
+                'type' => 'hidden',
+                'name' => 'role',
+                'value' => get_string('siteadministrators', 'role'),
+            ))
+            .html_writer::empty_tag('input', array(
+                'type' => 'hidden',
+                'name' => 'contextlevel',
+                'value' => CONTEXT_SYSTEM,
+            ))
+            .html_writer::empty_tag('input', array(
+                'type' => 'hidden',
+                'name' => 'count',
+                'value' => $admin_cnt,
+            ))
+            . html_writer::empty_tag('input', array(
+                'type' => 'hidden',
+                'name' => 'component',
+                'value' => 'admin',
+            )), ($admin_cnt==1) ? get_string('viewuser', 'tool_uclasupportconsole') : 
+            get_string('viewusers', 'tool_uclasupportconsole', $admin_cnt));
         $results[] = $adminrow;
 
         foreach ($results as $key => $result) {
@@ -1567,10 +1617,136 @@ if ($displayforms) {
         }
 
         $sectionhtml .= supportconsole_render_section_shortcut($title, $results);
-        }
+    }
 }
 
 $consoles->push_console_html('users', $title, $sectionhtml);
+
+////////////////////////////////////////////////////////////////////
+$title = "userswithrole";
+$sectionhtml = '';
+define("RESULTS_PER_PAGE", 30);
+if ($consolecommand == "$title") {
+    $roleparam = (optional_param('role', null, PARAM_RAW_TRIMMED));
+    $componentparam = optional_param('component', null, PARAM_ALPHAEXT);
+    $contextlevelparam = optional_param('contextlevel', null, PARAM_INT);
+    $countparam = optional_param('count', null, PARAM_INT);
+    $pageparam = optional_param('page', null, PARAM_INT);
+    
+    if (!isset($pageparam)) {
+        $pageparam = 0;
+    }
+    $limitstart = $pageparam * RESULTS_PER_PAGE;
+    
+    if ($componentparam == "manual") {
+        $componentparam = "";
+    }
+    
+    $modifiedresults = array();
+    
+    if ($componentparam == "admin") {
+        $adminresult = explode(',', get_config(null, 'siteadmins'));
+        foreach ($adminresult as $admin) {
+            $sql = "SELECT  id,
+                            CONCAT (lastname, ', ', firstname) AS name
+                    FROM   {user}
+                    WHERE  id = :admin
+                    ORDER BY name
+                    LIMIT   $limitstart, " . RESULTS_PER_PAGE;
+            $modifiedresults = array_merge($modifiedresults, $DB->get_records_sql($sql, array('admin' => $admin)));
+        }
+        foreach ($modifiedresults as $result) {
+            $userurl = new moodle_url("/user/profile.php", (["id" => $result->id]));
+            $result->name = "<a href=\"".$userurl->out()."\">$result->name</a>";
+        }
+    } else {
+        // Common SQL used by both Course and Category Contexts
+        $middlesql = "FROM    {role_assignments} ra 
+                      JOIN    {role} r ON 
+                              (r.name = :role_param AND 
+                               ra.component = :component_param AND 
+                               ra.roleid = r.id) 
+                      JOIN    {user} u ON (u.id = ra.userid)
+                      JOIN    {context} c ON 
+                               (c.id = ra.contextid AND
+                                c.contextlevel = :contextlevel_param) ";
+        
+        if ($contextlevelparam == CONTEXT_COURSECAT) {
+            $contexttablename = '{course_categories}';
+            $contextnamecolumn = 'name';
+            $contextname = "Category_Name";
+            $contexturl = "/course/category.php?id=";
+            $lookup = "cid";
+        } else if ($contextlevelparam == CONTEXT_COURSE) {
+            $contexttablename = '{course}';
+            $contextnamecolumn = 'shortname';
+            $contextname = "Course_Name";
+            $contexturl = "/course/view/";
+            $lookup = "cname";
+        }
+        
+        if ($contextlevelparam == CONTEXT_SYSTEM) {
+            $sql = "SELECT  ra.id,
+                            u.id AS uid, 
+                            CONCAT(u.lastname, ', ', u.firstname) AS name,
+                            ra.modifierid,
+                            ra.timemodified " . $middlesql .
+                   "ORDER BY name
+                    LIMIT   $limitstart, " . RESULTS_PER_PAGE;
+        } else {
+            $sql = "SELECT  ra.id,
+                            u.id AS uid, 
+                            CONCAT(u.lastname, ', ', u.firstname) AS name,
+                            clevel.id AS cid,
+                            clevel.$contextnamecolumn AS cname,
+                            ra.modifierid,
+                            ra.timemodified " . $middlesql . 
+                   "JOIN    $contexttablename clevel ON (clevel.id=c.instanceid)
+                    ORDER BY name
+                    LIMIT   $limitstart, " . RESULTS_PER_PAGE;
+        }
+        $results = $DB->get_records_sql($sql, array('role_param' => $roleparam, 
+            'component_param'=>$componentparam, 'contextlevel_param'=>$contextlevelparam));
+
+        foreach ($results as $result) {
+            $modifiedrow = new object();
+            $modifiedrow->id = $result->id;
+            $userurl = new moodle_url("/user/profile.php", (["id" => $result->uid]));
+            $modifiedrow->Name = "<a href=\"".$userurl->out()."\">$result->name</a>";
+            if ($contextlevelparam != CONTEXT_SYSTEM) {
+                $modifiedrow->$contextname = "<a href=\"$CFG->wwwroot" . $contexturl . $result->$lookup . 
+                    '">' . $result->cname . '</a>';
+            }
+            $modifiedrow->Time_Modified = userdate($result->timemodified);
+            
+            if ($result->modifierid == 0) {
+                $modifiedrow->Assigned_By = 'System';
+            } else {
+                $sql = "SELECT  CONCAT(u.lastname, ', ', u.firstname) AS name
+                        FROM    {user} u 
+                        WHERE   u.id = :modifierid";
+                $modifierresults = $DB->get_records_sql($sql, array('modifierid' => $result->modifierid));
+                $modifier = reset($modifierresults);
+                $modifiedrow->Assigned_By = $modifier->name;
+            }
+            $modifiedresults[] = $modifiedrow;
+        }
+    }
+
+    if ($componentparam == "") {
+        $componentparam = "manual";
+    }
+    
+    $sectionhtml .= supportconsole_render_section_shortcut($title, $modifiedresults, array(), 
+            get_string('usersdescription', 'tool_uclasupportconsole', (object) ['role' => $roleparam, 
+                'contextlevel' => $contextlevelparam, 'component' => $componentparam]));
+    $pageurl = new moodle_url( $PAGE->url, ['role' => $roleparam, 'component' => $componentparam, 
+        'contextlevel' => $contextlevelparam, 'count' => $countparam, 'console' => $title]);
+    
+    $sectionhtml .= $OUTPUT->paging_bar($countparam, $pageparam, RESULTS_PER_PAGE, $pageurl->out());
+    
+    $consoles->push_console_html('users', $title, $sectionhtml);
+}
 
 ////////////////////////////////////////////////////////////////////
 $title = "countnewusers";
