@@ -44,10 +44,10 @@ $string['recentlysentgrades'] = 'Show 100 most recent MyUCLA grade log entries';
 
 // Users
 $string['moodleusernamesearch'] = 'Show users with firstname and/or lastname';
-$string['roleassignments'] = 'Display role assignments';
+$string['roleassignments'] = 'View role assignments';
 $string['userswithrole'] = 'Users with the given role assignment';
-$string['viewuser'] = 'View 1 User';
-$string['viewusers'] = 'View {$a} Users'; 
+$string['viewrole'] = 'View role assignment';
+$string['viewroles'] = 'View {$a} role assignments';
 $string['countnewusers'] = 'Show most recently created users';
 $string['pushgrades'] = 'Manually push grades to MyUCLA';
 $string['noenrollments'] = 'There are no enrollments';

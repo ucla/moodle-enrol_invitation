@@ -1570,8 +1570,8 @@ if ($displayforms) {
                     'type' => 'hidden',
                     'name' => 'component',
                     'value' => $result->component,
-                )), ($result->count==1) ? get_string('viewuser', 'tool_uclasupportconsole') : 
-            get_string('viewusers', 'tool_uclasupportconsole', $result->count));
+                )), ($result->count==1) ? get_string('viewrole', 'tool_uclasupportconsole') :
+            get_string('viewroles', 'tool_uclasupportconsole', $result->count));
         }
     }
 
@@ -1605,8 +1605,8 @@ if ($displayforms) {
                 'type' => 'hidden',
                 'name' => 'component',
                 'value' => 'admin',
-            )), ($admin_cnt==1) ? get_string('viewuser', 'tool_uclasupportconsole') : 
-            get_string('viewusers', 'tool_uclasupportconsole', $admin_cnt));
+            )), ($admin_cnt==1) ? get_string('viewrole', 'tool_uclasupportconsole') :
+            get_string('viewroles', 'tool_uclasupportconsole', $admin_cnt));
         $results[] = $adminrow;
 
         foreach ($results as $key => $result) {
