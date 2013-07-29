@@ -30,7 +30,6 @@ M.mod_chat_ajax.init = function(Y, cfg) {
         thememenu : null,                               // A reference to the menu for changing themes
         // BEGIN UCLA MOD: CCLE-4038-chatroom-scrollbar-always-scrolls-down-when-new-message-is-posted
         autoscroll : true,                              // True if scrolling should occur.
-        scrolldistance : 0,                             // Distance to bottom of conversation.
         // END UCLA MOD: CCLE-4038
 
         // Elements
@@ -93,7 +92,7 @@ M.mod_chat_ajax.init = function(Y, cfg) {
             this.autoscrollcheck.on('click', function() {
                 if(this.autoscroll == false) {
                     this.autoscroll = true;
-                    Y.Node.getDOMNode(this.messagebox).parentNode.scrollTop=this.scrolldistance;
+                    Y.Node.getDOMNode(this.messagebox).parentNode.scrollTop = Y.Node.getDOMNode(this.messagebox).parentNode.scrollHeight;
                 } else {
                     this.autoscroll = false;
                 }               
@@ -264,15 +263,9 @@ M.mod_chat_ajax.init = function(Y, cfg) {
             // Scroll to the bottom of the message list
             // if (this.scrollable) {
             //     Y.Node.getDOMNode(this.messagebox).parentNode.scrollTop+=500;
-            // Check if messages were received in update_messages called.
-            if(data.msgs) {
-                // If there are new messages update the scroll distance.
-                this.scrolldistance += 500;
-
-                // Scroll to the bottom of the message list if autoscroll is on.
-                if (this.scrollable && this.autoscroll) {
-                    Y.Node.getDOMNode(this.messagebox).parentNode.scrollTop = this.scrolldistance;
-                }
+            // Scroll to the bottom of the message list if autoscroll is on.
+            if (data.msgs && this.scrollable && this.autoscroll) {
+                Y.Node.getDOMNode(this.messagebox).parentNode.scrollTop = Y.Node.getDOMNode(this.messagebox).parentNode.scrollHeight;
             }
             // END UCLA MOD: CCLE-4038
 

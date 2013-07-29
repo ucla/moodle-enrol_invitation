@@ -80,7 +80,7 @@ $table->data = array(
     // BEGIN UCLA MOD: CCLE-4038-chatroom-scrollbar-always-scrolls-down-when-new-message-is-posted
     // Add auto scroll checkbox that is checked by default.
     // array(' &raquo; <label class="accesshide" for="input-message">' . get_string('entermessage', 'chat') . ' </label><input type="text" disabled="true" id="input-message" value="Loading..." size="50" /> <input type="button" id="button-send" value="'.get_string('send', 'chat').'" /> <a id="choosetheme" href="###">'.get_string('themes').' &raquo; </a>')
-    array(' &raquo; <label class="accesshide" for="input-message">' . get_string('entermessage', 'chat') . ' </label><input type="text" disabled="true" id="input-message" value="Loading..." size="50" /> <input type="button" id="button-send" value="'.get_string('send', 'chat').'" /> <label for="auto">' . get_string('autoscroll', 'chat') . '</label><input type="checkbox" id="auto" checked="checked" /> <a id="choosetheme" href="###">'.get_string('themes').' &raquo; </a>')
+    array(' &raquo; <label class="accesshide" for="input-message">' . get_string('entermessage', 'chat') . ' </label><input type="text" disabled="true" id="input-message" value="Loading..." size="50" /> <input type="button" id="button-send" value="'.get_string('send', 'chat').'" /> <input type="checkbox" id="auto" checked="checked" /><label for="auto">' . get_string('autoscroll', 'chat') . '</label> <a id="choosetheme" href="###">'.get_string('themes').' &raquo; </a>')
     // END UCLA MOD: CCLE-4038
 );
 echo $OUTPUT->box(html_writer::table($table), '', 'chat-input-area');
