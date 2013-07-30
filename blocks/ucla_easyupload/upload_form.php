@@ -89,6 +89,7 @@ abstract class easy_upload_form extends moodleform {
             $mform->addElement('text', 'name', get_string('name'),
                 array('size' => 40));
             $mform->addRule('name', null, 'required');
+            $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
 
             $mform->addElement('textarea', 'intro', 
                 get_string('description'), array('rows' => 9, 'cols' => 40));
