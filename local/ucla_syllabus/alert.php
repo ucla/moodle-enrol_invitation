@@ -45,6 +45,9 @@ if (!$syllabusmanager->can_manage()) {
 $successmessage = null;
 $alertform = new alert_form();
 $data = $alertform->get_data();
+
+print_object($data);
+
 if (!empty($data) && confirm_sesskey()) {
 
     if (isset($data->yesbutton)) {
@@ -65,7 +68,7 @@ if (!empty($data) && confirm_sesskey()) {
         redirect(new moodle_url('/local/ucla_syllabus/index.php', $params));
     } else if (isset($data->nobutton)) {
         // Handling manually uploaded syllabus?
-        if (isset($data->manualsyllabus)) {
+        if (!empty($data->manualsyllabus)) {
             // Set user preference ucla_syllabus_noprompt_manual_<cmid> to 0.
             set_user_preference('ucla_syllabus_noprompt_manual_' .
                     $data->manualsyllabus, 0);
