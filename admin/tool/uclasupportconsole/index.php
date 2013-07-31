@@ -1547,9 +1547,6 @@ if ($displayforms) {
     $results = $DB->get_records_sql($sql);
     
     foreach ($results as $result) {
-        // Only display View Users buttons for the Course, Category and System Contexts.
-        if ($result->contextlevel == CONTEXT_COURSECAT || $result->contextlevel == CONTEXT_COURSE || 
-                $result->contextlevel == CONTEXT_SYSTEM) {
             $result->count = supportconsole_simple_form("userswithrole", 
                 html_writer::empty_tag('input', array(
                     'type' => 'hidden',
@@ -1685,7 +1682,7 @@ if ($consolecommand == "$title") {
             $lookup = "cname";
         }
         
-        if ($contextlevelparam == CONTEXT_SYSTEM) {
+        if ($contextlevelparam != CONTEXT_COURSE && $contextlevelparam != CONTEXT_COURSECAT) {
             $sql = "SELECT  ra.id,
                             u.id AS uid, 
                             CONCAT(u.lastname, ', ', u.firstname) AS name,
@@ -1713,7 +1710,7 @@ if ($consolecommand == "$title") {
             $modifiedrow->id = $result->id;
             $userurl = new moodle_url("/user/profile.php", (["id" => $result->uid]));
             $modifiedrow->Name = "<a href=\"".$userurl->out()."\">$result->name</a>";
-            if ($contextlevelparam != CONTEXT_SYSTEM) {
+            if ($contextlevelparam == CONTEXT_COURSE || $contextlevelparam == CONTEXT_COURSECAT) {
                 $modifiedrow->$contextname = "<a href=\"$CFG->wwwroot" . $contexturl . $result->$lookup . 
                     '">' . $result->cname . '</a>';
             }
