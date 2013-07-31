@@ -1547,29 +1547,28 @@ if ($displayforms) {
     $results = $DB->get_records_sql($sql);
     
     foreach ($results as $result) {
-            $result->count = supportconsole_simple_form("userswithrole", 
-                html_writer::empty_tag('input', array(
-                    'type' => 'hidden',
-                    'name' => 'role',
-                    'value' => $result->name,
-                ))
-                .html_writer::empty_tag('input', array(
-                    'type' => 'hidden',
-                    'name' => 'contextlevel',
-                    'value' => $result->contextlevel,
-                ))
-                .html_writer::empty_tag('input', array(
-                    'type' => 'hidden',
-                    'name' => 'count',
-                    'value' => $result->count,
-                ))
-                . html_writer::empty_tag('input', array(
-                    'type' => 'hidden',
-                    'name' => 'component',
-                    'value' => $result->component,
-                )), ($result->count==1) ? get_string('viewrole', 'tool_uclasupportconsole') :
-            get_string('viewroles', 'tool_uclasupportconsole', $result->count));
-        }
+        $result->count = supportconsole_simple_form("userswithrole", 
+            html_writer::empty_tag('input', array(
+                'type' => 'hidden',
+                'name' => 'role',
+                'value' => $result->name,
+            ))
+            .html_writer::empty_tag('input', array(
+                'type' => 'hidden',
+                'name' => 'contextlevel',
+                'value' => $result->contextlevel,
+            ))
+            .html_writer::empty_tag('input', array(
+                'type' => 'hidden',
+                'name' => 'count',
+                'value' => $result->count,
+            ))
+            . html_writer::empty_tag('input', array(
+                'type' => 'hidden',
+                'name' => 'component',
+                'value' => $result->component,
+            )), ($result->count==1) ? get_string('viewrole', 'tool_uclasupportconsole') :
+        get_string('viewroles', 'tool_uclasupportconsole', $result->count));
     }
 
     $admin_result = get_config(null, 'siteadmins');
