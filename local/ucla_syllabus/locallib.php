@@ -470,7 +470,7 @@ class ucla_syllabus_manager {
         // Then save file, with link to syllabus.
         $coursecontext = context_course::instance($this->courseid);
         file_save_draft_area_files($data->syllabus_file,
-                $coursecontext->id, 'local_ucla_syllabus', 'syllabus'.
+                $coursecontext->id, 'local_ucla_syllabus', 'syllabus',
                 $recordid, $this->filemanagerconfig);
 
         // No errors, so trigger events.
