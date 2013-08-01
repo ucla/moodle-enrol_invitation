@@ -46,8 +46,6 @@ $successmessage = null;
 $alertform = new alert_form();
 $data = $alertform->get_data();
 
-print_object($data);
-
 if (!empty($data) && confirm_sesskey()) {
 
     if (isset($data->yesbutton)) {
