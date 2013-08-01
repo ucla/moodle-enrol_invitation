@@ -244,7 +244,7 @@ function supportconsole_render_table_shortcut($data, $inputs) {
 
 }
 
-function supportconsole_simple_form($title, $contents='') {
+function supportconsole_simple_form($title, $contents='', $buttonvalue='Go') {
     global $PAGE;
     $formhtml = html_writer::start_tag('form', array(
             'method' => 'post',
@@ -260,7 +260,7 @@ function supportconsole_simple_form($title, $contents='') {
     $formhtml .= html_writer::empty_tag('input', array(
             'type' => 'submit',
             'name' => 'submit-button',
-            'value' => 'Go'
+            'value' => $buttonvalue
         ));
 
     $formhtml .= html_writer::end_tag('form');

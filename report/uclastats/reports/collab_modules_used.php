@@ -43,6 +43,11 @@ class collab_modules_used extends uclastats_base {
                         si.type!='test'
                 GROUP BY m.id
                 ORDER BY m.name";
-        return $DB->get_records_sql($sql, $params);
+        $results = $DB->get_records_sql($sql, $params);
+        foreach ($results as &$result) {
+           $result->module=get_string('pluginname', 'mod_' . $result->module);  
+        }
+        array_alphasort($results, 'module');
+        return $results;
     }
 }
