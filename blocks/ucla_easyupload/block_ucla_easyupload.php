@@ -119,7 +119,7 @@ class block_ucla_easyupload extends block_base {
             'text');
 
         // give proper section
-        $section = ucla_format_figure_section($course);
+        $section = course_get_format($course)->figure_section($course);
         $section_type = 'section';
         $section_value = $section;
         // handle special case for show_all

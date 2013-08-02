@@ -314,5 +314,11 @@
 
     // Include course AJAX
     include_course_ajax($course, $modnamesused);
-
+    
+    // START UCLA MOD CCLE-3947
+    // Adding custom JS 
+    /* @var format_ucla */
+    course_get_format($course)->course_footer();
+    // END UCLA MOD CCLE-3947
+    
     echo $OUTPUT->footer();

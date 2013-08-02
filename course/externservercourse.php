@@ -10,7 +10,7 @@ function extern_server_course($course) {
     
     //CCLE-3685 - Redirect to syllabus if the syllabus is the landing page
     require_once($CFG->dirroot.'/course/format/ucla/lib.php');
-    $on_landing_page = ucla_format_figure_section($course);
+    $on_landing_page = course_get_format($course)->figure_section($course);
     if ($on_landing_page === UCLA_FORMAT_DISPLAY_SYLLABUS) {
         $syllabusurl = $CFG->wwwroot . '/local/ucla_syllabus/index.php?id=' . $course->id;
         redirect($syllabusurl);

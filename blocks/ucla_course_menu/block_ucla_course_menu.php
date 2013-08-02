@@ -110,7 +110,7 @@ class block_ucla_course_menu extends block_navigation {
         if (class_exists('ucla_course_prefs') && 
                 function_exists('ucla_format_figure_section')) {
             $course_prefs = new ucla_course_prefs($this->page->course->id);            
-            $this->displaysection = ucla_format_figure_section($this->page->course, $course_prefs);                            
+            $this->displaysection = course_get_format($this->page->course)->figure_section($this->page->course, $course_prefs);
         }         
         
         $renderer = $this->get_renderer();
@@ -259,10 +259,12 @@ class block_ucla_course_menu extends block_navigation {
         
         $viewhiddensections = has_capability(
             'moodle/course:viewhiddensections', $this->page->context);
+            
+        $numsections = count(course_get_format($this->page->course)->get_sections());
         
         foreach ($sections as $section) {
             // TESTINGCCLE-531: Course setting for num sections not reflected.
-            if ($section->section > $this->page->course->numsections) {
+            if ($section->section > $numsections) {
                 continue;
             }
 
@@ -358,9 +360,14 @@ class block_ucla_course_menu extends block_navigation {
 
         $courseid = $this->page->course->id;
 
-        get_all_mods($courseid, $mods, $modnames,
-            $modnamesplural, $modnamesused);
+//        get_all_mods($courseid, $mods, $modnames,
+//            $modnamesplural, $modnamesused);
 
+        $mods = get_fast_modinfo($courseid)->get_cms(); 
+        $modnames = get_module_types_names(); 
+        $modnamesplural = get_module_types_names(true); 
+        $modnamesused = get_fast_modinfo($courseid)->get_used_module_names();
+        
         if (isset($modnamesused['label'])) {
             unset($modnamesused['label']);
         }

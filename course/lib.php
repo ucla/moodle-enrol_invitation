@@ -1935,34 +1935,35 @@ function course_get_cm_edit_actions(cm_info $mod, $indent = -1, $sr = null) {
      * @author ebollens
      * @version 20110719
      */
-    require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
-    $publicprivate_course = new PublicPrivate_Course($mod->course);
-    $pubpriv = '';
-
-    if($publicprivate_course->is_activated()) {
-        require_once($CFG->dirroot.'/local/publicprivate/lib/module.class.php');
-        $publicprivate_module = new PublicPrivate_Module($mod->id);
-
-        /**
-         * If the module is private, show a toggle to make it public, or if it
-         * is public, then show a toggle to make it private.
-         */
-        if($publicprivate_module->is_private()) {
-            $actions[] = new action_link(
-                new moodle_url($baseurl, array('public' => $mod->id)),
-                new pix_icon('t/private', $str->public, 'moodle', array('class' => 'iconsmall')),
-                null,
-                array('class' => 'editing_makepublic', 'title' => $str->public)
-            );                
-        } else {
-            $actions[] = new action_link(
-                new moodle_url($baseurl, array('private' => $mod->id)),
-                new pix_icon('t/public', $str->private, 'moodle', array('class' => 'iconsmall')),
-                null,
-                array('class' => 'editing_makeprivate', 'title' => $str->private)
-            );                    
-        }
-    }
+//    global $CFG;
+//    require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
+//    $publicprivate_course = new PublicPrivate_Course($mod->course);
+//    $pubpriv = '';
+//
+//    if($publicprivate_course->is_activated()) {
+//        require_once($CFG->dirroot.'/local/publicprivate/lib/module.class.php');
+//        $publicprivate_module = new PublicPrivate_Module($mod->id);
+//
+//        /**
+//         * If the module is private, show a toggle to make it public, or if it
+//         * is public, then show a toggle to make it private.
+//         */
+//        if($publicprivate_module->is_private()) {
+//            $actions[] = new action_link(
+//                new moodle_url($baseurl, array('public' => $mod->id)),
+//                new pix_icon('t/private', $str->public, 'moodle', array('class' => 'iconsmall')),
+//                null,
+//                array('class' => 'editing_makepublic', 'title' => $str->public)
+//            );                
+//        } else {
+//            $actions[] = new action_link(
+//                new moodle_url($baseurl, array('private' => $mod->id)),
+//                new pix_icon('t/public', $str->private, 'moodle', array('class' => 'iconsmall')),
+//                null,
+//                array('class' => 'editing_makeprivate', 'title' => $str->private)
+//            );                    
+//        }
+//    }
 
     /* UCLA MOD CCLE-3069: Remove group-mode and assign role buttons
     // groupmode
@@ -2953,7 +2954,7 @@ function include_course_ajax($course, $usedmodules = array(), $enabledmodules = 
     if (!course_ajax_enabled($course)) {
         return false;
     }
-
+    
     if (!$config) {
         $config = new stdClass();
     }
@@ -3040,7 +3041,7 @@ function include_course_ajax($course, $usedmodules = array(), $enabledmodules = 
     foreach ($usedmodules as $module => $modname) {
         $PAGE->requires->string_for_js('pluginname', $module);
     }
-
+    
     // Load drag and drop upload AJAX.
     dndupload_add_to_course($course, $enabledmodules);
 
