@@ -1000,6 +1000,8 @@ class course_enrolment_manager {
 
             // Enrolments
             $details['enrolments'] = array();
+
+            // START UCLA MOD: CCLE-3642 - Manual Enrollments Timestamp is always midnight
             foreach ($this->get_user_enrolments($user->id) as $ue) {
                 if (!isset($enabledplugins[$ue->enrolmentinstance->enrol])) {
                     $details['enrolments'][$ue->id] = array(
@@ -1010,19 +1012,24 @@ class course_enrolment_manager {
                     );
                     continue;
                 } else if ($ue->timestart and $ue->timeend) {
-                    $period = get_string('periodstartend', 'enrol', array('start'=>userdate($ue->timestart), 'end'=>userdate($ue->timeend)));
+                    //$period = get_string('periodstartend', 'enrol', array('start'=>userdate($ue->timestart), 'end'=>userdate($ue->timeend)));
+                    $period = get_string('periodstartend', 'enrol', array('start'=>userdate($ue->timestart, get_string('strftimedaydate', 'langconfig')), 'end'=>userdate($ue->timeend, get_string('strftimedaydate', 'langconfig'))));
                     $periodoutside = ($ue->timestart && $ue->timeend && $now < $ue->timestart && $now > $ue->timeend);
                 } else if ($ue->timestart) {
-                    $period = get_string('periodstart', 'enrol', userdate($ue->timestart));
+                    //$period = get_string('periodstart', 'enrol', userdate($ue->timestart));
+                    $period = get_string('periodstart', 'enrol', userdate($ue->timestart, get_string('strftimedaydate', 'langconfig')));
                     $periodoutside = ($ue->timestart && $now < $ue->timestart);
                 } else if ($ue->timeend) {
-                    $period = get_string('periodend', 'enrol', userdate($ue->timeend));
+                    //$period = get_string('periodend', 'enrol', userdate($ue->timeend));
+                    $period = get_string('periodend', 'enrol', userdate($ue->timeend, get_string('strftimedaydate', 'langconfig')));
                     $periodoutside = ($ue->timeend && $now > $ue->timeend);
                 } else {
                     // If there is no start or end show when user was enrolled.
-                    $period = get_string('periodnone', 'enrol', userdate($ue->timecreated));
+                    //$period = get_string('periodnone', 'enrol', userdate($ue->timecreated));
+                    $period = get_string('periodnone', 'enrol', userdate($ue->timecreated, get_string('strftimedaydate', 'langconfig')));
                     $periodoutside = false;
                 }
+            // END UCLA MOD: CCLE-3642
                 $details['enrolments'][$ue->id] = array(
                     'text' => $ue->enrolmentinstancename,
                     'period' => $period,

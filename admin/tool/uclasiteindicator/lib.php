@@ -234,8 +234,7 @@ class siteindicator_request {
 
         // Get toprole
         $uclaindicator = new siteindicator_manager();
-        $roles = $uclaindicator->get_roles_for_type($this->entry->type);
-        $toprole = array_shift($roles);
+        $toprole = $uclaindicator->get_requester_role_for_type($this->entry->type);
         
         $role = $DB->get_record('role', array('shortname' => $toprole));
         
@@ -351,14 +350,15 @@ class siteindicator_manager {
             self::SITE_TYPE_NON_INSTRUCTION => self::SITE_GROUP_TYPE_PROJECT,
             self::SITE_TYPE_RESEARCH => self::SITE_GROUP_TYPE_PROJECT,
             self::SITE_TYPE_TEST => self::SITE_GROUP_TYPE_TEST,
-            self::SITE_TYPE_PRIVATE => self::SITE_GROUP_TYPE_INSTRUCTION,
+            self::SITE_TYPE_PRIVATE => self::SITE_GROUP_TYPE_PROJECT,
             self::SITE_TYPE_TASITE => self::SITE_GROUP_TYPE_INSTRUCTION,
             );
         
         // Define the roles allowed for a particular role group
         // See CCLE-2948/CCLE-2949/CCLE-2913/site invite
         $instruction = array(
-            'instructional_assistant',            
+            'editinginstructor',            
+            'instructional_assistant',
             'editor',
             'grader',            
             'student',
@@ -378,6 +378,13 @@ class siteindicator_manager {
             'project' => $project,
             'test' => array_merge($instruction, $project),
             );
+        
+        // CCLE-3981: Give requester a role assignment.
+        $this->_requesterroleassignement = array(
+            'instruction' => 'editinginstructor',
+            'project' => 'projectlead',
+            'test' => 'projectlead'
+        );
 
         // remap roles
         // see CCLE-2913
@@ -431,7 +438,18 @@ class siteindicator_manager {
 //        $ntype = $this->disambiguate_type($type);
         return $this->_roleassignments[$this->_type_to_rolegroup_mapping[$type]];
     }
-    
+
+    /**
+     * For a given type, returns the role that should be assigned to the course requester
+     * part of CCLE-3981.
+     * 
+     * @param string $type of site
+     * @return string designating role to assign
+     */
+    function get_requester_role_for_type($type) {
+        return $this->_requesterroleassignement[$this->_type_to_rolegroup_mapping[$type]];
+    }
+
     /**
      * For a given type, returns the rolegroup assigned to the type.
      * 

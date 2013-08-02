@@ -289,7 +289,8 @@ class theme_uclashared_core_renderer extends core_renderer {
             'separator',            
             'school',
             'registrar',
-            'myucla'
+            'myucla',
+            'disability'
         );
 
         $footer_string = '';

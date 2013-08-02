@@ -65,7 +65,11 @@ class collab_block_sites extends uclastats_base {
                         si.type!='test'
                 GROUP BY b.id
                 ORDER BY b.name";
-        return $DB->get_records_sql($sql, $params);
+        $results = $DB->get_records_sql($sql, $params);
+        foreach ($results as &$result) {
+           $result->blockname=get_string('pluginname', 'block_' . $result->blockname);
+        }
+        array_alphasort($results, 'blockname');
+        return $results;
     }
-
 }

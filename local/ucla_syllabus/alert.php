@@ -1,7 +1,28 @@
 <?php
-/*
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Syllabus alert file.
+ * 
  * Responds to syllabus alert form. Handles setting of user preferences and
  * redirecting.
+ * 
+ * @package     local_ucla_syllabus
+ * @copyright   2012 UC Regents
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
@@ -10,32 +31,34 @@ require_once($CFG->dirroot . '/local/ucla_syllabus/alert_form.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once($CFG->dirroot . '/course/format/ucla/ucla_course_prefs.class.php');
 
-$id = required_param('id', PARAM_INT);   // course
+// Use the ID of the course to retrieve course records.
+$id = required_param('id', PARAM_INT);
 $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
-$ucla_syllabus_manager = new ucla_syllabus_manager($course);
+$syllabusmanager = new ucla_syllabus_manager($course);
 
 require_course_login($course);
 
-if (!$ucla_syllabus_manager->can_manage()) {
+if (!$syllabusmanager->can_manage()) {
     print_error('err_cannot_manage', 'local_ucla_syllabus');
 }
 
-$success_msg = null;
-$alert_form = new alert_form();
-$data = $alert_form->get_data();
+$successmessage = null;
+$alertform = new alert_form();
+$data = $alertform->get_data();
+
 if (!empty($data) && confirm_sesskey()) {
 
     if (isset($data->yesbutton)) {
-        // yes: redirect user to syllabus index with editing turned on
+        // Redirect user to syllabus index with editing turned on.
         $params = array('id' => $id);
 
-        // if user is not currently in editing mode, turn it on
+        // If user is not currently in editing mode, turn it on.
         if (!$USER->editing) {
             $params['edit'] = 1;
             $params['sesskey'] = sesskey();
         }
 
-        // Handling manually uploaded syllabus?
+        // Handling manually uploaded syllabus.
         if (!empty($data->manualsyllabus)) {
             $params['manualsyllabus'] = $data->manualsyllabus;
         }
@@ -43,30 +66,30 @@ if (!empty($data) && confirm_sesskey()) {
         redirect(new moodle_url('/local/ucla_syllabus/index.php', $params));
     } else if (isset($data->nobutton)) {
         // Handling manually uploaded syllabus?
-        if (isset($data->manualsyllabus)) {
-            // no: set user preference ucla_syllabus_noprompt_manual_<cmid> to 0
+        if (!empty($data->manualsyllabus)) {
+            // Set user preference ucla_syllabus_noprompt_manual_<cmid> to 0.
             set_user_preference('ucla_syllabus_noprompt_manual_' .
                     $data->manualsyllabus, 0);
         } else {
-            // no: set user preference ucla_syllabus_noprompt_<courseid> to 0
+            // Set user preference ucla_syllabus_noprompt_<courseid> to 0.
             set_user_preference('ucla_syllabus_noprompt_' . $id, 0);
-            $success_msg = get_string('alert_no_redirect', 'local_ucla_syllabus');
+            $successmessage = get_string('alert_no_redirect', 'local_ucla_syllabus');
         }
     } else if (isset($data->laterbutton)) {
-        // later: set user preference value ucla_syllabus_noprompt_<courseid> to
-        // now + 24 hours
+        // Set user preference value ucla_syllabus_noprompt_<courseid> to
+        // now + 24 hours.
         set_user_preference('ucla_syllabus_noprompt_' . $id, time() + 86400);
-        $success_msg = get_string('alert_later_redirect', 'local_ucla_syllabus');
+        $successmessage = get_string('alert_later_redirect', 'local_ucla_syllabus');
     }
 
-    // redirect no/later responses to course page (make sure to redirect to
-    // landing page or user wouldn't get success message)
-    $section = 0;    
-    $ucla_course_prefs = new ucla_course_prefs($course->id);
-    $landing_page = $ucla_course_prefs->get_preference('landing_page');
-    if (!empty($landing_page)) {
-        $section = $landing_page;
+    // Redirect no/later responses to course page (make sure to redirect to
+    // landing page or user wouldn't get success message).
+    $section = 0;
+    $courseprefs = new ucla_course_prefs($course->id);
+    $landingpage = $courseprefs->get_preference('landing_page');
+    if (!empty($landingpage)) {
+        $section = $landingpage;
     }
-    flash_redirect(new moodle_url('/course/view.php', 
-            array('id' => $id, 'section' => $section)), $success_msg);
+    flash_redirect(new moodle_url('/course/view.php',
+            array('id' => $id, 'section' => $section)), $successmessage);
 }

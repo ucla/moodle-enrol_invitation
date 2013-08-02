@@ -6,22 +6,22 @@ $string['region-side-pre'] = 'Left';
 $string['choosereadme'] = 'The theme from University of California, Los Angeles.';
 
 // The footer links
-$string['foodis_contact_ccle'] = 'Contact CCLE';
+$string['foodis_contact_ccle'] = 'Contact';
 $string['foolin_contact_ccle'] = 'https://ccle.ucla.edu/course/view/aboutccle?sectionid=926';
 
-$string['foodis_about_ccle'] = 'About CCLE';
+$string['foodis_about_ccle'] = 'About';
 $string['foolin_about_ccle'] = 'https://ccle.ucla.edu/course/view/aboutccle?section=0';
 
-$string['foodis_privacy'] = 'Privacy policy';
+$string['foodis_privacy'] = 'Privacy';
 $string['foolin_privacy'] = $CFG->wwwroot . '/theme/uclashared/view.php?page=privacy';
 
-$string['foodis_copyright'] = 'Copyright information';
+$string['foodis_copyright'] = 'Copyright';
 $string['foolin_copyright'] = $CFG->wwwroot . '/theme/uclashared/view.php?page=copyright';
 
 $string['foodis_uclalinks'] = 'UCLA links';
 $string['foolin_uclalinks'] = 'https://ccle.ucla.edu/course/view/aboutccle?sectionid=6996';
 
-$string['foodis_school'] = 'UCLA home';
+$string['foodis_school'] = 'UCLA';
 $string['foolin_school'] = 'http://www.ucla.edu/';
 
 $string['foodis_registrar'] = 'Registrar';
@@ -29,6 +29,9 @@ $string['foolin_registrar'] = 'http://www.registrar.ucla.edu/';
 
 $string['foodis_myucla'] = 'MyUCLA';
 $string['foolin_myucla'] = 'http://my.ucla.edu/';
+
+$string['foodis_disability'] = 'Disability';
+$string['foolin_disability'] = 'http://www.osd.ucla.edu/';
 
 $string['control_panel'] = 'Control Panel';
 
