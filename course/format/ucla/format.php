@@ -40,16 +40,6 @@ if ($topic = optional_param('topic', 0, PARAM_INT)) {
 }
 // End backwards-compatible aliasing..
 
-// make sure that all sections exist for the course (-1 for site info)
-if (count($sections)-1 < $course->numsections) {
-    // we need to build sections
-    $section_num = 0;
-    while ($section_num <= $course->numsections) {
-        $sections[$section_num] = setup_section($section_num, $sections, $course);
-        ++$section_num;
-    }    
-}
-
 // Build our required forums
 $forum_new = forum_get_course_forum($course->id, 'news');
 $forum_gen = forum_get_course_forum($course->id, 'general');
@@ -61,21 +51,19 @@ if (($marker >=0) && has_capability('moodle/course:setcurrentsection', $context)
     course_set_marker($course->id, $marker);
 }
 
+/* @var $renderer format_ucla_renderer */
 $renderer = $PAGE->get_renderer('format_ucla');
 $renderer->print_header();
 $renderer->print_js();
 
-// see what section user wants to view
-// NOTE: cannot depend on $displaysection, because it defaults to 0, so don't
-// know if user wants to see "Site info" or landing page
-$displaysection = ucla_format_figure_section($course);
+// make sure all sections are created
+$course = course_get_format($course)->get_course();
+course_create_sections_if_missing($course, range(0, $course->numsections));
 
-if ($displaysection == UCLA_FORMAT_DISPLAY_ALL) {
-    // user wants to view all sections    
-    $renderer->print_multiple_section_page($course, $sections, $mods, $modnames, $modnamesused);    
+if (!empty($displaysection)) {
+    $renderer->print_single_section_page($course, null, null, null, null, $displaysection);
 } else {
-    // user wants to view a given section
-    $renderer->print_single_section_page($course, $sections, $mods, $modnames, $modnamesused, $displaysection);
+    $renderer->print_multiple_section_page($course, $sections, $mods, $modnames, $modnamesused);
 }
 
 // Include course format js module
