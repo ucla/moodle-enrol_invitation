@@ -282,7 +282,7 @@ $CFG->forced_plugin_settings['enrol_self']['status'] = 1;  // 0 is yes, 1 is no
 $CFG->forced_plugin_settings['enrol_self']['sendcoursewelcomemessage'] = 0;
 
 // Site administration > Plugins > Blocks > UCLA bruincast
-$CFG->forced_plugin_settings['block_ucla_bruincast']['source_url'] = 'http://www.oid.ucla.edu/help/info/bcastlinks/';
+$CFG->forced_plugin_settings['block_ucla_bruincast']['source_url'] = 'http://www2.oid.ucla.edu/help/info/bcastlinks/';
 $CFG->forced_plugin_settings['block_ucla_bruincast']['errornotify_email'] = 'ccle-operations@lists.ucla.edu';
 
 // Site administration > Plugins > Blocks > UCLA library reserves
