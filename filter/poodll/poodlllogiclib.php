@@ -656,7 +656,11 @@ global $CFG, $DB;
 	}
 	
 	//get card data from db
-	$subquestions = $DB->get_records('question_match_sub', array('question'=>$cardsetid));
+	if($CFG->version < 2013051400){
+		$subquestions = $DB->get_records('question_match_sub', array('question'=>$cardsetid));
+	}else{
+		$subquestions = $DB->get_records('qtype_match_subquestions', array('questionid'=>$cardsetid));
+	}
 	
     if (empty($subquestions)) {
        // notice(get_string('nosubquestions', 'poodllflashcard'));
@@ -781,7 +785,8 @@ global $CFG,$DB;
 	require_course_login($course);
 
 
-	$modinfo =& get_fast_modinfo($course);
+	//$modinfo =& get_fast_modinfo($course);
+	$modinfo = get_fast_modinfo($course);
 
 
 	get_all_mods($courseid, $mods, $modnames, $modnamesplural, $modnamesused);

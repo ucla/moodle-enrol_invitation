@@ -17,8 +17,10 @@ You will then have to enable the filter. Go to:
 And set the PoodLL Filter to "On."
 
 If the Moodle "Multimedia Plugins" filter is also on, make sure that the PoodLL filter is higher in the list.
-It is not essential but advised to turn the Text Cache lifetime off, or to 30 seconds in:
-"Site Administration->Plugins->Filters->Common Filter Settings"
+
+Moodle caching can affect audio/video playback reliability. To turn off text filter caching:  
+Go to: Site Administration -> Plugins -> Filters ->Common Filter Settings
+There set "Text Cache Lifetime" to "no"
 
 All of the PoodLL mods require the PoodLL filter to be installed. 
 

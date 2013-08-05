@@ -15,20 +15,36 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details
+ * Post-install code for the assignfeedback_poodll module.
  *
- * @package    repository
- * @subpackage poodll
- * @copyright  2012 Justin hunt
- * @author     Justin Hunt <bitwalkerjapan@gmail.com>
+ * @package assignfeedback_poodll
+ * @copyright  1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2013051100; 
-$plugin->requires  = 2012062500; 
-$plugin->component = 'repository_poodll'; 
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '2.5.1 (Build 2013051100)';
-$plugin->dependencies = array('filter_poodll' => 2012120400);
+
+/**
+ * Code run after the assignfeedback_poodll module database tables have been created.
+ * Moves the feedback file plugin down
+ *
+ * @return bool
+ */
+function xmldb_assignfeedback_poodll_install() {
+    global $CFG;
+
+    // do the install
+
+    require_once($CFG->dirroot . '/mod/assign/adminlib.php');
+    // set the correct initial order for the plugins
+    $pluginmanager = new assign_plugin_manager('assignfeedback');
+
+    $pluginmanager->move_plugin('poodll', 'down');
+
+    // do the upgrades
+    return true;
+}
+
+

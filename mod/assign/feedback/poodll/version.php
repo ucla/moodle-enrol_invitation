@@ -15,20 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details
+ * This file contains the version information for the poodll feedback plugin
  *
- * @package    repository
- * @subpackage poodll
- * @copyright  2012 Justin hunt
- * @author     Justin Hunt <bitwalkerjapan@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   assignfeedback_poodll
+ * @copyright 2013 Justin Hunt {@link http://www.poodll.com}
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2013051100; 
-$plugin->requires  = 2012062500; 
-$plugin->component = 'repository_poodll'; 
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '2.5.1 (Build 2013051100)';
+$plugin->version   = 2013072600;
+$plugin->requires  = 2012062500;
+$plugin->component = 'assignfeedback_poodll';
+$plugin->maturity  = MATURITY_BETA;
+$plugin->release   = '1.0.2 (Build 2013072600)';
 $plugin->dependencies = array('filter_poodll' => 2012120400);

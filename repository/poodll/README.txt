@@ -24,6 +24,10 @@ From that link create one or more repository instances. There are five types of 
 5) Snapshot (take photos with webcam)
 The repository instances will then show in the file picker and you can use them in your courses.
 
+Moodle caching can affect audio/video playback reliability. To turn off text filter caching:  
+Go to: Site Administration -> Plugins -> Filters ->Common Filter Settings
+There set "Text Cache Lifetime" to "no"
+
 *Please be aware that the repository relies on the PoodLL Filter being installed, and won't work properly otherwise*
 
 Good luck.

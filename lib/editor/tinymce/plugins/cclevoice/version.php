@@ -15,20 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details
+ * TinyMCE CCLE voice plugin version details.
  *
- * @package    repository
- * @subpackage poodll
- * @copyright  2012 Justin hunt
- * @author     Justin Hunt <bitwalkerjapan@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   tinymce_cclevoice
+ * @copyright 2013 CCLE UCLA
+ * @license
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2013051100; 
-$plugin->requires  = 2012062500; 
-$plugin->component = 'repository_poodll'; 
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '2.5.1 (Build 2013051100)';
-$plugin->dependencies = array('filter_poodll' => 2012120400);
+// The current plugin version (Date: YYYYMMDDXX).
+$plugin->version   = 2013050102;
+// Required Moodle version.
+$plugin->requires  = 2013050100;
+// Full name of the plugin (used for diagnostics).
+$plugin->component = 'tinymce_cclevoice';
