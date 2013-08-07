@@ -20,8 +20,8 @@ $type = required_param('type', PARAM_ALPHA);
 $currsect = optional_param('section', 0, PARAM_INT);
 
 // Stolen from /course/edit.php
-$course = $DB->get_record('course', array('id' => $course_id), 
-    '*', MUST_EXIST);
+$course = $DB->get_record('course', array('id' => $course_id), '*', MUST_EXIST);
+$format = course_get_format($course_id);
 
 require_login($course, true);
 $context = get_context_instance(CONTEXT_COURSE, $course_id);
@@ -52,8 +52,9 @@ if (!$type) {
 }
 
 // Get all the informations for the form.
-$modinfo = get_fast_modinfo($course);
-get_all_mods($course_id, $mods, $modnames, $modnamesplural, $modnamesused);
+$modinfo = get_fast_modinfo($course_id);
+$mods = $modinfo->get_cms();
+$modnames = get_module_types_names();
 
 // Prep things for activities
 // Checkout /course/lib.php:1778
@@ -129,7 +130,8 @@ $copyrights = array();
 
 
 // Prep things for section selector
-$sections = get_all_sections($course_id);
+$sections = $modinfo->get_section_info_all();
+$numsections = $format->get_format_options()['numsections'];
 
 $sectionnames = array();
 $indexed_sections = array();
@@ -137,7 +139,7 @@ $indexed_sections = array();
 $defaultsection = 0;
 
 foreach ($sections as $section) {
-    if ($section->section > $course->numsections) {
+    if ($section->section > $numsections) {
         continue;
     }
 
@@ -336,7 +338,7 @@ if ($uploadform->is_cancelled()) {
             $coursemoduleid);
     }
 
-    $sectionid = add_mod_to_section($data);
+    $sectionid = course_add_cm_to_section($data->course, $data->coursemodule, $data->section);
 
     $DB->set_field('course_modules', 'instance', $instanceid,
         array('id' => $coursemoduleid));
