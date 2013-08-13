@@ -24,7 +24,6 @@
 global $CFG;
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 /**  Course Preferences API **/
-require_once(dirname(__FILE__) . '/ucla_course_prefs.class.php');
 require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclasiteindicator/lib.php');
 require_once($CFG->dirroot. '/course/format/topics/lib.php');
 
@@ -77,17 +76,10 @@ class format_ucla extends format_topics {
             return UCLA_FORMAT_DISPLAY_ALL;
         }
 
-        // no specific section and no "Show all", so just go to landing page    
-        if ($course_prefs == null || !is_object($course_prefs)) {
-            $course_prefs = new ucla_course_prefs($course->id);
-        }
-
         // Default to course marker (usually section 0 (site info)) if there are no 
         // landing page preference
-        $landing_page = $course_prefs->get_preference('landing_page', false);
-        if ($landing_page === false) {
-            $landing_page = $course->marker;
-        } 
+        $format_options = course_get_format($course->id)->get_format_options();
+        $landing_page = isset($format_options['landing_page']) ? $format_options['landing_page'] : $course->marker;
 
         return $landing_page;
     }

@@ -148,13 +148,13 @@ if (!empty($USER->editing) && $canmanagesyllabus) {
             if (is_null($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]) ||
                     is_null($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE])
                     ) {
-                require_once($CFG->dirroot.'/course/format/ucla/ucla_course_prefs.class.php');
                 require_once($CFG->dirroot.'/course/format/ucla/lib.php');
 
-                $courseprefs = new ucla_course_prefs($course->id);
-                if ($courseprefs->get_preference('landing_page') == UCLA_FORMAT_DISPLAY_SYLLABUS) {
-                    $courseprefs->set_preference('landing_page', 0);
-                    $courseprefs->commit();
+                $format_options = course_get_format($course->id)->get_format_options();
+                $landing_page = isset($format_options['landing_page']) ? $format_options['landing_page'] : false;
+                if ($landing_page == UCLA_FORMAT_DISPLAY_SYLLABUS) {
+                    course_get_format($course->id)->update_format_options(
+                            array('landing_page' => 0));
                 }
             }
 

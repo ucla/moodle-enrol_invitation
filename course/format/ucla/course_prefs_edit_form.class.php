@@ -35,7 +35,6 @@ class course_prefs_edit_form extends moodleform {
         $mform = $this->_form;
 
         $course = $this->_customdata['course'];
-        $currprefs = $this->_customdata['currprefs'];
 
         $sections = array();
         $course_sections = get_all_sections($course->id);
@@ -59,7 +58,9 @@ class course_prefs_edit_form extends moodleform {
         $opt = 'landing_page';
         $mform->addElement('select', $opt,
             get_string('landing_page', 'format_ucla'), $sections);
-        $mform->setDefault($opt, $currprefs->get_preference($opt));
+        $format_options = course_get_format($course->id)->get_format_options();
+        $landing_page = isset($format_options['landing_page']) ? $format_options['landing_page'] : false;
+        $mform->setDefault($opt, $landing_page);
 
         // Finished
         $this->add_action_buttons();
