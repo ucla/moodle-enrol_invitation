@@ -32,6 +32,10 @@ $perpage   = optional_param('perpage', '', PARAM_RAW); // how many per page, may
 $blocklist = optional_param('blocklist', 0, PARAM_INT);
 $modulelist= optional_param('modulelist', '', PARAM_PLUGIN);
 $tagid     = optional_param('tagid', '', PARAM_INT);   // searches for courses tagged with this tag id
+// START UCLA MOD: CCLE-3948 - Re-add advanced search.
+$collab    = optional_param('collab', 0, PARAM_BOOL);
+$course    = optional_param('course', 0, PARAM_BOOL);
+// END UCLA MOD: CCLE-3948
 
 // List of minimum capabilities which user need to have for editing/moving course
 $capabilities = array('moodle/course:create', 'moodle/category:manage');
@@ -40,6 +44,19 @@ $capabilities = array('moodle/course:create', 'moodle/category:manage');
 $usercatlist = coursecat::make_categories_list($capabilities);
 
 $search = trim(strip_tags($search)); // trim & clean raw searched string
+// BEGIN UCLA MOD: CCLE-3948
+// Only search for strings of length 2 or more. This is to make the results
+// compatible with the manage tool (which uses the same convention).
+if ($search) {
+    $searchterms = explode(' ', $search);
+    foreach ($searchterms as $key => $searchterm) {
+        if(strlen($searchterm) < 2) {
+            unset($searchterms[$key]);
+        }
+    }
+    $search = trim(implode(' ', $searchterms));
+}
+// END UCLA MOD: CCLE-3948
 
 $site = get_site();
 
@@ -98,5 +115,35 @@ if (empty($searchcriteria)) {
 $PAGE->set_heading($site->fullname);
 
 echo $OUTPUT->header();
-echo $courserenderer->search_courses($searchcriteria);
+// BEGIN UCLA MOD: CCLE-3948
+// Old line: echo $courserenderer->search_courses($searchcriteria);
+$ucla_search = $CFG->dirroot . '/blocks/ucla_search/block_ucla_search.php';
+if (file_exists($ucla_search)) {
+    // Load and display the advanced search bar.
+    require_once($ucla_search);
+    block_ucla_search::load_search_js(false);
+    echo block_ucla_search::print_course_search($search, $collab, $course);
+
+    // Get course/collab IDs which meet search criteria.
+    $courses = get_courses_search($searchcriteria, "fullname ASC",
+                                  $page, $perpage, $totalcount,
+                                  array('collab' => $collab, 'course' => $course));
+
+    // If there are no courses which match our search, display appropriate
+    // message.
+    if (!$totalcount) {
+        if (!empty($searchcriteria['search'])) {
+            echo $courserenderer->heading(get_string('nocoursesfound', '', $searchcriteria['search']));
+        } else {
+            echo $courserenderer->heading(get_string('novalidcourses'));
+        }
+    } else {    
+        // Use the renderer to display the appropriate courses/collab sites.
+        echo $courserenderer->heading(get_string('searchresults'). ": $totalcount");
+        echo $courserenderer->courses_list($courses, true, null, null, $totalcount, $page, $perpage);
+    }
+} else {
+    echo $courserenderer->search_courses($searchcriteria);
+}
+// END UCLA MOD: CCLE-3948
 echo $OUTPUT->footer();

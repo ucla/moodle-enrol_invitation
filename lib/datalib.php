@@ -730,7 +730,7 @@ function get_courses_page($categoryid="all", $sort="c.sortorder ASC", $fields="c
  * @param int $totalcount Passed in by reference.
  * @return object {@link $COURSE} records
  */
-function get_courses_search($searchterms, $sort, $page, $recordsperpage, &$totalcount) {
+function get_courses_search($searchterms, $sort = 'fullname ASC', $page = 0, $recordsperpage = 50, &$totalcount = 0, $otherargs = null) {
     global $CFG, $DB;
     
     // START UCLA MOD CCLE-2309
@@ -836,11 +836,22 @@ function get_courses_search($searchterms, $sort, $page, $recordsperpage, &$total
 
     list($ccselect, $ccjoin) = context_instance_preload_sql('c.id', CONTEXT_COURSE, 'ctx');
     $fields = array_diff(array_keys($DB->get_columns('course')), array('modinfo', 'sectioncache'));
-    $sql = "SELECT c.".join(',c.',$fields)." $ccselect
+    // START UCLA MOD CCLE-3948 - re-add advance search (to support collab).
+    // Old query:
+    // $sql = "SELECT c.".join(',c.',$fields)." $cselect
+    //           FROM {course} c
+    //        $ccjoin
+    //          WHERE $searchcond AND c.id <> ".SITEID."
+    //       ORDER BY $sort";
+    $sql = "SELECT c.* $ccselect $collab_select
               FROM {course} c
+           $collab_join
            $ccjoin
-             WHERE $searchcond AND c.id <> ".SITEID."
-          ORDER BY $sort";
+             WHERE $searchcond AND c.id <> " . SITEID . "
+             $collab_and
+          ORDER BY $sort
+             $rest_limit";
+    // END UCLA MOD CCLE-3948
 
     $rs = $DB->get_recordset_sql($sql, $params);
     foreach($rs as $course) {
