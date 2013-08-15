@@ -86,7 +86,7 @@ class format_ucla_renderer extends format_topics_renderer {
         $this->instructors = course_get_format($page->course)->display_instructors();
         
         // save course object
-        $this->course =& $page->course;
+        $this->course = course_get_format($page->course)->get_course();
         
         // save context object
         $this->context =& $page->context;        
@@ -98,6 +98,71 @@ class format_ucla_renderer extends format_topics_renderer {
                                  'subheading' => get_string('subheading', 'format_ucla'));     
         
         $this->noeditingicons = get_user_preferences('noeditingicons', 1);
+    }
+    
+    /**
+     * Calls ucla_format_notices event and sees if any notices are returned.
+     * Expects notices to be returned in an array of HTML content. Just displays
+     * content as is.
+     *
+     * Then echos those notices out.
+     *
+     * @param int sectionnum            Section being displayed
+     */
+    public function print_external_notices($sectionnum, $course) {
+        global $OUTPUT, $PAGE, $USER;
+
+        // maybe some external notice system is redirecting back with a message
+        flash_display();
+
+        /* show notices if:
+         * 1) user is on landing page
+         * 2) user is on show_all and section is 0
+         */
+        $format = course_get_format($course);
+        $prefs = $format->get_format_options();
+        
+        if (isset($prefs['landing_page']) && $prefs['landing_page'] != $sectionnum) {
+            return;
+        }
+        if ($sectionnum != 0 && $format->figure_section() === $format::UCLA_FORMAT_DISPLAY_ALL) {
+            return;
+        }
+
+
+        // Provide following information to event:
+        //      userid, course, user_is_editing, roles, term (if any), notices
+        // Expects functions that respond to ucla_format_notices to modify
+        // notices and add notices.
+        $eventdata = new stdClass();
+        $eventdata->userid = $USER->id;
+        $eventdata->course = $this->course;
+        $eventdata->user_is_editing = $PAGE->user_is_editing();
+        $eventdata->roles = get_user_roles($this->context, $USER->id);
+
+        // check if courseinfo is set, so that we can get a possible term
+        if (!empty($this->courseinfo)) {
+            // use reset instead of array_pop, because pop alters the array
+            $courseinfo = reset($this->courseinfo);
+            $eventdata->term = $courseinfo->term;
+        } else {
+            $eventdata->term = null;
+        }
+        
+        $eventdata->notices = array();  // populated by external sources
+
+        events_trigger('ucla_format_notices', $eventdata);
+
+        if (!empty($eventdata->notices)) {
+            // until we can get a better, more compact notice display, we are
+            // only going to display the last notice
+            $notice = array_pop($eventdata->notices);
+            echo $OUTPUT->box($notice, 'ucla-format-notice-box');
+//            // we got something back! let's display it
+//            foreach ($eventdata->notices as $notice) {
+//                echo $OUTPUT->box($notice, 'ucla-format-notice-box');
+//            }
+        }
     }
     
     /**
@@ -182,17 +247,6 @@ class format_ucla_renderer extends format_topics_renderer {
     }
     
     /**
-     * Include our custom ajax overwriters to convert icons to text. This needs 
-     * to be printed after the headers, but before the footers.
-     */
-    public function print_js() {
-        global $PAGE;
-        if (ajaxenabled() && $PAGE->user_is_editing()) {
-            echo html_writer::script(false, new moodle_url('/course/format/ucla/module_override.js'));
-        }        
-    }
-
-    /**
      * Output the html for a multiple section page.
      * 
      * Copied from base class method with following differences:
@@ -244,7 +298,7 @@ class format_ucla_renderer extends format_topics_renderer {
                 $thissection = $sections[$section];
             } else {
                 // This will create a course section if it doesn't exist..
-                $thissection = get_course_section($section, $course->id);
+                $thissection = get_fast_modinfo($course->id)->get_section_info($section);
 
                 // The returned section is only a bare database object rather than
                 // a section_info object - we will need at least the uservisible
@@ -585,7 +639,7 @@ class format_ucla_renderer extends format_topics_renderer {
             'class' => 'section main clearfix'.$sectionstyle));
 
         // print any external notices
-//        $this->print_external_notices($section->section);
+        $this->print_external_notices($section->section, $course);
 
         // For site info, instead of printing section title/summary, just 
         // print site info releated stuff instead

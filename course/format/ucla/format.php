@@ -28,7 +28,6 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->libdir.'/completionlib.php');
-
 require_once(dirname(__FILE__) . '/lib.php');
 
 // Horrible backwards compatible parameter aliasing..
@@ -51,19 +50,22 @@ if (($marker >=0) && has_capability('moodle/course:setcurrentsection', $context)
     course_set_marker($course->id, $marker);
 }
 
+/* @var $format format_ucla */
+$format = course_get_format($course);
+
 /* @var $renderer format_ucla_renderer */
 $renderer = $PAGE->get_renderer('format_ucla');
 $renderer->print_header();
-$renderer->print_js();
 
 // make sure all sections are created
-$course = course_get_format($course)->get_course();
-course_create_sections_if_missing($course, range(0, $course->numsections));
+course_create_sections_if_missing($format->get_course(), range(0, $format->get_course()->numsections));
 
-if (!empty($displaysection)) {
-    $renderer->print_single_section_page($course, null, null, null, null, $displaysection);
+$displaysection = $format->figure_section();
+
+if ($displaysection === $format::UCLA_FORMAT_DISPLAY_ALL) {
+    $renderer->print_multiple_section_page($format->get_course(), $sections, $mods, $modnames, $modnamesused);
 } else {
-    $renderer->print_multiple_section_page($course, $sections, $mods, $modnames, $modnamesused);
+    $renderer->print_single_section_page($format->get_course(), null, null, null, null, $displaysection);
 }
 
 // Include course format js module

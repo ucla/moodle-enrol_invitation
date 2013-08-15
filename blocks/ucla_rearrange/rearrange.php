@@ -27,7 +27,7 @@ require_capability('moodle/course:update', $context);
 require_capability('moodle/course:manageactivities', $context);
 
 // see what section we are on
-$section_num = ucla_format_figure_section($course);
+$section_num = course_get_format($course)->figure_section();
 
 // Set up the page.
 $PAGE->set_context($context);

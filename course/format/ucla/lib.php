@@ -23,8 +23,6 @@
  */
 global $CFG;
 require_once($CFG->dirroot . '/local/ucla/lib.php');
-/**  Course Preferences API **/
-require_once(dirname(__FILE__) . '/ucla_course_prefs.class.php');
 require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclasiteindicator/lib.php');
 require_once($CFG->dirroot. '/course/format/topics/lib.php');
 
@@ -41,14 +39,23 @@ define('UCLA_FORMAT_DISPLAY_LANDING', -4);
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class format_ucla extends format_topics {
+    
+    const UCLA_FORMAT_DISPLAY_SYLLABUS = 'syllabus';
+    
+    const UCLA_FORMAT_DISPLAY_ALL = -2;
+    
+    const UCLA_FORMAT_DISPLAY_LANDING = -4;
+    
     /**
      *  Figures out the section to display. Specific only to the UCLA course format.
      *  Uses a $_GET or $_POST param to figure out what's going on.
      *
      *  @return int       Returns section number that user is viewing
      */
-    function figure_section($course, $course_prefs = null) {
+    function figure_section($course = null, $course_prefs = null) {
 
+        $course = $this->get_course();
+        
         // see if user is requesting a permalink section
         $sectionid = optional_param('sectionid', null, PARAM_INT);
         if (!is_null($sectionid)) {
@@ -74,20 +81,18 @@ class format_ucla extends format_topics {
         // no specific section was requested, so see if user was looking for 
         // "Show all" option
         if (optional_param('show_all', 0, PARAM_BOOL)) {
-            return UCLA_FORMAT_DISPLAY_ALL;
-        }
-
-        // no specific section and no "Show all", so just go to landing page    
-        if ($course_prefs == null || !is_object($course_prefs)) {
-            $course_prefs = new ucla_course_prefs($course->id);
+            return self::UCLA_FORMAT_DISPLAY_ALL;
         }
 
         // Default to course marker (usually section 0 (site info)) if there are no 
         // landing page preference
-        $landing_page = $course_prefs->get_preference('landing_page', false);
+        $prefs = $this->get_format_options();
+        
+        $landing_page = isset($prefs['landing_page']) ? $prefs['landing_page'] : false;
+        
         if ($landing_page === false) {
             $landing_page = $course->marker;
-        } 
+        }
 
         return $landing_page;
     }
@@ -204,52 +209,252 @@ class format_ucla extends format_topics {
         }
     }
     
+    /**
+     * Course-specific information to be output on any course page (usually in the beginning of
+     * standard footer)
+     *
+     * See {@link format_base::course_header()} for usage
+     *
+     * @return null|renderable null for no output or object with data for plugin renderer
+     */
     public function course_footer() {
         global $PAGE;
         
-        // Ensure that ajax should be included
-        if (!course_ajax_enabled($this->course)) {
-            return false;
+        if (ajaxenabled() && $PAGE->user_is_editing()) {
+            $PAGE->requires->js('/course/format/ucla/module_override.js');
+
+            // Need these strings.. 
+            $strishidden = '(' . get_string('hidden', 'calendar') . ')';
+            $strmovealt = get_string('movealt', 'format_ucla');
+            $pp_make_private = get_string('publicprivatemakeprivate', 'local_publicprivate');
+            $pp_make_public = get_string('publicprivatemakepublic', 'local_publicprivate');
+            $pp_private_material = get_string('publicprivategroupingname','local_publicprivate');
+
+            $noeditingicons = get_user_preferences('noeditingicons', 1);
+
+            $noeditingicons = empty($noeditingicons) ? false : true;
+
+            $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_resource_toolbox',
+                    array(array(
+                        'noeditingicon' => $noeditingicons,
+                        'makeprivate' => $pp_make_private,
+                        'makepublic' => $pp_make_public,
+                        'privatematerial' => $pp_private_material,
+                    )), null, true);
+
+            $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_toolbox',
+                    array(array(
+                        'noeditingicon' => $noeditingicons,
+                    )), null, true);
+
+            $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init',
+                    array(array(
+                        'noeditingicon' => $noeditingicons,
+                        'hidden' => $strishidden,
+                        'movealt' => $strmovealt,
+                    )), null, true);
         }
-        
-        $strishidden      = '(' . get_string('hidden', 'calendar') . ')';
-        $strmovealt         = get_string('movealt', 'format_ucla');
-        $pp_make_private = get_string('publicprivatemakeprivate','local_publicprivate');
-        $pp_make_public = get_string('publicprivatemakepublic','local_publicprivate');
-        $pp_private_material = get_string('publicprivategroupingname','local_publicprivate');
-        
-        $noeditingicons = get_user_preferences('noeditingicons', 1);
-
-        $noeditingicons = empty($noeditingicons) ? false : true;
-
-        $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_resource_toolbox',
-                array(array(
-                    'noeditingicon' => $noeditingicons,
-                    'makeprivate' => $pp_make_private,
-                    'makepublic' => $pp_make_public,
-                    'privatematerial' => $pp_private_material,
-                )), null, true);
-        
-        $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_toolbox',
-                array(array(
-                    'noeditingicon' => $noeditingicons,
-                )), null, true);
-
-        $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init',
-                array(array(
-                    'noeditingicon' => $noeditingicons,
-                    'hidden' => $strishidden,
-                    'movealt' => $strmovealt,
-                )), null, true);
 
     
+    }
+    
+    /**
+     * Returns the list of blocks to be automatically added for the newly created course
+     *
+     * @return array of default blocks, must contain two keys BLOCK_POS_LEFT and BLOCK_POS_RIGHT
+     *     each of values is an array of block names (for left and right side columns)
+     */
+    public function get_default_blocks() {
+        return array(
+            BLOCK_POS_LEFT => array('ucla_course_menu'),
+            BLOCK_POS_RIGHT => array()
+        );
+    }
+    
+    /**
+     * Compatibility hack to get numsections back onto $course object
+     * 
+     * @return type
+     */
+    public function get_course() {
+        $course = parent::get_course();
+        $course->numsections = $this->get_format_options()['numsections'];
+        return $course;
     }
 }
 
 /**
- * Temporary hack to maintain some backwards compatibility
- */
+* Used to display the course structure for a course where format=topic
+*
+* This is called automatically by {@link load_course()} if the current course
+* format = ucla.
+*
+* @return bool Returns true
+*/
+function callback_ucla_load_content(&$navigation, $course, $coursenode) {
+    global $DB, $CFG;
 
-function ucla_format_figure_section($course, $course_prefs = null) {
-    return course_get_format($course)->figure_section($course, $course_prefs);
+    // Sort of a dirty hack, but this so far is the best way to manipulate the
+    // navbar since these callbacks are called before the format is included
+
+    // This is to prevent further diving and incorrect associations in the
+    // navigation bar
+    $logical_limitations = array('subjarea', 'division');
+
+    $subjareanode = null;
+    $divisionnode = null;
+
+    $division = false;
+    $subjarea = false;
+
+    // Browse-by hooks for categories
+    if (block_instance('ucla_browseby')) {
+        // Term is needed for browseby
+        $courseinfos = ucla_map_courseid_to_termsrses($course->id);
+        $parentnode =& $coursenode->parent;
+
+        if ($courseinfos) {
+            $first = reset($courseinfos);
+            $term = $first->term;
+
+
+            // Find the nodes that represent the division and subject areas
+            while ($parentnode->type == navigation_node::TYPE_CATEGORY) {
+                if ($subjareanode == null) {
+                    $subjarea = $DB->get_field('ucla_reg_subjectarea', 'subjarea',
+                        array('subj_area_full' => $parentnode->text));
+
+                    if ($subjarea) {
+                        $subjareanode =& $parentnode;
+                    }
+                } else if ($divisionnode == null) {
+                    $division = $DB->get_field('ucla_reg_division', 'code',
+                        array('fullname' => $parentnode->text));
+
+                    if ($division) {
+                        $divisionnode =& $parentnode;
+                        break;
+                    }
+                }
+
+                $parentnode =& $parentnode->parent;
+            }
+
+
+            // Replace the link in the navbar for subject areas and divisions
+            // with respective browseby links
+            if ($divisionnode != null) {
+                $divisionnode->action = new moodle_url(
+                        '/blocks/ucla_browseby/view.php',
+                        array(
+                            'type' => 'subjarea',
+                            'division' => $division,
+                            'term' => $term
+                        )
+                    );
+            }
+
+            if ($subjareanode != null) {
+                $subjareaparams = array(
+                        'type' => 'course',
+                        'subjarea' => $subjarea,
+                        'term' => $term
+                    );
+
+                if ($division) {
+                    $subjareaparams['division'] = $division;
+                }
+
+                $subjareanode->action = new moodle_url(
+                    '/blocks/ucla_browseby/view.php',
+                    $subjareaparams
+                );
+            }
+        } else if ($siteindicator = siteindicator_site::load($course->id)) {
+            // Use browse-by collab functions to find collab categories
+            $bbhf = new browseby_handler_factory();
+            $browsebycollab = $bbhf->get_type_handler('collab');
+
+            $collab_cat = $browsebycollab->get_collaboration_category();
+            siteindicator_manager::filter_category_tree($collab_cat);
+
+            $collabcatparams = array(
+                'type' => 'collab'
+            );
+
+            while ($parentnode->type == navigation_node::TYPE_CATEGORY) {
+                // Extract out the category id
+                if ($parentnode->action->param('id')) {
+                    $catid = $parentnode->action->param('id');
+
+                    // See if the catid is within an accepted set of
+                    // collaboration categories
+                    if ($browsebycollab->find_category(
+                                $catid,
+                                $collab_cat->categories,
+                                'id'
+                            )) {
+
+                        $collabcatparams['category'] = $catid;
+                        $parentnode->action = new moodle_url(
+                                '/blocks/ucla_browseby/view.php',
+                                $collabcatparams
+                            );
+                    }
+                }
+
+                $parentnode =& $parentnode->parent;
+            }
+        }
+    }
+
+    return $navigation->load_generic_course_sections($course, $coursenode, 'ucla');
 }
+
+
+/**
+* Sets up given section. Will auto create section. if we have numsections set
+* < than the actual number of sections that exist.
+*
+* NOTE: We are not using the Moodle API of get_course_section, because we want
+* to set the section name in the database.
+*
+* @global type $DB
+* @param int $section Section id to get
+* @param array $sections Sections for course
+* @param object $course
+*
+* @return object Returns given section
+*/
+function setup_section($section, $sections, $course) {
+    global $DB;
+
+    if (!empty($sections[$section])) {
+        $thissection = $sections[$section];
+        // Set the name of the section name if it is null
+        if(!empty($section) && $thissection->name == null) {
+            $thissection->name = get_string('sectionname', 'format_weeks') . ' ' . $section;
+            $DB->update_record('course_sections', $thissection);
+        }
+    } else {
+        // Create a new section
+        $thissection = new stdClass;
+        $thissection->course = $course->id;
+        $thissection->section = $section;
+        // Assign the week number as default name
+        $thissection->name = get_string('sectionname', 'format_weeks') . ' ' . $section;
+        $thissection->summary = '';
+        $thissection->summaryformat = FORMAT_HTML;
+        $thissection->visible = 1;
+        $thissection->id = $DB->insert_record('course_sections', $thissection);
+        rebuild_course_cache($course->id, true);
+
+        // following information needed to be a true section_info object
+        $thissection->uservisible = true;
+        $thissection->availableinfo = null;
+        $thissection->showavailability = 0;
+    }
+
+    return $thissection;
+}
+

@@ -10,10 +10,15 @@ function extern_server_course($course) {
     
     //CCLE-3685 - Redirect to syllabus if the syllabus is the landing page
     require_once($CFG->dirroot.'/course/format/ucla/lib.php');
-    $on_landing_page = course_get_format($course)->figure_section($course);
-    if ($on_landing_page === UCLA_FORMAT_DISPLAY_SYLLABUS) {
-        $syllabusurl = $CFG->wwwroot . '/local/ucla_syllabus/index.php?id=' . $course->id;
-        redirect($syllabusurl);
+    
+    /* @var $format format_ucla */
+    $format = course_get_format($course);
+    
+    if ($format->get_format() === 'ucla') {
+        if ($format->figure_section() === $format::UCLA_FORMAT_DISPLAY_SYLLABUS) {
+            $syllabusurl = $CFG->wwwroot . '/local/ucla_syllabus/index.php?id=' . $course->id;
+            redirect($syllabusurl);
+        }
     }
         
     // This is very sad, but this is the only way, $PAGE->url
