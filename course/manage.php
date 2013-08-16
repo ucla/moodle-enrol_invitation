@@ -81,7 +81,12 @@ if ($id) {
     $context = context_system::instance();
     $PAGE->set_context($context);
     $PAGE->set_url(new moodle_url('/course/manage.php'));
-    if (!can_edit_in_category()) {
+    // BEGIN UCLA MOD: CCLE-3858.
+    // Allow a submitted deletion form to pass through, as user was already
+    // able to edit in the specified category.
+    // if (!can_edit_in_category()) {
+    if (!can_edit_in_category() && empty($deletecat)) {
+        // END UCLA MOD: CCLE-3858.
         redirect(new moodle_url('/course/index.php'));
     }
 }
@@ -117,11 +122,19 @@ if (!empty($deletecat) and confirm_sesskey()) {
                 echo $OUTPUT->notification(get_string('coursedeleted', '', $course->shortname), 'notifysuccess');
             }
             echo $OUTPUT->notification(get_string('coursecategorydeleted', '', $cattodeletename), 'notifysuccess');
-            echo $OUTPUT->continue_button(new moodle_url('/course/manage.php'));
-
+            // BEGIN UCLA MOD: CCLE-3858.
+            // Redirect to parent category when done deleting.
+            // echo $OUTPUT->continue_button(new moodle_url('/course/manage.php));
+            echo $OUTPUT->continue_button(new moodle_url('/course/manage.php', array('categoryid' => $cattodelete->parent)));
+            // END UCLA MOD: CCLE-3858.
+            
         } else if ($data->fulldelete == 0 && $cattodelete->can_move_content_to($data->newparent)) {
             $cattodelete->delete_move($data->newparent, true);
-            echo $OUTPUT->continue_button(new moodle_url('/course/manage.php'));
+            // BEGIN UCLA MOD: CCLE-3858.
+            // Redirect to parent category when done deleting.
+            // echo $OUTPUT->continue_button(new moodle_url('/course/manage.php'));
+            echo $OUTPUT->continue_button(new moodle_url('/course/manage.php', array('categoryid' => $cattodelete->parent)));
+            // END UCLA MOD: CCLE-3858.
         } else {
             // Some error in parameters (user is cheating?)
             $mform->display();
@@ -152,10 +165,22 @@ if ($hidecat and confirm_sesskey()) {
     $cattohide = coursecat::get($hidecat);
     require_capability('moodle/category:manage', get_category_or_system_context($cattohide->parent));
     $cattohide->hide();
+    // BEGIN UCLA MOD: CCLE-3858.
+    // Redirect to category page when editing subcategories.
+    $redirectcat = coursecat::get($hidecat);
+    $redirectid = $redirectcat->parent;
+    redirect(new moodle_url('/course/manage.php', array('categoryid' => $redirectid)));
+    // END UCLA MOD: CCLE-3858.
 } else if ($showcat and confirm_sesskey()) {
     $cattoshow = coursecat::get($showcat);
     require_capability('moodle/category:manage', get_category_or_system_context($cattoshow->parent));
     $cattoshow->show();
+    // BEGIN UCLA MOD: CCLE-3858.
+    // Redirect to category page when editing subcategories.
+    $redirectcat = coursecat::get($showcat);
+    $redirectid = $redirectcat->parent;
+    redirect(new moodle_url('/course/manage.php', array('categoryid' => $redirectid)));
+    // END UCLA MOD: CCLE-3858.
 }
 
 if ((!empty($moveupcat) or !empty($movedowncat)) and confirm_sesskey()) {
@@ -164,6 +189,11 @@ if ((!empty($moveupcat) or !empty($movedowncat)) and confirm_sesskey()) {
     $swapcategory = null;
 
     if (!empty($moveupcat)) {
+        // BEGIN UCLA MOD: CCLE-3858.
+        // Redirect to category page when editing subcategories.
+        $redirectcat = coursecat::get($moveupcat);
+        $redirectid = $redirectcat->parent;
+        // END UCLA MOD: CCLE-3858.
         require_capability('moodle/category:manage', context_coursecat::instance($moveupcat));
         if ($movecategory = $DB->get_record('course_categories', array('id' => $moveupcat))) {
             $params = array($movecategory->sortorder, $movecategory->parent);
@@ -172,6 +202,11 @@ if ((!empty($moveupcat) or !empty($movedowncat)) and confirm_sesskey()) {
             }
         }
     } else {
+        // BEGIN UCLA MOD: CCLE-3858.
+        // Redirect to category page when editing subcategories.
+        $redirectcat = coursecat::get($movedowncat);
+        $redirectid = $redirectcat->parent;
+        // END UCLA MOD: CCLE-3858.
         require_capability('moodle/category:manage', context_coursecat::instance($movedowncat));
         if ($movecategory = $DB->get_record('course_categories', array('id' => $movedowncat))) {
             $params = array($movecategory->sortorder, $movecategory->parent);
@@ -189,6 +224,11 @@ if ((!empty($moveupcat) or !empty($movedowncat)) and confirm_sesskey()) {
 
     // Finally reorder courses.
     fix_course_sortorder();
+
+    // BEGIN UCLA MOD: CCLE-3858.
+    // Redirect to category page when editing subcategories.
+    redirect(new moodle_url('/course/manage.php', array('categoryid' => $redirectid)));
+    // END UCLA MOD: CCLE-3858.
 }
 
 if ($coursecat->id && $canmanage && $resort && confirm_sesskey()) {
@@ -405,7 +445,30 @@ if (!empty($searchcriteria)) {
         'cellpadding' => '4',
         'class' => 'generalbox boxaligncenter category_subcategories'
     );
-    $table->head = array(new lang_string('subcategories'));
+    // BEGIN UCLA MOD: CCLE-3858.
+    // Allow sub-categories to be edited by user with "manager" role.
+    // $table->head = array(new lang_string('subcategories'));
+    if (can_edit_in_category($coursecat->id) && $canmanage) {
+        $table->head = array(new lang_string('subcategories'),
+                             get_string('courses'),
+                             get_string('edit'),
+                             get_string('move'));
+    } else {
+        $table->head = array(new lang_string('subcategories'));
+    }
+
+    // Current subcategory number we are at (start).
+    $subcatindex = 0;
+
+    // Figure out how many subcategories there are. We can't simply use count
+    // because $subcategories is not stored as an array.
+    $subcatcount = 0;
+    foreach ($subcategories as $subcategory) {
+        $subcatcount++;
+    }
+    $subcategories = $DB->get_recordset_sql($sql, array('parentid' => $coursecat->id,
+                                                        'contextlevel' => CONTEXT_COURSECAT));
+    // END UCLA MOD: CCLE-3858.
     $table->data = array();
     $baseurl = new moodle_url('/course/manage.php');
     foreach ($subcategories as $subcategory) {
@@ -417,7 +480,18 @@ if (!empty($searchcriteria)) {
         $text = format_string($subcategory->name, true, array('context' => $context));
         // Add the subcategory to the table.
         $baseurl->param('categoryid', $subcategory->id);
-        $table->data[] = array(html_writer::link($baseurl, $text, $attributes));
+        // BEGIN UCLA MOD: CCLE-3858.
+        // $table->data[] = array(html_writer::link($baseurl, $text, $attributes));
+        if (can_edit_in_category($coursecat->id) && $canmanage) {
+            $subcoursecat = coursecat::get($subcategory->id);
+            $subcatindex++;
+            $first = ($subcatindex == 1);
+            $last = ($subcatindex == $subcatcount);
+            print_category_edit($table, $subcoursecat, 0, !$first, !$last);
+        } else {
+            $table->data[] = array(html_writer::link($baseurl, $text, $attributes));
+        }
+        // END UCLA MOD: CCLE-3858.
     }
 
     $subcategorieswereshown = (count($table->data) > 0);
@@ -668,20 +742,41 @@ function print_category_edit(html_table $table, coursecat $category, $depth = -1
             );
             // Delete category.
             $icons[] = $OUTPUT->action_icon(
-                new moodle_url('/course/manage.php', array('deletecat' => $category->id, 'sesskey' => sesskey())),
+                // BEGIN UCLA MOD: CCLE-3858.
+                // Allow id variable to be set.
+                // new moodle_url('/course/manage.php', array('deletecat' => $category->id, 'sesskey' => sesskey())),
+                new moodle_url('/course/manage.php',
+                               array('categoryid' => $category->parent,
+                                     'deletecat'  => $category->id,
+                                     'sesskey'    => sesskey())),
+                // END UCLA MOD: CCLE-3858.
                 new pix_icon('t/delete', $str->delete, 'moodle', array('class' => 'iconsmall')),
                 null, array('title' => $str->delete)
             );
             // Change visibility.
             if (!empty($category->visible)) {
                 $icons[] = $OUTPUT->action_icon(
-                    new moodle_url('/course/manage.php', array('hidecat' => $category->id, 'sesskey' => sesskey())),
+                    // BEGIN UCLA MOD: CCLE-3858.
+                    // Allow id variable to be set.
+                    // new moodle_url('/course/manage.php', array('hidetecat' => $category->id, 'sesskey' => sesskey())),
+                    new moodle_url('/course/manage.php',
+                                   array('categoryid' => $category->parent,
+                                         'hidecat'    => $category->id,
+                                         'sesskey'    => sesskey())),
+                    // END UCLA MOD: CCLE-3858.
                     new pix_icon('t/hide', $str->hide, 'moodle', array('class' => 'iconsmall')),
                     null, array('title' => $str->hide)
                 );
             } else {
                 $icons[] = $OUTPUT->action_icon(
-                    new moodle_url('/course/manage.php', array('showcat' => $category->id, 'sesskey' => sesskey())),
+                    // BEGIN UCLA MOD: CCLE-3858.
+                    // Allow id variable to be set.
+                    // new moodle_url('/course/manage.php', array('showcat' => $category->id, 'sesskey' => sesskey())),
+                    new moodle_url('/course/manage.php',
+                                   array('categoryid' => $category->parent,
+                                         'showcat'    => $category->id,
+                                         'sesskey'    => sesskey())),
+                    // END UCLA MOD: CCLE-3858.
                     new pix_icon('t/show', $str->show, 'moodle', array('class' => 'iconsmall')),
                     null, array('title' => $str->show)
                 );
@@ -697,16 +792,34 @@ function print_category_edit(html_table $table, coursecat $category, $depth = -1
             // Move up/down.
             if ($up) {
                 $icons[] = $OUTPUT->action_icon(
-                    new moodle_url('/course/manage.php', array('moveupcat' => $category->id, 'sesskey' => sesskey())),
+                    // BEGIN UCLA MOD: CCLE-3858.
+                    // Allow id variable to be set.
+                    // new moodle_url('/course/manage.php', array('moveupcat' => $category->id, 'sesskey' => sesskey())),
+                    new moodle_url('/course/manage.php',
+                                   array('categoryid' => $category->parent,
+                                         'moveupcat'  => $category->id,
+                                         'sesskey'    => sesskey())),
+                    // END UCLA MOD: CCLE-3858.
                     new pix_icon('t/up', $str->moveup, 'moodle', array('class' => 'iconsmall')),
                     null, array('title' => $str->moveup)
                 );
-            } else {
-                $icons[] = $str->spacer;
+                // BEGIN UCLA MOD: CCLE-3858.
+                // This was making the top category's edit icon space strangely.
             }
+            // } else {
+            //     $icons[] = $str->spacer;
+            // }
+            // END UCLA MOD: CCLE-3858.
             if ($down) {
                 $icons[] = $OUTPUT->action_icon(
-                    new moodle_url('/course/manage.php', array('movedowncat' => $category->id, 'sesskey' => sesskey())),
+                    // BEGIN UCLA MOD: CCLE-3858.
+                    // Allow id variable to be set.
+                    // new moodle_url('/course/manage.php', array('movedowncat' => $category->id, 'sesskey' => sesskey())),
+                    new moodle_url('/course/manage.php',
+                                   array('categoryid'  => $category->parent,
+                                         'movedowncat' => $category->id,
+                                         'sesskey'     => sesskey())),
+                    // END UCLA MOD: CCLE-3858.
                     new pix_icon('t/down', $str->movedown, 'moodle', array('class' => 'iconsmall')),
                     null, array('title' => $str->movedown)
                 );
