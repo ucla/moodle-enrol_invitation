@@ -8,7 +8,6 @@ require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once($CFG->dirroot . '/blocks/ucla_copyright_status/lib.php');
 require_once($CFG->dirroot . '/blocks/ucla_copyright_status/alert_form.php');
-require_once($CFG->dirroot . '/course/format/ucla/ucla_course_prefs.class.php'); 
 
 $id = required_param('id', PARAM_INT);   // course
 $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
@@ -49,8 +48,10 @@ if (!empty($data) && confirm_sesskey()) {
     // redirect no/later responses to course page (make sure to redirect to
     // landing page or user wouldn't get success message)
     $section = 0;    
-    $ucla_course_prefs = new ucla_course_prefs($course->id);
-    $landing_page = $ucla_course_prefs->get_preference('landing_page');
+    $format_options = course_get_format($course->id)->get_format_options();
+    if (isset($format_options['landing_page'])) {
+        $landing_page = $format_options['landing_page'];
+    }
     if (!empty($landing_page)) {
         $section = $landing_page;
     } 
