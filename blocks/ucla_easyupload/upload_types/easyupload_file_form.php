@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(dirname(__FILE__) . '/../quickform_file.php');
+require_once($CFG->libdir . '/filelib.php');
 
 class easyupload_file_form extends easy_upload_form {
     var $allow_renaming = true;
@@ -15,42 +15,37 @@ class easyupload_file_form extends easy_upload_form {
         $mform =& $this->_form;
 
         // important to call this before the file upload
-        $max_file_size = get_max_upload_file_size($CFG->maxbytes, $this->course->maxbytes);
+        $maxfilesize = get_max_upload_file_size($CFG->maxbytes, $this->course->maxbytes);
         // CCLE-3833: For some reason, to fix this ticket the value of
         // 2147483648> (2GB>) somehow causes an integer overflow. So we just
         // set it to 2147483647 (-1). This problem only appears to happen for
         // the "uclafile" form type and not the filepicker.
-        if ($max_file_size >= 2147483648) {
-            $max_file_size = 2147483647;
-        }
-        $mform->setMaxFileSize($max_file_size);
-
-        $mform->addElement('uclafile', 'repo_upload_file', 
-            get_string('dialog_add_file_box', self::associated_block));
-        $mform->addRule('repo_upload_file', '', 'required');
-
-        $mform->addElement('hidden', 'files', false);
-
-        // This is bad
-        $files = $mform->getElement('files');
-        $draftitem = $files->getValue();
-        if ($draftitem === false) {
-            $draftitem = file_get_unused_draft_itemid();
-            $files->setValue($draftitem);
+        if ($maxfilesize >= 2147483648) {
+            $maxfilesize = 2147483647;
         }
 
-        $mform->addElement('hidden', 'itemid', $draftitem);
+        $filemanageropts = array();
+        $filemanageropts['accepted_types'] = '*';
+        $filemanageropts['maxbytes'] = $maxfilesize;
+        $filemanageropts['maxfiles'] = 1;
+        $filemanageropts['mainfile'] = true;
+
+        $mform->addElement('filemanager', 'files', get_string('dialog_add_file', self::associated_block), null, $filemanageropts);
+        $mform->addRule('files', '', 'required');
     }
 
-    function get_data() {
-        global $PAGE;
-
-        $get_data = parent::get_data();
-        if ($get_data) {
-            $ret = block_ucla_easyupload::upload($PAGE->context->id);
+    /**
+     *  Simplified version of mod_resource_mod_form:data_preprocessing()
+     *  from /mod/resource/mod_form:160 in Moodle 2.5.1
+     * 
+     *  Removed display options that are not included in this form.
+     */
+    public function data_preprocessing(&$defaultvalues) {
+        if ($this->current->instance and !$this->current->tobemigrated) {
+            $draftitemid = file_get_submitted_draft_itemid('files');
+            file_prepare_draft_area($draftitemid, $this->context->id, 'mod_resource', 'content', 0, array('subdirs'=>true));
+            $defaultvalues['files'] = $draftitemid;
         }
-        
-        return $get_data;
     }
 
     function get_coursemodule() {

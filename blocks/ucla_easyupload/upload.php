@@ -21,6 +21,7 @@ $currsect = optional_param('section', 0, PARAM_INT);
 
 // Stolen from /course/edit.php
 $course = $DB->get_record('course', array('id' => $course_id), '*', MUST_EXIST);
+$format = course_get_format($course_id);
 
 require_login($course, true);
 $context = get_context_instance(CONTEXT_COURSE, $course_id);
@@ -130,7 +131,7 @@ $copyrights = array();
 
 // Prep things for section selector
 $sections = $modinfo->get_section_info_all();
-$numsections = count(course_get_format($course)->get_sections());
+$numsections = $format->get_format_options()['numsections'];
 
 $sectionnames = array();
 $indexed_sections = array();

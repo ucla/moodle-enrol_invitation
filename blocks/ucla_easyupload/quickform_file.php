@@ -4,8 +4,15 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/lib/pear/HTML/QuickForm/file.php');
 require_once($CFG->dirroot . '/lib/form/filepicker.php');
-require_once($CFG->dirroot . '/lib/form/file.php');
+// The following required file has been removed from Moodle 2.5:
+// require_once($CFG->dirroot . '/lib/form/file.php');
 
+/**
+ * This class is deprecated.  It extends MoodleQuickForm_file, 
+ * which has been deprecated since Moodle 2.0. 
+ * 
+ * Use MoodleQuickForm_filepicker instead (/lib/form/filepicker.php).
+ */
 class MoodleQuickForm_uclafile extends MoodleQuickForm_file {
     private $_filepicker;
 
