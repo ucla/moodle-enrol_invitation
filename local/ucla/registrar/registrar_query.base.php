@@ -313,8 +313,7 @@ abstract class registrar_query {
         $status = $extdb->Connect(
             get_config('', 'registrar_dbhost'), 
             get_config('', 'registrar_dbuser'), 
-            get_config('', 'registrar_dbpass'),
-            get_config('', 'registrar_dbname')
+            get_config('', 'registrar_dbpass')
         );
 
         if ($status == false) {
