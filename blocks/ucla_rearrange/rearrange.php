@@ -26,8 +26,9 @@ $context = get_context_instance(CONTEXT_COURSE, $courseid);
 require_capability('moodle/course:update', $context);
 require_capability('moodle/course:manageactivities', $context);
 
+$format = course_get_format($course);
 // see what section we are on
-$section_num = course_get_format($course)->figure_section();
+$section_num = $format->figure_section();
 
 // Set up the page.
 $PAGE->set_context($context);
@@ -43,22 +44,23 @@ $go_back_url = new moodle_url('/course/view.php',
                 array('id' => $courseid, 'section' => $section_num));
 set_editing_mode_button($go_back_url);
 
-$sections = get_all_sections($courseid);
-
+$sections = $format->get_sections();
+$numsections = $format->get_format_options()['numsections'];
+        
 $sectnums = array();
 $sectionnames = array();
 $sectionvisibility = array();
 foreach ($sections as $section) {
     //CCLE-2930:rearrange tool now shows correct sections by limitimg it
     //with the course numsections.
-    if ($section->section > $course->numsections) {
+    if ($section->section > $numsections) {
 	unset($sections[$section->section]);
 	continue;
     }
     $sid = $section->id;
     $sectids[$sid] = $sid;
     $sectnums[$sid] = $section->section;
-    $sectionnames[$sid] = get_section_name($course, $section);
+    $sectionnames[$sid] = $format->get_section_name($section);
     $sectionvisibility[$sid] = $section->visible;
 }
 
