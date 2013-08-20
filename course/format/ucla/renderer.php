@@ -278,7 +278,7 @@ class format_ucla_renderer extends format_topics_renderer {
         $thissection = $sections[0];
         unset($sections[0]);
         // do not display section summary/header info for section 0
-        echo $this->section_header($thissection, $course, true);
+        echo $this->section_header($thissection, $course, false);
 
 //        print_section($course, $thissection, $mods, $modnamesused, true);
         $courserenderer = $PAGE->get_renderer('core', 'course'); 
@@ -599,7 +599,32 @@ class format_ucla_renderer extends format_topics_renderer {
         // Close single-section div.
         echo html_writer::end_tag('div');
     }
-    
+
+    protected function section_edit_controls($course, $section, $onsectionpage = false) {
+        global $PAGE;
+
+        if (!$PAGE->user_is_editing()) {
+            return array();
+        }
+        
+        $controls = parent::section_edit_controls($course, $section, $onsectionpage);
+        
+        // We're expecting section 'hightlight' and 'hide', but we want 
+        // to override 'highlight' for 'section edit'.
+        $url = new moodle_url('/course/editsection.php', 
+                array('id'=> $section->id, 'sr' => $section->section));
+        
+        $controls[0] = html_writer::link($url, html_writer::empty_tag('img', 
+                    array('src' => $this->output->pix_url('t/edit'),
+                        'class' => 'icon edit', 
+                        'alt' => get_string('editsectiontitle', 'format_ucla'))
+                        ),
+                    array('title' => get_string('editsectiontitle', 'format_ucla'), 
+                        'class' => 'editing_section'));
+
+        return $controls;
+    }
+ 
     /**
      * Generate the display of the header part of a section before
      * course modules are included
