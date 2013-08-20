@@ -281,6 +281,30 @@ class format_ucla extends format_topics {
         $course->numsections = $this->get_format_options()['numsections'];
         return $course;
     }
+
+    /**
+     * Allows course format to execute code on moodle_page::set_course()
+     *
+     * Checks that sections names are written to DB.
+     * 
+     * @param moodle_page $page instance of page calling set_course
+     * @global $DB
+     */
+    public function page_set_course(moodle_page $page) {
+        parent::page_set_course($page);
+        global $DB;
+
+        $sections = $this->get_sections();
+
+        foreach ($sections as $section) {
+            if ($section->name == null) {
+                $s = new stdClass();
+                $s->id = $section->id;
+                $s->name = $this->get_section_name($section);
+                $DB->update_record('course_sections', $s);
+            }
+        }
+    }
 }
 
 /**
@@ -410,51 +434,3 @@ function callback_ucla_load_content(&$navigation, $course, $coursenode) {
 
     return $navigation->load_generic_course_sections($course, $coursenode, 'ucla');
 }
-
-
-/**
-* Sets up given section. Will auto create section. if we have numsections set
-* < than the actual number of sections that exist.
-*
-* NOTE: We are not using the Moodle API of get_course_section, because we want
-* to set the section name in the database.
-*
-* @global type $DB
-* @param int $section Section id to get
-* @param array $sections Sections for course
-* @param object $course
-*
-* @return object Returns given section
-*/
-function setup_section($section, $sections, $course) {
-    global $DB;
-
-    if (!empty($sections[$section])) {
-        $thissection = $sections[$section];
-        // Set the name of the section name if it is null
-        if(!empty($section) && $thissection->name == null) {
-            $thissection->name = get_string('sectionname', 'format_weeks') . ' ' . $section;
-            $DB->update_record('course_sections', $thissection);
-        }
-    } else {
-        // Create a new section
-        $thissection = new stdClass;
-        $thissection->course = $course->id;
-        $thissection->section = $section;
-        // Assign the week number as default name
-        $thissection->name = get_string('sectionname', 'format_weeks') . ' ' . $section;
-        $thissection->summary = '';
-        $thissection->summaryformat = FORMAT_HTML;
-        $thissection->visible = 1;
-        $thissection->id = $DB->insert_record('course_sections', $thissection);
-        rebuild_course_cache($course->id, true);
-
-        // following information needed to be a true section_info object
-        $thissection->uservisible = true;
-        $thissection->availableinfo = null;
-        $thissection->showavailability = 0;
-    }
-
-    return $thissection;
-}
-
