@@ -1,18 +1,35 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * Unit tests for role mapping functions.
+ *
+ * @copyright 2013 UC Regents
+ * @package   local_ucla
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
  
-if (!defined('MOODLE_INTERNAL')) {
-    die('Direct access to this script is forbidden.'); //  It must be included from a Moodle page
-}
+defined('MOODLE_INTERNAL') || die();
  
 // Make sure the code being tested is accessible.
 global $CFG;
-require_once($CFG->dirroot . '/local/ucla/lib.php'); // Include the code to test
+require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 class rolemapping_test extends advanced_testcase {        
-    private static $created_roles = array();
+//    private static $created_roles = array();
     
     /**
      * Make sure that get_moodlerole is returning the appropiate data from 
@@ -24,7 +41,7 @@ class rolemapping_test extends advanced_testcase {
         
         foreach ($role as $pseudorole => $results) {
             foreach ($results as $subject_area => $moodle_role) {
-                // find the moodle role id for given moodle role
+                // Find the moodle role id for given moodle role.
                 $role_entry = $DB->get_record('role', array('shortname' => $moodle_role));                
                 if (empty($role_entry)) {
                     $this->assertTrue(false, sprintf('No moodle role "%s" not found', $moodle_role));
@@ -49,18 +66,18 @@ class rolemapping_test extends advanced_testcase {
         
         foreach ($role as $pseudorole => $results) {
             foreach ($results as $subject_area => $moodle_role) {
-                // only test *SYSTEM* subject areas
+                // Only test *SYSTEM* subject areas.
                 if ($subject_area != '*SYSTEM*') {
                     continue;
                 }
                 
-                // find the moodle role id for given moodle role
+                // Find the moodle role id for given moodle role.
                 $role_entry = $DB->get_record('role', array('shortname' => $moodle_role));                
                 if (empty($role_entry)) {
                     $this->assertTrue(false, sprintf('No moodle role "%s" not found', $moodle_role));
                 } else {
                     $default_result = get_moodlerole($pseudorole, $subject_area);    
-                    // now get result for a non-defined subject area
+                    // Now get result for a non-defined subject area.
                     $undefined_result = get_moodlerole($pseudorole, 'NON-EXISTENT SUBJECT AREA');                    
                     
                     $this->assertEquals($default_result, $undefined_result);                    
@@ -71,7 +88,7 @@ class rolemapping_test extends advanced_testcase {
     
     /**
      * Make sure that get_pseudorole always returns editingteacher if passing in
-     * anyone with a role code of 01
+     * anyone with a role code of 01.
      * 
      * @dataProvider role_combo_provider
      */
@@ -89,7 +106,7 @@ class rolemapping_test extends advanced_testcase {
 
     /**
      * Make sure that get_pseudorole always returns supervising_instructor if 
-     * passing in anyone with a role code of 03
+     * passing in anyone with a role code of 03.
      * 
      * @dataProvider role_combo_provider
      */
@@ -121,18 +138,18 @@ class rolemapping_test extends advanced_testcase {
         $params['both'] = array('primary' => array('02'),
             'secondary' => array('02'));
         
-        // Anyone with 02 on a course with an 01 is a ta
+        // Anyone with 02 on a course with an 01 is a ta.
         if (in_array('01', $role_combo['primary']) || 
                 in_array('01', $role_combo['secondary'])) {
             foreach ($params as $param) {
                 $pseudorole = get_pseudorole($param, $role_combo); 
                 $this->assertEquals('ta', $pseudorole);                
             }
-            return; // exit out from further testing
+            return; // Exit out from further testing.
         }
         
         // If someone is an 02 in the primary section, and there is an 03, they 
-        //  are a ta_instructor (assumes no 01, because of first condition)
+        // are a ta_instructor (assumes no 01, because of first condition).
         if (in_array('03', $role_combo['primary']) || 
                 in_array('03', $role_combo['secondary'])) {
             $pseudorole = get_pseudorole($params['primary'], $role_combo); 
@@ -141,10 +158,10 @@ class rolemapping_test extends advanced_testcase {
             $this->assertEquals('ta', $pseudorole);    
             $pseudorole = get_pseudorole($params['both'], $role_combo); 
             $this->assertEquals('ta_instructor', $pseudorole);                
-            return; // exit out from further testing
+            return; // Exit out from further testing.
         }        
         
-        //All other 02 cases, default to ta
+        // All other 02 cases, default to ta.
         foreach ($params as $param) {
             $pseudorole = get_pseudorole($param, $role_combo); 
             $this->assertEquals('ta', $pseudorole);
@@ -152,8 +169,8 @@ class rolemapping_test extends advanced_testcase {
     }
     
     /**
-     * Make sure that get_pseudorole always returns student_instructor if passing in
-     * anyone with a role code of 22
+     * Make sure that get_pseudorole always returns student_instructor if
+     * passing in anyone with a role code of 22.
      * 
      * @dataProvider role_combo_provider
      */
@@ -189,55 +206,16 @@ class rolemapping_test extends advanced_testcase {
         }
     }
     
-//    /**
-//     * Test the function role_mapping(). 
-//     */
-//    function test_role_mapping() {
-//        // test course with student instructor
-//        $expected = get_moodlerole('editingteacher');        
-//        $actual = role_mapping('22', array('03'));        
-//        $this->assertEquals($expected, $actual);
-//    }
-    
     /**
-     * Add role used by UCLA
+     * Add roles used by UCLA.
      */    
     protected function setUp() {
-        global $DB;
-        $roles[] = array('name' => 'Instructor',
-                         'shortname' => 'editinginstructor');
-        $roles[] = array('name' => 'Supervising Instructor',
-                         'shortname' => 'supervising_instructor');
-        $roles[] = array('name' => 'TA Instructor',
-                         'shortname' => 'ta_instructor');
-        $roles[] = array('name' => 'Teaching Assistant (admin)',
-                         'shortname' => 'ta_admin');
-        $roles[] = array('name' => 'Teaching Assistant',
-                         'shortname' => 'ta');
-        // student is already defined by default
-//        $roles[] = array('name' => 'Student',
-//                         'shortname' => 'student');
-
-        foreach ($roles as $role) {
-            $roleid = create_role($role['name'], $role['shortname'], '');
-            static::$created_roles[$roleid] = $role;
-        }
+        $uclagenerator = $this->getDataGenerator()->get_plugin_generator('local_ucla');
+        $uclagenerator->create_ucla_roles();
         
-        // very important step to include if modifying db
+        // Very important step to include if modifying db.
         $this->resetAfterTest(true) ;
     }
-
-    /**
-     * Remove roles that were added by this test
-     */
-    protected function tearDown() {
-        global $DB;
-        foreach (static::$created_roles as $roleid => $role) {
-            delete_role($roleid);
-            unset(static::$created_roles[$roleid]);
-            $DB->get_manager()->reset_sequence(new xmldb_table('role'));
-        }
-    }    
     
     /*********  HELPER FUNCTIONS FOR UNIT TESTING  ********/
     

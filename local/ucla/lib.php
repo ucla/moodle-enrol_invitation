@@ -673,7 +673,8 @@ function role_mapping($profcode, array $other_roles,
  *                              sections indexed by 'primary' and 'secondary'.
  * 
  * @return string               Returns either: editingteacher, ta,
- *                              ta_instructor, or supervising_instructor
+ *                              ta_instructor, supervising_instructor, or
+ *                              student_instructor
  *                              Returns null if no pseudo role can be found
  */
 function get_pseudorole(array $prof_code, array $other_prof_codes) {

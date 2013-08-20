@@ -1,15 +1,33 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * Generator class to help in the writing of unit tests for the local_ucla
  * plugin.
+ *
+ * @copyright 2013 UC Regents
+ * @package   local_ucla
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/local/ucla/lib.php');
-require_once($CFG->libdir . '/testing/generator/lib.php');
+require_once($CFG->libdir . '/testing/generator/data_generator.php');
 
 /**
  * local_ucla data generator
@@ -18,9 +36,7 @@ require_once($CFG->libdir . '/testing/generator/lib.php');
  * @category   phpunit
  * @copyright  UC Regents
  */
-class local_ucla_generator  {
-    protected $data_generator = null;
-
+class local_ucla_generator extends testing_data_generator {
     /** @var array list some subject areas */
     public $subject_areas = array('E&S SCI',
                                   'LBR&WS',
@@ -59,10 +75,6 @@ class local_ucla_generator  {
 
     /** @var array list some terms */
     public $terms = array('12S', '121', '12F', '13W', '13S');
-
-    public function local_ucla_generator() {
-        $this->data_generator = new phpunit_data_generator();
-    }
 
     /**
      * Given an array for a course, generate given class. Given course array
@@ -205,7 +217,7 @@ class local_ucla_generator  {
                 }
 
                 // create shell course
-                $created_course = $this->data_generator->create_course(
+                $created_course = $this->create_course(
                         array('shortname' => $shortname));
                 $courseid = $created_course->id;
 
@@ -221,5 +233,35 @@ class local_ucla_generator  {
 
         // finished creating courses, so return array of created course requests
         return ucla_map_courseid_to_termsrses($courseid);
+    }
+
+    /**
+     * Create the roles needed to do enrollment. Note, that these roles will not
+     * have the same capabilities as the real roles, they are just roles with
+     * the same name as needed.
+     */
+    public function create_ucla_roles() {
+        $roles[] = array('name' => 'Instructor',
+                         'shortname' => 'editinginstructor',
+                         'archetype' => 'editingteacher');
+        $roles[] = array('name' => 'Supervising Instructor',
+                         'shortname' => 'supervising_instructor',
+                         'archetype' => 'editingteacher');
+        $roles[] = array('name' => 'Teaching Assistant (admin)',
+                         'shortname' => 'ta_admin',
+                         'archetype' => 'editingteacher');
+        $roles[] = array('name' => 'TA Instructor',
+                         'shortname' => 'ta_instructor',
+                         'archetype' => 'editingteacher');
+        $roles[] = array('name' => 'Teaching Assistant',
+                         'shortname' => 'ta',
+                         'archetype' => 'student');
+        $roles[] = array('name' => 'Student Facilitator',
+                         'shortname' => 'studentfacilitator',
+                         'archetype' => 'editingteacher');
+
+        foreach ($roles as $role) {
+            create_role($role['name'], $role['shortname'], '', $role['archetype']);
+        }
     }
 }
