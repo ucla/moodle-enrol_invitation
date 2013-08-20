@@ -204,8 +204,8 @@ YUI.add('moodle-course-dragdrop-ucla', function(Y) {
         // Show/Hide public private
         // As of 2.3.3 the new way to hook these events is to use delegation,
         // The method: _setup_for_resource was also deprecated, so we need to hook on 'initializer'
-        Y.delegate('click', this.toggle_publicprivate, CSS.PAGECONTENT, CSS.COMMANDSPAN + ' ' + CSS.PUBLICPRIVATE_PUBLIC, this);
-        Y.delegate('click', this.toggle_publicprivate, CSS.PAGECONTENT, CSS.COMMANDSPAN + ' ' + CSS.PUBLICPRIVATE_PRIVATE, this);
+//        Y.delegate('click', this.toggle_publicprivate, CSS.PAGECONTENT, CSS.COMMANDSPAN + ' ' + CSS.PUBLICPRIVATE_PUBLIC, this);
+//        Y.delegate('click', this.toggle_publicprivate, CSS.PAGECONTENT, CSS.COMMANDSPAN + ' ' + CSS.PUBLICPRIVATE_PRIVATE, this);
     }
 
     /** 

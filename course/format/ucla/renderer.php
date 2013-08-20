@@ -98,6 +98,10 @@ class format_ucla_renderer extends format_topics_renderer {
                                  'subheading' => get_string('subheading', 'format_ucla'));     
         
         $this->noeditingicons = get_user_preferences('noeditingicons', 1);
+        
+        // Use the public/private renderer.  This will permit us to override the
+        // way we render course modules
+        $this->courserenderer = $this->page->get_renderer('local_publicprivate');
     }
     
     /**
@@ -282,13 +286,13 @@ class format_ucla_renderer extends format_topics_renderer {
         echo $this->section_header($thissection, $course, false);
 
 //        print_section($course, $thissection, $mods, $modnamesused, true);
-        $courserenderer = $PAGE->get_renderer('core', 'course'); 
-        echo $courserenderer->course_section_cm_list($course, $thissection);
+//        $courserenderer = $PAGE->get_renderer('core', 'course'); 
+        echo $this->courserenderer->course_section_cm_list($course, $thissection);
         
         if ($PAGE->user_is_editing()) {
 //            print_section_add_menus($course, 0, $modnames);
-            $courserenderer = $PAGE->get_renderer('core', 'course'); 
-            $output = $courserenderer->course_section_add_cm_control($course, 0); 
+//            $courserenderer = $PAGE->get_renderer('core', 'course'); 
+            $output = $this->courserenderer->course_section_add_cm_control($course, 0); 
             echo $output; // if $return argument in print_section_add_menus() set to false
         }
         echo $this->section_footer();
@@ -328,13 +332,13 @@ class format_ucla_renderer extends format_topics_renderer {
             echo $this->section_header($thissection, $course, false);
             if ($thissection->uservisible) {
 //                print_section($course, $thissection, $mods, $modnamesused);
-                $courserenderer = $PAGE->get_renderer('core', 'course'); 
-                echo $courserenderer->course_section_cm_list($course, $thissection);
+//                $courserenderer = $PAGE->get_renderer('core', 'course'); 
+                echo $this->courserenderer->course_section_cm_list($course, $thissection);
        
                 if ($PAGE->user_is_editing()) {
 //                    print_section_add_menus($course, $section, $modnames);
-                    $courserenderer = $PAGE->get_renderer('core', 'course'); 
-                    $output = $courserenderer->course_section_add_cm_control($course, $section); 
+//                    $courserenderer = $PAGE->get_renderer('core', 'course'); 
+                    $output = $this->courserenderer->course_section_add_cm_control($course, $section); 
                     echo $output;
                 }
             }
@@ -522,7 +526,7 @@ class format_ucla_renderer extends format_topics_renderer {
         global $PAGE;
 
         $modinfo = get_fast_modinfo($course);
-        $course = course_get_format($course)->get_course();
+//        $course = course_get_format($course)->get_course();
 
         // Can we view the section in question?
         if (!($sectioninfo = $modinfo->get_section_info($displaysection))) {
