@@ -187,6 +187,9 @@ $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
 
+// Site administration > Plugins > Enrollments > UCLA registrar
+$CFG->forced_plugin_settings['local_ucla']['overrideenroldatabase'] = 1;
+
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'tbd';
 

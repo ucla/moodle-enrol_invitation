@@ -269,6 +269,9 @@ $CFG->forced_plugin_settings['assignfeedback_comments']['default'] = 1;
 // Site administration > Plugins > Assignment plugins > Feedback plugins > File feedback
 $CFG->forced_plugin_settings['assignfeedback_file']['default'] = 1;
 
+// Site administration > Plugins > Enrollments > UCLA registrar
+$CFG->forced_plugin_settings['local_ucla']['overrideenroldatabase'] = 1;
+
 // Site administration > Plugins > Enrollments > Guest access
 $CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;
 $CFG->forced_plugin_settings['enrol_guest']['status'] = 0;  // 0 is yes, 1 is no

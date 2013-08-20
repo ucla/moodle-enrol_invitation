@@ -109,7 +109,7 @@ debugging('$CFG->currentterm = ' . $CFG->currentterm);
 $parameters = array();
 if (!empty($options['courseid']) && is_int($options['courseid'])) {
     // Just run pre-pop for a single course.
-    $parameters['courseid'] = $options['courseid'];
+    $parameters = $options['courseid'];
 } else if (!empty($options['currentterm']) && !empty($CFG->currentterm)) {
     // Just run pre-pop for the current term.
     $parameters['terms'] = array($CFG->currentterm);
