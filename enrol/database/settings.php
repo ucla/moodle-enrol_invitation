@@ -75,8 +75,6 @@ if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_configtext('enrol_database/remoteuserfield', get_string('remoteuserfield', 'enrol_database'), get_string('remoteuserfield_desc', 'enrol_database'), ''));
 
-    $settings->add(new admin_setting_configtext('enrol_database/fbremoteuserfield', get_string('fbremoteuserfield', 'enrol_database'), get_string('fbremoteuserfield_desc', 'enrol_database'), 'username'));
-
     $settings->add(new admin_setting_configtext('enrol_database/remoterolefield', get_string('remoterolefield', 'enrol_database'), get_string('remoterolefield_desc', 'enrol_database'), ''));
 
     if (!during_initial_install()) {
