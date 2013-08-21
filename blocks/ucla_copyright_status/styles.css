@@ -53,3 +53,8 @@ div#block_ucla_copyright_status_filter, div#block_ucla_copyright_status_id_cp_li
 .ucla-copyright-status-alert-form.mform > fieldset > div {
     margin: 0;
 }
+
+/* CCLE-4127 limit copyright select's width in moodle filepicker */
+.fp-setlicense select {
+    width: 100%;
+}
