@@ -184,6 +184,35 @@ class local_ucla_generator_testcase extends advanced_testcase {
         }
     }    
 
+    /**
+     * Test creating a user.
+     */
+    public function test_create_user() {
+        $user = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user();
+        $this->assertNotEmpty($user->username);
+        $this->assertNotEmpty($user->idnumber);
+
+        // Create user with predefined username and idnumbers.
+        $presetuser['username'] = 'test@ucla.edu';
+        $presetuser['idnumber'] = '123456789';
+        $user = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user($presetuser);
+        $this->assertNotEmpty($user->username);
+        $this->assertNotEmpty($user->idnumber);
+        $this->assertDebuggingNotCalled();
+
+        // Create user with improperly predefined username and idnumbers.
+        $improperusername['username'] = 'test';
+        $user = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user($improperusername);
+        $this->assertDebuggingCalled('Given username does not end with @ucla.edu');
+        $improperidnumber['idnumber'] = '12345678';
+        $user = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user($improperidnumber);
+        $this->assertDebuggingCalled('Given idnumber is not 9 digits long');
+    }
+
     protected function setUp() {
         $this->resetAfterTest(true);
         $this->generator = new local_ucla_generator();

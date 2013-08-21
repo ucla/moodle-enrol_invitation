@@ -22,7 +22,6 @@
  * @package   local_ucla
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
@@ -37,6 +36,7 @@ require_once($CFG->libdir . '/testing/generator/data_generator.php');
  * @copyright  UC Regents
  */
 class local_ucla_generator extends testing_data_generator {
+
     /** @var array list some subject areas */
     public $subject_areas = array('E&S SCI',
                                   'LBR&WS',
@@ -102,12 +102,12 @@ class local_ucla_generator extends testing_data_generator {
         // is this course cross-listed?
         if (empty($courses)) {
             // course has 25% chance to be crosslisted with 2-5 crosslists
-            if (rand(1,4) == 4) {
+            if (rand(1, 4) == 4) {
                 $is_crosslisted = true;
                 // this is going to be crosslisted, so figure out how many
                 // crosslists to make
-                $num_crosslists = rand(2,4);
-                for ($i=1; $i<=$num_crosslists; $i++) {
+                $num_crosslists = rand(2, 4);
+                for ($i = 1; $i <= $num_crosslists; $i++) {
                     $course_to_create[] = array();
                 }
             } else {
@@ -120,7 +120,7 @@ class local_ucla_generator extends testing_data_generator {
             // need to be in an array
             $course_to_create[] = $courses;
         }
-        
+
         // get proper setid to use when inserting records into request table
         $setid = $DB->get_field('ucla_request_classes',
                 'MAX(setid) + 1 AS max_setid', array());
@@ -148,13 +148,13 @@ class local_ucla_generator extends testing_data_generator {
             do {
                 if (empty($course['term'])) {
                     $max = count($this->terms);
-                    $term = $this->terms[rand(0, $max-1)];
+                    $term = $this->terms[rand(0, $max - 1)];
                 } else {
                     $term = $course['term'];
                 }
                 if (empty($course['srs'])) {
                     $max = count($this->srs_numbers);
-                    $srs = $this->srs_numbers[rand(0, $max-1)];
+                    $srs = $this->srs_numbers[rand(0, $max - 1)];
                 } else {
                     $srs = $course['srs'];
                 }
@@ -167,7 +167,7 @@ class local_ucla_generator extends testing_data_generator {
                 }
                 ++$num_tries;
             } while ($DB->record_exists('ucla_request_classes',
-                        array('term' => $term, 'srs' => $srs)));
+                    array('term' => $term, 'srs' => $srs)));
 
             $course['term'] = $term;
             $course['srs'] = $srs;
@@ -176,23 +176,22 @@ class local_ucla_generator extends testing_data_generator {
             $auto_gen_shortname = false;
             if (empty($course['department'])) {
                 $max = count($this->subject_areas);
-                $course['department'] = $this->subject_areas[rand(0, $max-1)];
+                $course['department'] = $this->subject_areas[rand(0, $max - 1)];
                 $auto_gen_shortname = true;
             }
             if (empty($course['course'])) {
                 $max = count($this->course_numbers);
-                $course['course'] = $this->course_numbers[rand(0, $max-1)];
+                $course['course'] = $this->course_numbers[rand(0, $max - 1)];
                 $auto_gen_shortname = true;
             }
 
             // now insert courses
-
             // always take first entry as the hostcourse
             if ($first_entry) {
                 $course['hostcourse'] = 1;
                 $course['setid'] = $setid;
                 $course['action'] = 'built';
-                
+
                 // <term>-<department><course>
                 $shortname = sprintf('%s-%s%s', $course['term'],
                         $course['department'], $course['course']);
@@ -204,7 +203,7 @@ class local_ucla_generator extends testing_data_generator {
                 $num_tries = 0;
                 if ($auto_gen_shortname) {
                     $tmp_shortname = $shortname;
-                    while ($DB->record_exists('course', 
+                    while ($DB->record_exists('course',
                             array('shortname' => $tmp_shortname))) {
                         $tmp_shortname = $shortname . '-' . $num_tries;
                         if ($num_tries > 50) {
@@ -264,4 +263,56 @@ class local_ucla_generator extends testing_data_generator {
             create_role($role['name'], $role['shortname'], '', $role['archetype']);
         }
     }
+
+    /**
+     * Create a test user with UCLA specific data.
+     * 
+     * @param array|stdClass $record
+     * @param array $options
+     * @return stdClass user record
+     */
+    public function create_user($record = null, array $options = null) {
+        global $CFG, $DB;
+
+        $record = (array) $record;
+
+        // Make sure the user has username with @ucla.edu and idnumber that is
+        // a 9 digit number.
+        $i = $this->usercounter;
+        if (!isset($record['mnethostid'])) {
+            $record['mnethostid'] = $CFG->mnet_localhost_id;
+        }
+        if (!isset($record['username'])) {
+            $record['username'] = 'username' . $i . '@ucla.edu';
+            $j = 2;
+            while ($DB->record_exists('user',
+                    array('username' => $record['username'],
+                'mnethostid' => $record['mnethostid']))) {
+                $record['username'] = 'username' . $i . '_' . $j . '@ucla.edu';
+                $j++;
+            }
+        } else if (preg_match('/@ucla.edu$/', $record['username']) !== 1) {
+            debugging('Given username does not end with @ucla.edu');
+        }
+        if (!isset($record['idnumber'])) {
+            $record['username'] = 'username' . $i . '@ucla.edu';
+            while ($DB->record_exists('user',
+                    array('username' => $record['username'],
+                'mnethostid' => $record['mnethostid']))) {
+                $record['username'] = 'username' . $i . '_' . $j . '@ucla.edu';
+                $j++;
+            }
+            do {
+                $record['idnumber'] = rand(100000000, 999999999);
+            } while ($DB->record_exists('user',
+                    array('username' => $record['idnumber'],
+                'mnethostid' => $record['mnethostid'])));
+        } else if (strlen((string) $record['idnumber']) != 9) {
+            debugging('Given idnumber is not 9 digits long');
+        }
+
+        // Create the user using the regular data generator method.
+        return parent::create_user($record, $options);
+    }
+
 }
