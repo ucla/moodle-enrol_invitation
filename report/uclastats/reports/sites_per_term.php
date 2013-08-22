@@ -1,10 +1,24 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * Report to get the total number of course sites for a given term.
  *
- * @package    report
- * @subpackage uclastats
- * @copyright  UC Regents
+ * @package    report_uclastats
+ * @copyright  2013 UC Regents
  */
 
 defined('MOODLE_INTERNAL') || die;
@@ -14,7 +28,7 @@ require_once($CFG->dirroot . '/report/uclastats/locallib.php');
 
 class sites_per_term extends uclastats_base {
     /**
-     * Instead of counting results, but return actual count.
+     * Instead of counting results return actual count.
      *
      * @param array $results
      * @return string
@@ -45,7 +59,7 @@ class sites_per_term extends uclastats_base {
     public function query($params) {
         global $DB;
 
-        // make sure that term parameter exists
+        // Make sure that term parameter exists.
         if (!isset($params['term']) ||
                 !ucla_validator('term', $params['term'])) {
             throw new moodle_exception('invalidterm', 'report_uclastats');
@@ -53,7 +67,7 @@ class sites_per_term extends uclastats_base {
 
         $sql = "SELECT  COUNT(DISTINCT urc.courseid) AS site_count"
                 . $this->from_filtered_courses();
-        
+
         return $DB->get_records_sql($sql, $params);
     }
 }
