@@ -28,8 +28,12 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 
-class rolemapping_test extends advanced_testcase {        
-//    private static $created_roles = array();
+class rolemapping_test extends advanced_testcase {
+    /**
+     * Mapping of role shortname to roleid.
+     * @var array
+     */
+    private $createdroles = array();
     
     /**
      * Make sure that get_moodlerole is returning the appropiate data from 
@@ -205,14 +209,29 @@ class rolemapping_test extends advanced_testcase {
             $this->assertFalse($result);
         }
     }
-    
+
+    /**
+     * Test role mapping with repeated calls to check if cache is working
+     * properly.
+     *
+     * @group totest
+     */
+    public function test_role_mapping_cache() {
+        $profcode = array('primary' => array('01'));
+        $othercodes = array('secondary' => array('02'));
+        $roleid = role_mapping($profcode, $othercodes);
+        $this->assertEquals($this->createdroles['editinginstructor'], $roleid);
+        $roleid = role_mapping($profcode, $othercodes);
+        $this->assertEquals($this->createdroles['editinginstructor'], $roleid);
+    }
+
     /**
      * Add roles used by UCLA.
      */    
     protected function setUp() {
         $uclagenerator = $this->getDataGenerator()->get_plugin_generator('local_ucla');
-        $uclagenerator->create_ucla_roles();
-        
+        $this->createdroles = $uclagenerator->create_ucla_roles();
+
         // Very important step to include if modifying db.
         $this->resetAfterTest(true) ;
     }

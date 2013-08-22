@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Configuration file for role mappings
+ * Configuration file for role mappings.
  *
  * @copyright 2013 UC Regents
  * @package   local_ucla
