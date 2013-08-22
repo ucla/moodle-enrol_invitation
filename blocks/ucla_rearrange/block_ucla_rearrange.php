@@ -364,11 +364,11 @@ class block_ucla_rearrange extends block_base {
      *
      * @return array   Returns link to tool.
      */
-    static function get_editing_link($course, $displaysection) {
+    static function get_editing_link($params) {
         $link = html_writer::link(
                     new moodle_url('/blocks/ucla_rearrange/rearrange.php',
-                        array('courseid' => $course->id,
-                              'section' => $displaysection)),
+                        array('courseid' => $params['course']->id,
+                              'section' => $params['section'])),
                     get_string('pluginname', 'block_ucla_rearrange'));
         // site menu block arranges editing links by key, make sure this is the
         // 2nd link

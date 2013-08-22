@@ -302,10 +302,14 @@ class block_ucla_course_menu extends block_navigation {
 
             // if calling BLOCK_EDITORS_FN, then need to also pass in section
             if ($fn == self::BLOCK_EDITORS_FN) {
-                $block_elements = @block_method_result($block->name, $fn,
-                        $course, $this->displaysection);
+                $block_elements = @block_method_result($block->name, $fn, array(
+                    'course' => $course,
+                    'section' => $this->displaysection
+                ));
             } else {
-                $block_elements = @block_method_result($block->name, $fn, $course);
+                $block_elements = @block_method_result($block->name, $fn, array(
+                    'course' => $course
+                ));
             }
 
             if ($block_elements) {
