@@ -234,18 +234,24 @@ function make_idnumber($courseinfo) {
 
 /**
  *  Fetch each corresponding term and srs for a particular courseid.
- *  @param  $courseid   Primary key for course table
- **/
+ * 
+ *  @param int $courseid
+ */
 function ucla_map_courseid_to_termsrses($courseid) {
     global $DB;
-    static $_cached_results = array();
-    
-    if (!isset($_cached_results[$courseid])) {
-        $_cached_results[$courseid] = $DB->get_records('ucla_request_classes', 
-            array('courseid' => $courseid), '', 'id, term, srs, hostcourse');
+
+    // Check to see if we queried for this particular mapping before.
+    $cache = cache::make('local_ucla', 'urcmappings');
+    $cachekey = 'ucla_map_courseid_to_termsrses:'.$courseid;
+    if ($termsrses = $cache->get($cachekey)) {
+        return $termsrses;
     }
     
-    return $_cached_results[$courseid];
+    $termsrses = $DB->get_records('ucla_request_classes',
+            array('courseid' => $courseid), '', 'id, term, srs, hostcourse, courseid');
+
+    $cache->set($cachekey, $termsrses);
+    return $termsrses;
 }
 
 /**
@@ -345,7 +351,7 @@ function ucla_get_courses_by_terms($terms) {
  **/
 function ucla_registrar_user_to_moodle_user($reginfo,
                                             $cachedconfigs=null) {
-    global $DB;
+    global $CFG, $DB;
 
     if ($cachedconfigs) {
         $configs = $cachedconfigs;
@@ -619,39 +625,46 @@ function require_user_finish_login() {
  * Given a registrar profcode and list of other roles a user has, returns what
  * Moodle role a user should have.
  * 
- * @param mixed $profcode       Can be either array or string. If array, then 
- *                              expects prof code(s) for given user in an array 
- *                              indexed by 'primary' and 'secondary'. If string
- *                              then will assume profcode is for primary for
- *                              backwards compatibility.
- * @param array $other_roles    Expects all prof code(s) for all roles for all 
- *                              course sections indexed by 'primary' and 
- *                              'secondary'. However, if those keys are not
- *                              found, then will assume given array is for
- *                              primary section for backwards compability.
- * @param type $subject_area        Default "*SYSTEM*". What subject area we
+ * @param string|array $profcode    If array, then expects prof code(s) for
+ *                                  given user in an array indexed by 'primary'
+ *                                  and 'secondary'. If string then will assume
+ *                                  profcode is for primary for backwards
+ *                                  compatibility.
+ * @param array $otherroles         Expects all prof code(s) for all roles for
+ *                                  all course sections indexed by 'primary' and
+ *                                  'secondary'. However, if those keys are not
+ *                                  found, then will assume given array is for
+ *                                  primary section for backwards compability.
+ * @param string $subjectarea       Default "*SYSTEM*". What subject area we
  *                                  are assigning roles for.
- * @return type 
+ * @return int                      Role id for local Moodle system.
  */
-function role_mapping($profcode, array $other_roles, 
-        $subject_area="*SYSTEM*") {
+function role_mapping($profcode, array $otherroles, $subjectarea="*SYSTEM*") {
 
-    // do backwards compability for those sections in the code that haven't
+    // Do backwards compability for those sections in the code that haven't
     // been modified to use the new role mapping parameters of primary/secondary
-    // indexes either because it is too hard or dificult to convert
+    // indexes either because it is too hard or dificult to convert.
     if (!is_array($profcode)) {
         $profcode = array('primary' => array($profcode));
     }
-    if (!isset($other_roles['primary']) && !isset($other_roles['secondary'])) {
-        $other_roles['primary'] = $other_roles;
+    if (!isset($otherroles['primary']) && !isset($otherroles['secondary'])) {
+        $otherroles['primary'] = $otherroles;
     }
-        
-    // logic to parse profcodes, and return pseudorole
-    $pseudorole = get_pseudorole($profcode, $other_roles);
+
+    // Check to see if we queried for this particular mapping before.
+    $cache = cache::make('local_ucla', 'rolemappings');
+    $cachekey = serialize($profcode).':'.serialize($otherroles).':'.$subjectarea;
+    if ($rolemapping = $cache->get($cachekey)) {
+        return $rolemapping;
+    }
+
+    // Logic to parse profcodes, and return pseudorole.
+    $pseudorole = get_pseudorole($profcode, $otherroles);
     
-    // call to the ucla_rolemapping table
-    $moodleroleid = get_moodlerole($pseudorole, $subject_area); 
-    
+    // Convert pseudorole to the appropiate role for given subject area.
+    $moodleroleid = get_moodlerole($pseudorole, $subjectarea);
+
+    $cache->set($cachekey, $moodleroleid);
     return $moodleroleid;
 }
 
@@ -673,7 +686,8 @@ function role_mapping($profcode, array $other_roles,
  *                              sections indexed by 'primary' and 'secondary'.
  * 
  * @return string               Returns either: editingteacher, ta,
- *                              ta_instructor, or supervising_instructor
+ *                              ta_instructor, supervising_instructor, or
+ *                              student_instructor
  *                              Returns null if no pseudo role can be found
  */
 function get_pseudorole(array $prof_code, array $other_prof_codes) {

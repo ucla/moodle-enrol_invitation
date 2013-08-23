@@ -29,21 +29,6 @@ $string['ucla:viewall_courselisting'] = 'Allows user to see all courses another 
 
 $string['external-link'] = 'External website (opens new window)';
 
-// Settings pages
-$string['student_access_week_title'] = 'Student previous term cutoff week';
-$string['student_access_week_desc'] = 'The number of week since the beginning of the current quarter in which students are allowed view a previous quarter\'s courses.';
-
-$string['currentterm_title'] = 'Current term';
-$string['currentterm_desc'] = 'Determines what value to use for anything that needs to know what the current term is.';
-
-$string['current_week_title'] = 'Current week';
-$string['current_week_desc'] = 'Determines what value to use for anything that needs to know what the current week is.';
-
-$string['privileged_roles_title'] = 'Roles that can view old terms';
-$string['privileged_roles_desc'] = 'The roles selected here can view old terms.';
-
-$string['currenttermweek_disabled'] = 'The ability to alter current term and current week through this interface has been disabled because those are automatically determined.';
-
 /* strings for datetimehelpers */
 
 // for distance_of_time_in_words
@@ -100,7 +85,7 @@ $string['lti_warning'] = 'There are risks using external tools. Please read ' .
         'this help document for more information: ' .
         '<a target="_blank" href="https://docs.ccle.ucla.edu/w/LTI">https://docs.ccle.ucla.edu/w/LTI</a>';
 
-// Settings
+// Settings.
 $string['student_access_ends_week'] = 'Prevent student access on week';
 $string['student_access_ends_week_description'] = 'When the specified week starts, the system will automatically ' . 
         'hide all courses for previous term. For example, if "3" is given, then when "Week 3" starts for Spring ' .
@@ -111,6 +96,8 @@ $string['coursehidden'] = '<p>This course is unavailable for students. Students 
         'can access their course sites from a prior term during the first ' .
         'two weeks of the subsequent term.</p><p>If additional access is ' .
         'needed, students should contact the course instructor. </p>';
+$string['overrideenroldatabase'] = 'Override database enrollment plugin';
+$string['overrideenroldatabasedesc'] = 'Override the database enrollment plugin to use UCLA specific customizations.';
 
 // Form submit login check
 $string['longincheck_login'] = 'Your session has timed out. In order to save 

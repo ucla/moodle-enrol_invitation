@@ -22,8 +22,10 @@ function handle_course_created($course) {
     global $CFG;
 
     require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
-    $pubpriv_course = new PublicPrivate_Course($course);
-    $pubpriv_course->activate();
+    $pubprivcourse = new PublicPrivate_Course($course);
+    if (!$pubprivcourse->is_activated()) {
+        $pubprivcourse->activate();
+    }
 }
 
 /**

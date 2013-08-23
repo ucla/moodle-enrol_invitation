@@ -14,7 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// Version         YYYYMMDDVV.
-$plugin->version = 2013082201;
-$plugin->component = 'local_ucla';
-$plugin->cron = 86400;  // Every 24 hours.
+/**
+ * UCLA cache definitions.
+ *
+ * It contains the components that are using the MUC.
+ *
+ * @package    local_ucla
+ * @category   cache
+ * @copyright  2013 UC Regents
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+$definitions = array(
+    // Store role mappings to avoid repetitive DB queries within one request.
+    'rolemappings' => array(
+        'mode' => cache_store::MODE_REQUEST,
+        'persistent' => true,
+    ),
+    // Store data used to map ucla_request_classes to Moodle courses.
+    'urcmappings' => array(
+        'mode' => cache_store::MODE_REQUEST,
+        'persistent' => true,
+    ),
+);

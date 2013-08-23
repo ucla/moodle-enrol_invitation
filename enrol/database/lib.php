@@ -26,6 +26,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+// START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+require_once($CFG->dirroot . '/local/ucla/classes/local_ucla_enrollment_helper.php');
+// END UCLA MOD: CCLE-4061
+
 /**
  * Database enrolment plugin implementation.
  * @author  Petr Skoda - based on code by Martin Dougiamas, Martin Langhoff and others
@@ -290,6 +294,25 @@ class enrol_database_plugin extends enrol_plugin {
      */
     public function sync_enrolments(progress_trace $trace, $onecourse = null) {
         global $CFG, $DB;
+
+        // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+
+        // See if we are using UCLA specific changes to database enrollment.
+        $overrideenroldatabase = get_config('local_ucla', 'overrideenroldatabase');
+
+        // We are overloading the $onecourse parameter to be an array that
+        // contains the list of terms to process or a courseid.
+        if ($overrideenroldatabase) {
+            if (is_array($onecourse)) {
+                // Really a list of terms to process.
+                $terms = $onecourse;
+            } else if (empty($onecourse)) {
+                $trace->output('No terms or courseid specified.');
+                $trace->finished();
+                return 0;
+            }
+        }
+        // END UCLA MOD: CCLE-4061
 
         // We do not create courses here intentionally because it requires full sync and is slow.
         if (!$this->get_config('dbtype') or !$this->get_config('remoteenroltable') or !$this->get_config('remotecoursefield') or !$this->get_config('remoteuserfield')) {

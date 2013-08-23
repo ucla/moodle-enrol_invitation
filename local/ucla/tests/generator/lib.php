@@ -1,15 +1,35 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * Generator class to help in the writing of unit tests for the local_ucla
  * plugin.
+ *
+ * @copyright 2013 UC Regents
+ * @package   local_ucla
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
+require_once($CFG->admin . '/tool/uclacoursecreator/uclacoursecreator.class.php');
+require_once($CFG->admin . '/tool/uclacourserequestor/lib.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
-require_once($CFG->libdir . '/testing/generator/lib.php');
+require_once($CFG->libdir . '/testing/generator/data_generator.php');
 
 /**
  * local_ucla data generator
@@ -18,57 +38,86 @@ require_once($CFG->libdir . '/testing/generator/lib.php');
  * @category   phpunit
  * @copyright  UC Regents
  */
-class local_ucla_generator  {
-    protected $data_generator = null;
-
-    /** @var array list some subject areas */
-    public $subject_areas = array('E&S SCI',
-                                  'LBR&WS',
-                                  'WOM STD',
-                                  'COMM ST',
-                                  'SPAN',
-                                  'DIS STD',
-                                  'BIOINFO',
-                                  'ASIA AM',
-                                  'FILM TV',
-                                  'GENDER');
-
-    /** @var array list some catalog numbers */
-    public $course_numbers = array('193-28',
-                                   '23L-7',
-                                   '258-1',
-                                   '174B-1',
-                                   '31A-4',
-                                   '246B-1',
-                                   '198-15',
-                                   '375-4',
-                                   '31B-2',
-                                   '246-1');
-
-    /** @var array list some srs numbers */
-    public $srs_numbers = array('324427200',
-                                '141645200',
-                                '324756200',
-                                '662027200',
-                                '596620218',
-                                '196570200',
-                                '662250200',
-                                '662241200',
-                                '196794200',
-                                '587144200');
-
-    /** @var array list some terms */
-    public $terms = array('12S', '121', '12F', '13W', '13S');
-
-    public function local_ucla_generator() {
-        $this->data_generator = new phpunit_data_generator();
-    }
+class local_ucla_generator extends testing_data_generator {
 
     /**
-     * Given an array for a course, generate given class. Given course array
-     * may or may not contain the following keys:
+     * Catalog numbers to use for autogeneration. Format: 0000SSPP.
+     * @var array
+     */
+    public $crsidxs = array('0266    ',
+                            '0004AL  ',
+                            '0019    ',
+                            '0162C   ',
+                            '0089HC  ',
+                            '0098XA  ',
+                            '0105A   ',
+                            '0223C M ',
+                            '0001C   ',
+                            '0180F   ');
+
+    /**
+     * Divisions to use for autogeneration.
+     * @var array
+     */
+    public $divisions = array('AA' => 'SCHOOL OF THE ARTS AND ARCHITECTURE',
+                              'AR' => 'ARCHITECTURE AND URBAN PLANNING',
+                              'BB' => 'BASIC BIOMEDICAL SCIENCES',
+                              'DN' => 'DENTISTRY',
+                              'ED' => 'EDUCATION',
+                              'GS' => 'LETTERS AND SCIENCE',
+                              'HU' => 'HUMANITIES',
+                              'LF' => 'LIFE SCIENCE',
+                              'LW' => 'LAW',
+                              'MG' => 'MANAGEMENT',
+                              'MN' => 'MEDICINE',
+                              'NS' => 'NURSING',
+                              'PS' => 'PHYSICAL SCIENCE',
+                              'SS' => 'SOCIAL SCIENCE',
+                              'TF' => 'SCHOOL OF THEATER, FILM, AND TELEVISION');
+
+
+    /**
+     * Section numbers to use for autogeneration. Format: P000SS.
+     * @var array
+     */
+    public $secidxs = array(' 001  ',
+                            ' 002  ',
+                            ' 003  ',
+                            ' 004  ',
+                            ' 005  ',
+                            ' 006  ',
+                            ' 007  ',
+                            ' 008  ',
+                            ' 009  ',
+                            ' 010  ');
+
+    /**
+     * Subject areas to use for autogeneration.
+     * @var array 
+     */
+    public $subjareas = array('E&S SCI',
+                              'LBR&WS',
+                              'WOM STD',
+                              'COMM ST',
+                              'SPAN',
+                              'DIS STD',
+                              'BIOINFO',
+                              'ASIA AM',
+                              'FILM TV',
+                              'GENDER');
+
+    /**
+     * Terms to use for autogeneration.
+     * @var array
+     */
+    public $terms = array('12S', '121', '12F', '13W', '13S');
+
+    /**
+     * Given an array for a course, generate given class. Given array entries
+     * must be the same as those suitable for insertion into ucla_reg_classinfo.
      *
-     * term, srs, department, course
+     * Expected array keys (if not present, will be autogenerated):
+     *  subj_area, coursenum, sectnum, crsidx, enrolstat
      *
      * @throws dml_exception
      *
@@ -80,146 +129,428 @@ class local_ucla_generator  {
      *                          then it will join all those courses as a
      *                          crosslist.
      *
-     * @return array            Returns an array of ucla_request_classes entries
+     * @return array            Returns array of ucla_request_classes entries.
+     *
+     * @throws Exception
      */
-    public function create_class($courses = null) {
-        global $DB;
+    public function create_class($courses = NULL) {
 
-        $course_to_create = array();
+        $classtocreate = array();
 
-        // is this course cross-listed?
-        if (empty($courses)) {
-            // course has 25% chance to be crosslisted with 2-5 crosslists
-            if (rand(1,4) == 4) {
-                $is_crosslisted = true;
-                // this is going to be crosslisted, so figure out how many
-                // crosslists to make
-                $num_crosslists = rand(2,4);
-                for ($i=1; $i<=$num_crosslists; $i++) {
-                    $course_to_create[] = array();
+        // Whenever we affect ucla_request_classes table, should purge caches.
+        $cache = cache::make('local_ucla', 'urcmappings');
+        $cache->purge();
+
+        // Were we called with any parameters?
+        if (is_null($courses)) {
+            // Course has 25% chance to be crosslisted with 2-5 crosslists.
+            if (rand(1, 4) == 4) {
+                // This is going to be crosslisted, so figure out how many
+                // crosslists to make.
+                $numcrosslists = rand(2, 4);
+                for ($i = 1; $i <= $numcrosslists; $i++) {
+                    $classtocreate[] = array();
                 }
             } else {
-                $course_to_create[] = array();
+                $classtocreate[] = array();
             }
         } else if (isset($courses[0]) && is_array($courses[0])) {
-            // crosslist found
-            $course_to_create = $courses;
+            // Crosslist found.
+            $classtocreate = $courses;
         } else {
-            // need to be in an array
-            $course_to_create[] = $courses;
+            // Noncrosslist course requested.
+            $classtocreate[] = $courses;
         }
-        
-        // get proper setid to use when inserting records into request table
+
+        // Generate any missing fields.
+        $giventerm = '';
+        foreach ($classtocreate as &$course) {
+            $this->set_termsrs($giventerm, $course);
+            $this->set_shortname($course);
+
+            // If enrolstat is not given, then default to open ("O").
+            if (empty($course['enrolstat'])) {
+                $course['enrolstat'] = 'O';
+            }
+        }
+
+        // Only need to generate category for hostcourse (first entry).
+        $this->set_division($classtocreate[0]);
+
+        // Make shell course first.
+        $courseobj = $this->create_course(
+                array('shortname'   => $classtocreate[0]['shortname'],
+                      'category'    => $classtocreate[0]['category'],
+                      'format'      => 'ucla',
+                      'numsections' => 10));
+
+        // Add course to appropiate ucla tables.
+        $this->insert_ucla_reg_classinfo($classtocreate);
+        $this->insert_ucla_request_classes($courseobj->id, $classtocreate);
+
+        // Finished creating courses, so return array of created course requests.
+        return ucla_map_courseid_to_termsrses($courseobj->id);
+    }
+
+    /**
+     * Create the roles needed to do enrollment. Note, that these roles will not
+     * have the same capabilities as the real roles, they are just roles with
+     * the same name as needed.
+     *
+     * @return array        Returns an array of shortname to roleid.
+     */
+    public function create_ucla_roles() {
+        $retval = array();
+
+        $roles[] = array('name' => 'Instructor',
+                         'shortname' => 'editinginstructor',
+                         'archetype' => 'editingteacher');
+        $roles[] = array('name' => 'Supervising Instructor',
+                         'shortname' => 'supervising_instructor',
+                         'archetype' => 'editingteacher');
+        $roles[] = array('name' => 'Teaching Assistant (admin)',
+                         'shortname' => 'ta_admin',
+                         'archetype' => 'editingteacher');
+        $roles[] = array('name' => 'TA Instructor',
+                         'shortname' => 'ta_instructor',
+                         'archetype' => 'editingteacher');
+        $roles[] = array('name' => 'Teaching Assistant',
+                         'shortname' => 'ta',
+                         'archetype' => 'student');
+        $roles[] = array('name' => 'Student Facilitator',
+                         'shortname' => 'studentfacilitator',
+                         'archetype' => 'editingteacher');
+
+        foreach ($roles as $role) {
+            $retval[$role['shortname']] = create_role($role['name'],
+                    $role['shortname'], '', $role['archetype']);
+        }
+
+        return $retval;
+    }
+
+    /**
+     * Create a test user with UCLA specific data.
+     * 
+     * @param array|stdClass $record
+     * @param array $options
+     * @return stdClass user record
+     */
+    public function create_user($record = NULL, array $options = NULL) {
+        global $CFG, $DB;
+
+        $record = (array) $record;
+
+        // Make sure the user has username with @ucla.edu and idnumber that is
+        // a 9 digit number.
+        $i = $this->usercounter;
+        if (!isset($record['mnethostid'])) {
+            $record['mnethostid'] = $CFG->mnet_localhost_id;
+        }
+        if (!isset($record['username'])) {
+            $record['username'] = 'username' . $i . '@ucla.edu';
+            $j = 2;
+            while ($DB->record_exists('user',
+                    array('username' => $record['username'],
+                'mnethostid' => $record['mnethostid']))) {
+                $record['username'] = 'username' . $i . '_' . $j . '@ucla.edu';
+                $j++;
+            }
+        } else if (preg_match('/@ucla.edu$/', $record['username']) !== 1) {
+            debugging('Given username does not end with @ucla.edu');
+        }
+        if (!isset($record['idnumber'])) {
+            $record['username'] = 'username' . $i . '@ucla.edu';
+            while ($DB->record_exists('user',
+                    array('username' => $record['username'],
+                'mnethostid' => $record['mnethostid']))) {
+                $record['username'] = 'username' . $i . '_' . $j . '@ucla.edu';
+                $j++;
+            }
+            do {
+                $record['idnumber'] = rand(100000000, 999999999);
+            } while ($DB->record_exists('user',
+                    array('username' => $record['idnumber'],
+                'mnethostid' => $record['mnethostid'])));
+        } else if (strlen((string) $record['idnumber']) != 9) {
+            debugging('Given idnumber is not 9 digits long');
+        }
+
+        // Create the user using the regular data generator method.
+        return parent::create_user($record, $options);
+    }
+
+    /**
+     * Formats Registrar format to display format:
+     *     0000SSPP -> PP . int(0000) . SS
+     *
+     * @param string crsidx
+     *
+     * @return string           Returns formatted string.
+     */
+    private function format_crsidx($crsidx) {
+        $num = intval(substr($crsidx, 0, 4));
+
+        if (strlen($crsidx) < 5) {
+            $ss = '  ';
+        } else {
+            if (strlen($crsidx) < 6) {
+                $ss = $crsidx[4] . ' ';
+            } else {
+                $ss = $crsidx[4] . $crsidx[5];
+            }
+        }
+
+        if (strlen($crsidx) < 7) {
+            $pp = '  ';
+        } else {
+            if (strlen($crsidx) < 8) {
+                $pp = $crsidx[6] . ' ';
+            } else {
+                $pp = $crsidx[6] . $crsidx[7];
+            }
+        }
+
+        return trim(trim($pp) . $num . trim($ss));
+    }
+
+    /**
+     * Formats Registrar format to display format:
+     *    P000SS -> P+CSTR(CINT(000))+SS
+     *
+     * @param string $secidx
+     *
+     * @param string            Returns formatted string
+     */
+    function format_secidx($secidx) {
+        $retval = '';
+        if (strlen($secidx) <= 3) {
+            // If the string length is ~3, then just convert it to int.
+            $retval = intval($secidx);
+        } elseif (strlen($secidx) == 5) {
+            // Then maybe the last character doesn't exist... truncated.
+            $num      = intval(substr($secidx, 1, 3));
+            $ss       = trim(substr($secidx, 4, 1));
+            $retval   = $num . $ss;
+        } else {
+            // All characters should be present.
+            $p        = trim(substr($secidx, 0, 1));
+            $num      = intval(substr($secidx, 1, 3));
+            $ss       = trim(substr($secidx, 4, 2));
+            $retval   = $p . $num . $ss;
+        }
+
+        return $retval;
+    }
+
+    /**
+     * Inserts given courses array into the ucla_reg_classinfo table.
+     *
+     * @param array $courses
+     */
+    private function insert_ucla_reg_classinfo(array $courses) {
+        global $DB;
+
+        $firstentry = true;
+        foreach ($courses as $course) {
+            $classinfo = $course;
+
+            unset($classinfo['shortname']);            
+            unset($classinfo['category']);
+
+            $DB->insert_record('ucla_reg_classinfo', $classinfo);
+        }
+    }
+
+    /**
+     * Inserts given courses array into the ucla_request_classes table.
+     * 
+     * Maps entries from courses array that correspond to the ucla_reg_classinfo
+     * to the appropiate fields for ucla_request_classes and adds other
+     * needed columns.
+     *
+     * @param int $courseid
+     * @param array $courses
+     */
+    private function insert_ucla_request_classes($courseid, array $courses) {
+        global $DB;
+
+        // Get proper setid to use when inserting records into request table.
         $setid = $DB->get_field('ucla_request_classes',
                 'MAX(setid) + 1 AS max_setid', array());
 
-        // generate any missing keys and try to insert records
-        $first_entry = true;
-        $courseid = null;
-        foreach ($course_to_create as $course) {
-            // make sure that term/srs is unique
-            if (isset($course['term']) && isset($course['srs'])) {
-                if ($DB->record_exists('ucla_request_classes',
-                        array('term' => $course['term'],
-                              'srs' => $course['srs']))) {
-                    // cannot recover from a user specified term/srs dup
-                    $a = sprintf('term = %s and srs = %s', $course['term'],
-                            $course['srs']);
-                    throw new dml_exception('duplicatefieldname', $a);
-                }
-            }
+        $firstentry = true;
+        foreach ($courses as $course) {
+            $request = array();
 
-            // else we need to automatically generate either term/srs
-            $num_tries = 0;
-            $srs = null;
-            $term = null;
-            do {
-                if (empty($course['term'])) {
-                    $max = count($this->terms);
-                    $term = $this->terms[rand(0, $max-1)];
-                } else {
-                    $term = $course['term'];
-                }
-                if (empty($course['srs'])) {
-                    $max = count($this->srs_numbers);
-                    $srs = $this->srs_numbers[rand(0, $max-1)];
-                } else {
-                    $srs = $course['srs'];
-                }
-
-                // will run into infinite loop if we tried to automatically
-                // generate 5*10 courses
-                if ($num_tries > 50) {
-                    $a = sprintf('term = %s and srs = %s', $term, $srs);
-                    throw new dml_exception('duplicatefieldname', $a);
-                }
-                ++$num_tries;
-            } while ($DB->record_exists('ucla_request_classes',
-                        array('term' => $term, 'srs' => $srs)));
-
-            $course['term'] = $term;
-            $course['srs'] = $srs;
-
-            // next generate subject area/course number
-            $auto_gen_shortname = false;
-            if (empty($course['department'])) {
-                $max = count($this->subject_areas);
-                $course['department'] = $this->subject_areas[rand(0, $max-1)];
-                $auto_gen_shortname = true;
-            }
-            if (empty($course['course'])) {
-                $max = count($this->course_numbers);
-                $course['course'] = $this->course_numbers[rand(0, $max-1)];
-                $auto_gen_shortname = true;
-            }
-
-            // now insert courses
-
-            // always take first entry as the hostcourse
-            if ($first_entry) {
-                $course['hostcourse'] = 1;
-                $course['setid'] = $setid;
-                $course['action'] = 'built';
-                
-                // <term>-<department><course>
-                $shortname = sprintf('%s-%s%s', $course['term'],
-                        $course['department'], $course['course']);
-                // Remove spaces and ampersands
-                $shortname = preg_replace('/[\s&]/', '', $shortname);
-
-                // NOTE: might have dup shortnames, so if we are autogenerating
-                // them, then just append an int to the end
-                $num_tries = 0;
-                if ($auto_gen_shortname) {
-                    $tmp_shortname = $shortname;
-                    while ($DB->record_exists('course', 
-                            array('shortname' => $tmp_shortname))) {
-                        $tmp_shortname = $shortname . '-' . $num_tries;
-                        if ($num_tries > 50) {
-                            $a = sprintf('term = %s and srs = %s', $term, $srs);
-                            throw new dml_exception('duplicatefieldname', $a);
-                        }
-                        ++$num_tries;
-                    }
-                    $shortname = $tmp_shortname;
-                }
-
-                // create shell course
-                $created_course = $this->data_generator->create_course(
-                        array('shortname' => $shortname));
-                $courseid = $created_course->id;
-
-                $first_entry = false;
+            // Only the first entry should be the host course.
+            if ($firstentry) {
+                $request['hostcourse'] = 1;
+                $firstentry = false;
             } else {
-                $course['hostcourse'] = 0;
+                $request['hostcourse'] = 0;
             }
-            $course['courseid'] = $courseid;
 
-            // save request
-            $DB->insert_record('ucla_request_classes', $course);
+            $request['term'] = $course['term'];
+            $request['srs'] = $course['srs'];
+            $request['department'] = $course['subj_area'];
+            $request['setid'] = $setid;
+            $request['action'] = UCLA_COURSE_BUILT;
+            $request['course'] = $course['coursenum'].'-'.$course['sectnum'];
+            $request['courseid'] = $courseid;
+
+            $DB->insert_record('ucla_request_classes', $request);
+        }
+    }
+
+    /**
+     * Helper function to set division. Includes creating entry in
+     * ucla_reg_division table and creating division category.
+     *
+     * @param array $course     Expected keys: division and subj_area
+     */
+    private function set_division(array &$course) {
+        global $DB;
+
+        if (empty($course['division'])) {
+            $codes = array_keys($this->divisions);
+            $course['division'] = $codes[array_rand($codes)];
         }
 
-        // finished creating courses, so return array of created course requests
-        return ucla_map_courseid_to_termsrses($courseid);
+        // Make sure division exists in ucla_reg_division.
+        if (!$DB->record_exists('ucla_reg_division',
+                array('code' => $course['division']))) {
+            if (empty($this->divisions[$course['division']])) {
+                throw new Exception('Trying to add a non-existent division: ' .
+                        $course['division']);
+            }
+            $DB->insert_record('ucla_reg_division',
+                    array('code' => $course['division'],
+                          'fullname' => $this->divisions[$course['division']]));
+        }
+
+        // Just put all courses into a category for their division.
+        $divisioncategory = $DB->get_record('course_categories',
+                array('name' => $this->divisions[$course['division']]));
+        if (empty($divisioncategory)) {
+            $divisioncategory = $this->create_category(
+                    array('name' => $this->divisions[$course['division']]));
+        }
+
+        // Set category to division.
+        $course['category'] = $divisioncategory->id;
+    }
+
+    /**
+     * Helper function to generate a unique shortname.
+     * 
+     * @param array $course     Expected keys: term, session_group, subj_area,
+     *                          crsidx, secidx. Will modify parameter to set
+     *                          coursenum, sectnum, classidx, and shortname. As
+     *                          well as set any missing expected values.
+     */
+    private function set_shortname(array &$course) {
+        global $DB;
+
+        $autogenfields = array();
+        while (true) {
+            // Term and session_group should be predefined. Check if we need to
+            // autogenerate the subj_area, crsidx, or secidx.
+
+            // Check if we are looping again, because of the shortname already
+            // exists, if so, regenerate another one.
+            if (empty($course['subj_area']) || !empty($autogenfields['subj_area'])) {
+                $course['subj_area'] = $this->subjareas[array_rand($this->subjareas)];
+                $autogenfields['subj_area'] = TRUE;
+            }
+            if (empty($course['crsidx']) || !empty($autogenfields['crsidx'])) {
+                $course['crsidx'] = $this->crsidxs[array_rand($this->crsidxs)];
+                $autogenfields['crsidx'] = TRUE;
+            }
+            if (empty($course['secidx']) || !empty($autogenfields['secidx'])) {
+                $course['secidx'] = $this->secidxs[array_rand($this->secidxs)];
+                $autogenfields['secidx'] = TRUE;
+            }
+
+            // Course creator's make_course_shortname is expecting term,
+            // session_group, subj_area, coursenum, sectnum.
+            $course['coursenum'] = $this->format_crsidx($course['crsidx']);
+            $course['sectnum'] = $this->format_secidx($course['secidx']);
+            // It appears that classidx is just a clone of secidx.
+            $course['classidx'] = $course['secidx'];
+
+            $courseobject = (object) $course;
+
+            // The make_course_shortname method is also expecting an object.
+            $shortname = uclacoursecreator::make_course_shortname($courseobject);
+
+            // If shortname exists, try to regenerate it again.
+            if (!$DB->record_exists('course', array('shortname' => $shortname))) {
+                $course['shortname'] = $shortname;
+                break;
+            } else if (empty($autogenfields)) {
+                // Cannot autogenerate shortname, since it was hardcoded.
+                throw new dml_exception('duplicatefieldname', $shortname);
+            }
+        }
+    }
+
+    /**
+     * Helper function to generate a unique term/srs combination.
+     *
+     * @param string $giventerm For sanity sake, make sure all cross-lists have
+     *                          the same term.
+     * @param array $course     Expected keys: term, session_group, srs. Will
+     *                          set any missing expected values.
+     * @throws Exception
+     */
+    private function set_termsrs(&$giventerm, array &$course) {
+        global $DB;
+
+        $autogenfields = array();
+        while (true) {            
+            if (!empty($giventerm)) {
+                if (empty($course['term'])) {
+                    // Already had term set, so just use it.
+                    $course['term'] = $giventerm;
+                } else if ($course['term'] != $giventerm) {
+                    // A term was hardcoded and it does not match the first
+                    // cross-list.
+                    throw new Exception('Mismatching terms');
+                }
+            }
+
+            if (empty($course['term']) || !empty($autogenfields['term'])) {
+                $course['term'] = $this->terms[array_rand($this->terms)];
+                $autogenfields['term'] = TRUE;
+            }
+            if (empty($course['srs']) || !empty($autogenfields['srs'])) {
+                $course['srs'] = rand(100000000, 999999999);
+                $autogenfields['srs'] = TRUE;
+            }
+
+            if (!$DB->record_exists('ucla_request_classes',
+                    array('term' => $course['term'], 'srs' => $course['srs']))) {
+                if (is_summer_term($course['term'])) {
+                    // Summer sessions have a session group set.
+                    if (empty($course['session_group'])) {
+                        $session_groups = array('A', 'C');
+                        $course['session_group'] = $session_groups[array_rand($session_groups)];
+                    }
+                } else {
+                    $course['session_group'] = '';
+                }
+                break;
+            } else if (empty($autogenfields)) {
+                // Term and SRS were hardcoded, cannot regen.
+                $a = sprintf('term = %s and srs = %s', $course['term'], $course['srs']);
+                throw new dml_exception('duplicatefieldname', $a);
+            }
+        }
+
+        // No given term set before, so remember it for potential future calls.
+        if (empty($giventerm)) {
+            $giventerm = $course['term'];
+        }
     }
 }

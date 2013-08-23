@@ -45,7 +45,7 @@ $go_back_url = new moodle_url('/course/view.php',
 set_editing_mode_button($go_back_url);
 
 $sections = $format->get_sections();
-$numsections = $format->get_format_options()['numsections'];
+$numsections = $format->get_course()->numsections;
         
 $sectnums = array();
 $sectionnames = array();
@@ -66,7 +66,11 @@ foreach ($sections as $section) {
 
 $temp = get_fast_modinfo($course);
 $modinfo = & $temp;
-get_all_mods($courseid, $mods, $modnames, $modnamesplural, $modnamesused);
+
+$mods = get_fast_modinfo($course)->get_cms();
+//$modnames = get_module_types_names();
+//$modnamesplural = get_module_types_names(true);
+//$modnamesused = get_fast_modinfo($course)->get_used_module_names();
 
 $sectionnodeshtml = block_ucla_rearrange::get_section_modules_rendered(
                 $courseid, $sections, $mods, $modinfo

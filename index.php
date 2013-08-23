@@ -247,9 +247,6 @@
                     echo html_writer::end_tag('div');
 
                     echo html_writer::tag('span', '', array('class'=>'skip-block-to', 'id'=>'skipavailablecourses'));
-                } else {
-                    echo html_writer::tag('div', get_string('therearecourses', '', $ncourses), array('class' => 'notifyproblem'));
-                    print_course_search('', false, 'short');
                 }
             break;
 
