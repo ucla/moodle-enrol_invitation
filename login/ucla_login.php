@@ -110,6 +110,7 @@ $PAGE->set_heading("$site->fullname");
 $frm = data_submitted();
 
 if ($loginguest && !$frm) {
+    $frm = new stdClass();
     $frm->username = 'guest';
     $frm->password = 'guest';
 }
@@ -146,8 +147,6 @@ if ($frm !== false && isset($frm->username)) {
             echo $OUTPUT->footer();
             die;
         }
-
-        update_login_count();
 
         // language setup
         if (isguestuser($user)) {
@@ -211,7 +210,6 @@ if ($frm !== false && isset($frm->username)) {
             }
         }
 
-
     /// check if user password has expired
     /// Currently supported only for ldap-authentication module
         $userauth = get_auth_plugin($USER->auth);
@@ -247,8 +245,6 @@ if ($frm !== false && isset($frm->username)) {
                 exit;
             }
         }
-
-        reset_login_count();
 
         // test the session actually works by redirecting to self
         $SESSION->wantsurl = $urltogo;
