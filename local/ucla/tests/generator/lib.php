@@ -134,19 +134,21 @@ class local_ucla_generator extends testing_data_generator {
      * @throws Exception
      */
     public function create_class($courses = NULL) {
-        global $DB;
 
         $classtocreate = array();
 
-        // Is this course cross-listed?
-        if (empty($courses)) {
+        // Whenever we affect ucla_request_classes table, should purge caches.
+        $cache = cache::make('local_ucla', 'urcmappings');
+        $cache->purge();
+
+        // Were we called with any parameters?
+        if (is_null($courses)) {
             // Course has 25% chance to be crosslisted with 2-5 crosslists.
             if (rand(1, 4) == 4) {
-                $is_crosslisted = TRUE;
                 // This is going to be crosslisted, so figure out how many
                 // crosslists to make.
-                $num_crosslists = rand(2, 4);
-                for ($i = 1; $i <= $num_crosslists; $i++) {
+                $numcrosslists = rand(2, 4);
+                for ($i = 1; $i <= $numcrosslists; $i++) {
                     $classtocreate[] = array();
                 }
             } else {
@@ -156,7 +158,7 @@ class local_ucla_generator extends testing_data_generator {
             // Crosslist found.
             $classtocreate = $courses;
         } else {
-            // Need to be in an array.
+            // Noncrosslist course requested.
             $classtocreate[] = $courses;
         }
 
@@ -172,7 +174,7 @@ class local_ucla_generator extends testing_data_generator {
             }
         }
 
-        // Only need to generate category for hostcourse (first entry)
+        // Only need to generate category for hostcourse (first entry).
         $this->set_division($classtocreate[0]);
 
         // Make shell course first.
@@ -186,7 +188,7 @@ class local_ucla_generator extends testing_data_generator {
         $this->insert_ucla_reg_classinfo($classtocreate);
         $this->insert_ucla_request_classes($courseobj->id, $classtocreate);
 
-        // finished creating courses, so return array of created course requests
+        // Finished creating courses, so return array of created course requests.
         return ucla_map_courseid_to_termsrses($courseobj->id);
     }
 
@@ -194,8 +196,12 @@ class local_ucla_generator extends testing_data_generator {
      * Create the roles needed to do enrollment. Note, that these roles will not
      * have the same capabilities as the real roles, they are just roles with
      * the same name as needed.
+     *
+     * @return array        Returns an array of shortname to roleid.
      */
     public function create_ucla_roles() {
+        $retval = array();
+
         $roles[] = array('name' => 'Instructor',
                          'shortname' => 'editinginstructor',
                          'archetype' => 'editingteacher');
@@ -216,8 +222,11 @@ class local_ucla_generator extends testing_data_generator {
                          'archetype' => 'editingteacher');
 
         foreach ($roles as $role) {
-            create_role($role['name'], $role['shortname'], '', $role['archetype']);
+            $retval[$role['shortname']] = create_role($role['name'],
+                    $role['shortname'], '', $role['archetype']);
         }
+
+        return $retval;
     }
 
     /**

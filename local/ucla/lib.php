@@ -239,14 +239,19 @@ function make_idnumber($courseinfo) {
  */
 function ucla_map_courseid_to_termsrses($courseid) {
     global $DB;
-    static $_cached_results = array();
-    
-    if (!isset($_cached_results[$courseid])) {
-        $_cached_results[$courseid] = $DB->get_records('ucla_request_classes', 
-            array('courseid' => $courseid), '', 'id, term, srs, hostcourse');
+
+    // Check to see if we queried for this particular mapping before.
+    $cache = cache::make('local_ucla', 'urcmappings');
+    $cachekey = 'ucla_map_courseid_to_termsrses:'.$courseid;
+    if ($termsrses = $cache->get($cachekey)) {
+        return $termsrses;
     }
     
-    return $_cached_results[$courseid];
+    $termsrses = $DB->get_records('ucla_request_classes',
+            array('courseid' => $courseid), '', 'id, term, srs, hostcourse, courseid');
+
+    $cache->set($cachekey, $termsrses);
+    return $termsrses;
 }
 
 /**
@@ -346,7 +351,7 @@ function ucla_get_courses_by_terms($terms) {
  **/
 function ucla_registrar_user_to_moodle_user($reginfo,
                                             $cachedconfigs=null) {
-    global $DB;
+    global $CFG, $DB;
 
     if ($cachedconfigs) {
         $configs = $cachedconfigs;

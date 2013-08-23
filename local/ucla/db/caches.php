@@ -31,4 +31,9 @@ $definitions = array(
         'mode' => cache_store::MODE_REQUEST,
         'persistent' => true,
     ),
+    // Store data used to map ucla_request_classes to Moodle courses.
+    'urcmappings' => array(
+        'mode' => cache_store::MODE_REQUEST,
+        'persistent' => true,
+    ),
 );
