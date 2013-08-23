@@ -68,6 +68,31 @@ class local_ucla_generator_testcase extends advanced_testcase {
     }
 
     /**
+     * Try to pass an empty array to tell the random class creator to create a
+     * random noncrosslisted class.
+     */
+    public function test_create_class_empty_noncrosslisted() {
+        global $DB;
+
+        $beforecourse = $DB->count_records('course');
+        $beforerequest = $DB->count_records('ucla_request_classes');
+        $beforeclassinfo = $DB->count_records('ucla_reg_classinfo');
+
+        $param = array();
+        $createdclass = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class($param);
+        $this->assertFalse(empty($createdclass));
+
+        $aftercourse = $DB->count_records('course');
+        $afterrequest = $DB->count_records('ucla_request_classes');
+        $afterclassinfo = $DB->count_records('ucla_reg_classinfo');
+
+        $this->assertEquals($beforecourse+1, $aftercourse);
+        $this->assertEquals($beforerequest+1, $afterrequest);
+        $this->assertEquals($beforeclassinfo+1, $afterclassinfo);
+    }
+
+    /**
      * Try to create a duplicate class.
      *
      * @expectedException dml_exception
@@ -104,6 +129,18 @@ class local_ucla_generator_testcase extends advanced_testcase {
         $this->assertGreaterThan($beforecourse, $aftercourse);
         $this->assertGreaterThan($beforerequest, $afterrequest);
         $this->assertGreaterThan($beforeclassinfo, $afterclassinfo);
+    }
+
+    /**
+     * Try to create 2 randomly created classes and make sure they are different.
+     */
+    public function test_create_class_random_nodup() {
+        $class1 = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(array());
+        $class2 = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(array());
+
+        $this->assertNotEquals(array_pop($class1)->srs, array_pop($class2)->srs);
     }
 
     /**
