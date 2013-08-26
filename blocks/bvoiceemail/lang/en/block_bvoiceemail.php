@@ -16,3 +16,5 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 $string['pluginname'] = 'Voice E-Mail';
+$string['bvoiceemail'] = 'Voice E-Mail';
+$string['bvoiceemail:addinstance'] = 'Add a new Voice E-Mail block';

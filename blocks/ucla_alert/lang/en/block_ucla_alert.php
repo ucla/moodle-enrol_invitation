@@ -1,6 +1,9 @@
 <?php
 
 $string['pluginname'] = 'Course alerts';
+$string['ucla_alert'] = 'Course alerts';
+$string['ucla_alert:addinstance'] = 'Add a new Course alerts block';
+$string['ucla_alert:myaddinstance'] = 'Add a new Course alerts block';
 
 // Default values
 // Section

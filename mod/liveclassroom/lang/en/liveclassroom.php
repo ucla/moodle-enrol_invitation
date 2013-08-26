@@ -53,6 +53,7 @@ $string['no_logs'] = 'There are no logs yet.';
 $string['wellconfigured'] = 'Configuration settings are valid.';
 // capabilities
 $string["liveclassroom:presenter"] = "Has presenter access to Blackboard Collaborate Classrooms";
+$string['liveclassroom:addinstance'] = "Add a new Bloackboard Collaborate Classroom module";
 //error configuration
 $string['emptyAdminUsername'] = 'Admin user name is empty';
 $string['emptyAdminPassword'] = 'Admin user password is empty';
