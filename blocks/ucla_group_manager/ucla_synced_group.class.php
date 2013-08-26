@@ -113,9 +113,9 @@ class ucla_synced_group {
     }
 
     /**
-     *  Synchronizes the group memberships with moodle groups.
-     *  This function has to assume that $this->memberships is in its desired
-     *  state, and will not change its value.
+     * Synchronizes the group memberships with moodle groups.
+     * This function has to assume that $this->memberships is in its desired
+     * state, and will not change its value.
      **/
     function save_memberships() {
         // Remove memberships in the DB
@@ -132,11 +132,12 @@ class ucla_synced_group {
 
         // Create new memberships in the DB if needed
         foreach ($this->memberships as $moouid) {
-            if (!isset($this->membershipids[$moouid])) {
-                $this->membershipids[$moouid] = self::new_membership($moouid);
+            $uclamembershipid = $this->create_membership($moouid);
+            if ($uclamembershipid) {
+                if (!isset($this->membershipids[$moouid])) {
+                    $this->membershipids[$moouid] = $uclamembershipid;
+                }
             }
-
-            groups_add_member($this->id, $moouid);
         }
     }
 
@@ -178,6 +179,15 @@ class ucla_synced_group {
         return $retval;
     }
 
+    /**
+     * Adds user to moodle group and returns ucla_group_members id or false
+     * 
+     * @global dml $DB
+     * @param int $moodleuserid
+     * @return int/bool Returns newly added record id or the existing id.
+     *                  Returns false on an error.
+     * 
+     */
     function create_membership($moodleuserid) {
         global $DB;
 
@@ -193,7 +203,8 @@ class ucla_synced_group {
     }
 
     function update() {
-        return groups_update_group($this) && $this->save_memberships();
+        $this->save_memberships();
+        return groups_update_group($this);
     }
 
     function load() {
