@@ -1,0 +1,35 @@
+<form id="participantForm" method="post" action="<?php echo $CFG->wwwroot; ?>/mod/elluminate/user-edit.php">
+    <input type="hidden" name="id" value="<?php echo $id;?>" />
+    <input type="hidden" name="sesskey" value="<?php echo $sesskey; ?>" />
+    <input type="hidden" id="submitvalue" name="submitvalue" value="" />
+    <input type="hidden" name="type" value="<?php echo $myWebHelper->userEditType ?>" />
+        <table style="margin-left:auto; margin-right:auto;">
+            <tr align="center">
+                <td colspan="2"><?php echo get_string('sessioncreator','elluminate') . " " . format_string($strcreator->firstname)  . " " . format_string($strcreator->lastname) . " (" . format_string($strcreator->username) . ")";   ?></td>                
+            </tr>        
+            <tr align="center">
+                <td><?php echo $strCurrentUsers; ?></td>
+                <td><?php echo $strAvailableUsers; ?></td>
+            </tr>
+            <tr align="center">
+                <td>
+                    <select name="currentUsers[]" size="15" class="select" multiple style="min-width: 175px">
+<?php
+   echo $myWebHelper->getCurrentUserSelectHTML();
+?>
+                    </select>
+                </td>
+                <td>
+                    <select name="availableUsers[]" size="15" class="select" multiple style="min-width: 175px">
+<?php
+   echo $myWebHelper->getAvailableUserSelectHTML();
+?>
+                    </select>
+                </td>
+            </tr>
+            <tr align="center">
+                <td><input id="removeSubmit" type="submit" value="<?php echo $strRemoveButton . '-&gt;'; ?>"/></td>
+                <td><input id="addSubmit" type="submit" value="<?php echo '&lt;- ' . $strAddButton ?>"/></td>
+            </tr>
+        </table>
+</form>

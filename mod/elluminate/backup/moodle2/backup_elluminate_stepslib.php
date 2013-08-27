@@ -44,7 +44,7 @@ class backup_elluminate_activity_structure_step extends backup_activity_structur
             'intro','introformat','customname','customdescription',
             'timestart','timeend','recordingmode','boundarytime',
             'boundarytimedisplay','maxtalkers','chairlist','nonchairlist','grade',
-            'timemodified'));		
+            'gradesession','timemodified'));		
 		
         $recordings = new backup_nested_element('recordings');
         $recording = new backup_nested_element('recording', array('id'), array(

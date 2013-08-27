@@ -1,0 +1,187 @@
+/* $Id: styles.css,v 2.0.2 2012-04-26 15:21:12 jcheema Exp $ */
+
+#elluminateviewsession {
+   width:90%;
+}
+
+#elluminateviewsession table{
+   text-align:center;
+}
+
+.elluminateboundarytime {
+    text-align: center;
+    font-size: 0.8em;
+}
+
+
+.elluminaterecordingmode {
+    text-align: center;
+    font-size: 0.7em;
+}
+
+
+.elluminateeditmoderators {
+    text-align: center;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+
+.elluminateeditparticipants {
+    text-align: center;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+
+.elluminatepreload {
+    text-align: center;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+
+.elluminatejoinmeeting {
+    text-align: center;
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+
+.elluminateverifysetup {
+    text-align: center;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+#elluminaterecording {
+    text-align: center;
+    font-size: 1em;
+}
+
+.elluminaterecording .description {
+	font-style: italic;
+   padding-right:10px;
+   padding-left:10px;
+}
+
+.elluminateattendance {
+    text-align: center;
+    font-size: 1em;
+}
+.elluminaterecordingdescriptionedit {
+    text-align: center;
+}
+
+.elluminateguestlink {
+    text-align: center;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.elluminateListOfErrors {
+	list-style-position:inside;
+	padding-left:30%;
+}
+
+.elluminateicon {
+   margin-right:5px;
+   margin-left:5px;
+}
+
+.elluminateconvertedgroupsessions {
+   text-align: center;
+   margin-right:5px;
+   margin-left:5px;
+}
+
+.elluminateconvertedgroupsessions table {
+    margin-left:auto; 
+    margin-right:auto;
+}
+
+.elluminatesessioninfo{
+   margin-left:auto; 
+   margin-right:auto;
+}
+
+.elluminatesessioninfotableheader {
+	font-weight: bold;
+}
+
+.elluminatesessiontabletitle {
+   font-weight: bold;
+   font-size: 1.3em;
+}
+
+.elluminatesessioninfotablename {
+   font-weight: bold;
+   font-size:1.1em;
+}
+
+.elluminatetitle {
+    text-align: center;
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.elluminatesessionactions{
+   width:20px;	
+}
+
+.elluminaterecordingplay{
+	min-width:90px;
+}
+
+.elluminaterecordingplay img{
+	width:24px;
+	height:24px;
+}
+
+.elluminaterecordingcreated{
+   min-width:225px;	
+}
+
+.elluminaterecordingoptions{
+	min-width: 60px;
+}
+
+.elluminateactionicon{
+   float: right;
+}
+
+.elluminatelink{
+	display:block;
+	padding-top:5px;
+	text-align: center;
+}
+
+.elluminateloading{
+	position:relative;
+   margin-left: auto; 
+   margin-right: auto;
+   font-size: 1.3em;
+   font-weight: bold;
+   text-align: center;
+}
+
+.elluminateloading img{
+   height: 20px;
+   width: 20px;   
+   margin-left:25px;
+}
+
+.elluminateconvert{
+	display:block;
+	padding-bottom: 2px;
+}
+
+.elluminateconvert a{
+   font-size: 0.9em;
+}
+
+.elluminatetelephonypin{
+	padding-left:5px;
+	display:inline;
+	font-weight: bold;
+}
