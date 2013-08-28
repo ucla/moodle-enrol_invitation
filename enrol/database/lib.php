@@ -303,14 +303,12 @@ class enrol_database_plugin extends enrol_plugin {
         // We are overloading the $onecourse parameter to be an array that
         // contains the list of terms to process or a courseid.
         if ($overrideenroldatabase) {
-            if (is_array($onecourse)) {
-                // Really a list of terms to process.
-                $terms = $onecourse;
-            } else if (empty($onecourse)) {
+            if (empty($onecourse)) {
                 $trace->output('No terms or courseid specified.');
                 $trace->finished();
                 return 0;
             }
+            $enrollmenthelper = new local_ucla_enrollment_helper($trace, $this, $onecourse);
         }
         // END UCLA MOD: CCLE-4061
 
@@ -387,7 +385,12 @@ class enrol_database_plugin extends enrol_plugin {
             // Get a list of courses to be synced that are in external table.
             $externalcourses = array();
             $sql = $this->db_get_sql($table, array(), array($coursefield), true);
-            if ($rs = $extdb->Execute($sql)) {
+            // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+            //if ($rs = $extdb->Execute($sql)) {
+            if ($overrideenroldatabase) {
+                $enrollmenthelper->get_external_enrollment_courses();
+            } else if ($rs = $extdb->Execute($sql)) {
+            // END UCLA MOD: CCLE-4061
                 if (!$rs->EOF) {
                     while ($mapping = $rs->FetchRow()) {
                         $mapping = reset($mapping);

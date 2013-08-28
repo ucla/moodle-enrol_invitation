@@ -39,6 +39,12 @@ ucla_require_registrar();
 class local_ucla_enrollment_helper {
 
     /**
+     * If set, is course that we are processing.
+     * @var int
+     */
+    private $courseid = null;
+
+    /**
      * Value of enrol_database|remoterolefield.
      * 
      * @var string
@@ -53,6 +59,12 @@ class local_ucla_enrollment_helper {
     protected $remoteuserfield;
 
     /**
+     * If set, are terms that we are processing.
+     * @var int
+     */
+    private $terms = null;
+
+    /**
      * Used to output any messages.
      *
      * @var progress_trace
@@ -60,19 +72,22 @@ class local_ucla_enrollment_helper {
     protected $trace;
 
     /**
+     * Constructor.
      *
      * @param progress_trace $trace
      * @param enrol_database_plugin $enroldatabase
-     * @param array $roles
+     * @param int|array $termsorcourseid
      */
     public function __construct(progress_trace $trace,
-            enrol_database_plugin $enroldatabase) {
+            enrol_database_plugin $enroldatabase, $termsorcourseid = null) {
 
         $this->trace = $trace;
 
         // Store needed config variables.
         $this->remoterolefield = $enroldatabase->get_config('remoterolefield');
         $this->remoteuserfield = $enroldatabase->get_config('remoteuserfield');
+
+        $this->set_run_parameter($termsorcourseid);
     }
 
     /**
@@ -151,6 +166,27 @@ class local_ucla_enrollment_helper {
     }
 
     /**
+     * Returns an array of courseids mapped to a boolean that is expected by the
+     * enrol_database plugin when it is checking which courses to add the
+     * enrollment plugin.
+     */
+    public function get_external_enrollment_courses() {
+        global $DB;
+        $retval = array();
+
+        if (empty($this->terms)) {
+            throw new Exception('No terms to query');
+        }
+
+        $records = $DB->get_records_list('ucla_request_classes', 'term', $this->terms);
+        foreach ($records as $record) {
+            $retval[$record->courseid] = true;
+        }
+
+        return $retval;
+    }
+
+    /**
      * Appends '@ucla' to the 'bolid' field from Registrar data.
      *
      * @param string $bolid
@@ -188,6 +224,22 @@ class local_ucla_enrollment_helper {
         }
 
         return $results[registrar_query::query_results];
+    }
+
+    /**
+     * Sets what type of enrollment we are doing.
+     *
+     * @param int|array $termsorcourseid
+     */
+    public function set_run_parameter($termsorcourseid = null) {
+        $this->courseid = null;
+        $this->terms = null;
+        if (is_array($termsorcourseid)) {
+            // Really a list of terms to process.
+            $this->terms = $termsorcourseid;
+        } else if (is_int ($termsorcourseid)) {
+            $this->courseid = $termsorcourseid;
+        }
     }
 
     /**

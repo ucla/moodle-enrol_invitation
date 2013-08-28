@@ -117,6 +117,51 @@ class local_ucla_prepop_testcase extends advanced_testcase {
     }
 
     /**
+     * Make sure that get_external_enrollment_courses returns the proper data.
+     */
+    public function test_get_external_enrollment_courses() {
+        $courseidsexpected = array();
+
+        // Create non-crosslist course.
+        $class = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(
+                        array('term' => '13S'));
+        $courseidsexpected[] = array_pop($class)->courseid;
+
+        // Create crosslist course.
+        $class = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(
+                        array('term' => '13S'), array('term' => '13S'));
+        $courseidsexpected[] = array_pop($class)->courseid;
+
+        // Expecting to find all courseids above in result array.
+        $this->mockenrollmenthelper->set_run_parameter(array('13S'));
+        $results = $this->mockenrollmenthelper->get_external_enrollment_courses();
+        $courseidsreturned = array_keys($results);
+        sort($courseidsexpected);
+        sort($courseidsreturned);
+        $this->assertEquals($courseidsexpected, $courseidsreturned);
+
+        // Create courses in another term and check they are returned.
+        $class = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(
+                        array('term' => '131'));
+        $courseidsexpected[] = array_pop($class)->courseid;
+        $class = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(
+                        array('term' => '131'), array('term' => '131'));
+        $courseidsexpected[] = array_pop($class)->courseid;
+
+        // Expecting to find all courseids above in result array.
+        $this->mockenrollmenthelper->set_run_parameter(array('13S', '131'));
+        $results = $this->mockenrollmenthelper->get_external_enrollment_courses();
+        $courseidsreturned = array_keys($results);
+        sort($courseidsexpected);
+        sort($courseidsreturned);
+        $this->assertEquals($courseidsexpected, $courseidsreturned);
+    }
+
+    /**
      * Test adding enrollment for a course for users that are already existing
      * in the system.
      */
