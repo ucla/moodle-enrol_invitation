@@ -230,14 +230,27 @@ class local_ucla_enrollment_helper {
      * Sets what type of enrollment we are doing.
      *
      * @param int|array $termsorcourseid
+     *
+     * @throws Exception
      */
     public function set_run_parameter($termsorcourseid = null) {
+        global $DB;
         $this->courseid = null;
         $this->terms = null;
         if (is_array($termsorcourseid)) {
             // Really a list of terms to process.
+            foreach ($termsorcourseid as $term) {
+                if (!ucla_validator('term', $term)) {
+                    throw new Exception('Invalid term: ' . $term);
+                }
+            }
             $this->terms = $termsorcourseid;
-        } else if (is_int ($termsorcourseid)) {
+        } else if (is_int($termsorcourseid)) {
+            // Make sure that given term belongs to a reg course.
+            if (!$DB->record_exists('ucla_request_classes', 
+                    array('courseid' => $termsorcourseid))) {
+                throw new Exception('Invalid courseid: ' . $termsorcourseid);
+            }
             $this->courseid = $termsorcourseid;
         }
     }

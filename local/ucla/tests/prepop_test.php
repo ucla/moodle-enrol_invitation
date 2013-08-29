@@ -35,7 +35,7 @@ class local_ucla_prepop_testcase extends advanced_testcase {
 
     /**
      * Stores mocked version of local_ucla_enrollment_helper.
-     * @var type
+     * @var local_ucla_enrollment_helper
      */
     private $mockenrollmenthelper = null;    
 
@@ -45,6 +45,12 @@ class local_ucla_prepop_testcase extends advanced_testcase {
      * @var array
      */
     private $mockregdata = array();
+
+    /**
+     * Stores the trace object.
+     * @var null_progress_trace
+     */
+    private $trace = null;
 
     /**
      * Stubs the query_registrar method of local_ucla_enrollment_helper class,
@@ -88,20 +94,37 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         $uclagenerator = $this->getDataGenerator()->get_plugin_generator('local_ucla');
         $this->createdroles = $uclagenerator->create_ucla_roles();
 
+        // For some very odd reason, there is no API to "enable" an enrollment
+        // plugin, so need to do these steps to activate the database plugin.
+        $enabled = enrol_get_plugins(true);
+        $enabled = array_keys($enabled);
+        $enabled[] = 'database';
+        set_config('enrol_plugins_enabled', implode(',', $enabled));
+        context_system::instance()->mark_dirty(); // Resets all enrol caches.
+
         // These configs are normally hardcoded in local/ucla/config, but
         // PHPUnit tests do not load up these values, so we manually set them.
-        set_config('remoteuserfield', 'uid', 'enrol_database');
+        set_config('dbtype', 'odbc_mssql', 'enrol_database');
+        set_config('remoteenroltable', 'enroll2_test', 'enrol_database');
+        set_config('remotecoursefield', 'termsrs', 'enrol_database');
         set_config('remoterolefield', 'role', 'enrol_database');
+        set_config('remoteuserfield', 'uid', 'enrol_database');
+        set_config('localcoursefield', 'id', 'enrol_database');
         set_config('localrolefield', 'id', 'enrol_database');
         set_config('unenrolaction', ENROL_EXT_REMOVED_UNENROL, 'enrol_database');
+        set_config('overrideenroldatabase', 1, 'local_ucla');
 
         // Create mocked version of the local_ucla_enrollment_helper.
-        $trace = new text_progress_trace();
+
+        // For debugging, use text_progress_trace(), otherwise prevent text
+        // output by using null_progress_trace().
+        //$this->trace = new text_progress_trace();
+        $this->trace = new null_progress_trace();
         $enrol = enrol_get_plugin('database');
 
         // Only stub the query_registrar method.
         $this->mockenrollmenthelper = $this->getMockBuilder('local_ucla_enrollment_helper')
-                ->setConstructorArgs(array($trace, $enrol))
+                ->setConstructorArgs(array($this->trace, $enrol))
                 ->setMethods(array('query_registrar'))
                 ->getMock();
 
@@ -114,6 +137,95 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         // Remove any previous registrar data.
         unset($this->mockregdata);
         $this->mockregdata = array();
+    }
+
+    /**
+     * Try to free up some memory.
+     */
+    public function tearDown() {
+        unset($this->trace);
+    }
+
+    /**
+     * Call enrol_database_plugin->sync_enrolments() and make sure that it 
+     * adds the database enrollment plugin for given set of courses that do
+     * not already have it.
+     */
+    public function test_enrol_database_plugin_add_instance() {
+        $enrol = enrol_get_plugin('database');
+
+        // Add mocked enrollment helper.
+        $enrol->enrollmenthelper = $this->mockenrollmenthelper;
+
+        $class = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(
+                        array('term' => '13S'));
+        $course = array_pop($class);
+        
+        // Just created course, so shouldn't have database enrollment plugin.
+        $instances = enrol_get_instances($course->courseid, true);
+        $foundenroldatabase = false;
+        foreach ($instances as $instance) {
+            if ($instance->enrol == 'database') {
+                $foundenroldatabase = true;
+                break;
+            }
+        }
+        $this->assertFalse($foundenroldatabase);
+
+        // Call sync for 1 course.
+        $enrol->sync_enrolments($this->trace, $course->courseid);
+
+        // Should have enrollment plugin added.
+        $instances = enrol_get_instances($course->courseid, true);
+        $foundenroldatabase = false;
+        foreach ($instances as $instance) {
+            if ($instance->enrol == 'database') {
+                $foundenroldatabase = true;
+                break;
+            }
+        }
+        $this->assertTrue($foundenroldatabase);
+
+        // Now, make sure database enrollment plugin is added if we are
+        // processing courses for a term.
+        $class = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(
+                        array('term' => '13W'));
+        $courseidsexpected[] = array_pop($class)->courseid;
+        $class = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(
+                        array('term' => '13W'), array('term' => '13W'));
+        $courseidsexpected[] = array_pop($class)->courseid;
+
+        // Just created courses, so shouldn't have database enrollment plugin.
+        foreach ($courseidsexpected as $courseid) {
+            $instances = enrol_get_instances($courseid, true);
+            $foundenroldatabase = false;
+            foreach ($instances as $instance) {
+                if ($instance->enrol == 'database') {
+                    $foundenroldatabase = true;
+                    break;
+                }
+            }
+            $this->assertFalse($foundenroldatabase);
+        }
+
+        // Call sync for a term.
+        $enrol->sync_enrolments($this->trace, array('13W'));
+
+        // Make sure those courses have the database plugin enabled.
+        foreach ($courseidsexpected as $courseid) {
+            $instances = enrol_get_instances($courseid, true);
+            $foundenroldatabase = false;
+            foreach ($instances as $instance) {
+                if ($instance->enrol == 'database') {
+                    $foundenroldatabase = true;
+                    break;
+                }
+            }
+            $this->assertTrue($foundenroldatabase);
+        }
     }
 
     /**

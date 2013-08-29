@@ -36,6 +36,16 @@ require_once($CFG->dirroot . '/local/ucla/classes/local_ucla_enrollment_helper.p
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class enrol_database_plugin extends enrol_plugin {
+    // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+    /**
+     * Returns data needed to support the UCLA course tables and map data to
+     * what the enrol_database expects.
+     * 
+     * @var local_ucla_enrollment_helper
+     */
+    public $enrollmenthelper = null;    
+    // END UCLA MOD: CCLE-4061
+
     /**
      * Is it possible to delete enrol instance via standard UI?
      *
@@ -308,7 +318,25 @@ class enrol_database_plugin extends enrol_plugin {
                 $trace->finished();
                 return 0;
             }
-            $enrollmenthelper = new local_ucla_enrollment_helper($trace, $this, $onecourse);
+            try {
+                // When we unit test, we will set this helper to a mocked one.
+                if (!isset($this->enrollmenthelper)) {
+                    $this->enrollmenthelper = new local_ucla_enrollment_helper(
+                            $trace, $this, $onecourse);
+                } else {
+                    $this->enrollmenthelper->set_run_parameter($onecourse);
+                }
+                // We only care if $onecourse is an int, else if an array of
+                // terms, we already told the enrollment helper what terms we
+                // are processing, so unset it.
+                if (is_array($onecourse)) {
+                    $onecourse = null;
+                }
+            } catch (Exception $e) {
+                $trace->output($e->getMessage());
+                $trace->finished();
+                return 0;                
+            }
         }
         // END UCLA MOD: CCLE-4061
 
@@ -321,7 +349,10 @@ class enrol_database_plugin extends enrol_plugin {
 
         $trace->output('Starting user enrolment synchronisation...');
 
-        if (!$extdb = $this->db_init()) {
+        // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+        //if (!$extdb = $this->db_init()) {
+        if (!$overrideenroldatabase && !$extdb = $this->db_init()) {
+        // END UCLA MOD: CCLE-4061
             $trace->output('Error while communicating with external enrolment database');
             $trace->finished();
             return 1;
@@ -388,7 +419,7 @@ class enrol_database_plugin extends enrol_plugin {
             // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
             //if ($rs = $extdb->Execute($sql)) {
             if ($overrideenroldatabase) {
-                $enrollmenthelper->get_external_enrollment_courses();
+                $externalcourses = $this->enrollmenthelper->get_external_enrollment_courses();
             } else if ($rs = $extdb->Execute($sql)) {
             // END UCLA MOD: CCLE-4061
                 if (!$rs->EOF) {
@@ -466,6 +497,8 @@ class enrol_database_plugin extends enrol_plugin {
 
             $ignorehidden = $this->get_config('ignorehiddencourses');
         }
+
+        return 0;
 
         // Sync user enrolments.
         $sqlfields = array($userfield);

@@ -101,10 +101,6 @@ if (!enrol_is_enabled('database')) {
     cli_error('enrol_database plugin is disabled, synchronization stopped', 2);
 }
 
-debugging('currentterm = ' . get_config('', 'currentterm'));
-debugging('$CFG->currentterm = ' . $CFG->currentterm);
-
-
 // Figure out how script was called.
 $parameters = array();
 if (!empty($options['courseid']) && is_int($options['courseid'])) {
@@ -124,8 +120,6 @@ if (!empty($options['courseid']) && is_int($options['courseid'])) {
     }
     $parameters['terms'] = $terms;
 }
-
-print_r($parameters);exit;
 
 if (empty($options['verbose'])) {
     $trace = new null_progress_trace();
