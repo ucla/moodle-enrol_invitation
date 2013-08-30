@@ -427,6 +427,7 @@ $CFG->forced_plugin_settings['enrol_database']['remoteuserfield'] = 'uid';
 $CFG->forced_plugin_settings['enrol_database']['remoterolefield'] = 'role';
 $CFG->forced_plugin_settings['enrol_database']['localcoursefield'] = 'id';
 $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
+$CFG->forced_plugin_settings['enrol_database']['localuserfield'] = 'idnumber';
 $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 0;    // ENROL_EXT_REMOVED_UNENROL
 
 // CCLE-2802 - Frontpage banner layout include

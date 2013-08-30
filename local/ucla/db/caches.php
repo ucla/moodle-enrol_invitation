@@ -36,4 +36,10 @@ $definitions = array(
         'mode' => cache_store::MODE_REQUEST,
         'persistent' => true,
     ),
+    // Store user mapping to avoid repetitive DB queries within one request.
+    // A user mapping might be keyed by idnumber or username.
+    'usermappings' => array(
+        'mode' => cache_store::MODE_REQUEST,
+        'persistent' => true,
+    ),
 );

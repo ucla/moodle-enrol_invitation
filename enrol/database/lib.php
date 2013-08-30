@@ -306,7 +306,6 @@ class enrol_database_plugin extends enrol_plugin {
         global $CFG, $DB;
 
         // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
-
         // See if we are using UCLA specific changes to database enrollment.
         $overrideenroldatabase = get_config('local_ucla', 'overrideenroldatabase');
 
@@ -498,8 +497,6 @@ class enrol_database_plugin extends enrol_plugin {
             $ignorehidden = $this->get_config('ignorehiddencourses');
         }
 
-        return 0;
-
         // Sync user enrolments.
         $sqlfields = array($userfield);
         if ($rolefield) {
@@ -539,7 +536,12 @@ class enrol_database_plugin extends enrol_plugin {
             // Get list of users that need to be enrolled and their roles.
             $requested_roles = array();
             $sql = $this->db_get_sql($table, array($coursefield=>$course->mapping), $sqlfields);
-            if ($rs = $extdb->Execute($sql)) {
+            // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+            //if ($rs = $extdb->Execute($sql)) {
+            if ($overrideenroldatabase) {
+                $requested_roles = $this->enrollmenthelper;
+            } else if ($rs = $extdb->Execute($sql)) {
+            // END UCLA MOD: CCLE-4061
                 if (!$rs->EOF) {
                     $usersearch = array('deleted' => 0);
                     if ($localuserfield === 'username') {
@@ -654,7 +656,12 @@ class enrol_database_plugin extends enrol_plugin {
         }
 
         // Close db connection.
-        $extdb->Close();
+        // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+        //$extdb->Close();
+        if (!$overrideenroldatabase) {
+            $extdb->Close();
+        }
+        // END UCLA MOD: CCLE-4061
 
         $trace->output('...user enrolment synchronisation finished.');
         $trace->finished();

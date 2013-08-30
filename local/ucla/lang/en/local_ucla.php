@@ -98,6 +98,8 @@ $string['coursehidden'] = '<p>This course is unavailable for students. Students 
         'needed, students should contact the course instructor. </p>';
 $string['overrideenroldatabase'] = 'Override database enrollment plugin';
 $string['overrideenroldatabasedesc'] = 'Override the database enrollment plugin to use UCLA specific customizations.';
+$string['minuserupdatewaitdays'] = 'User information update delay';
+$string['minuserupdatewaitdays_desc'] = 'Number of days since a user last used the site before updating their first name, last name and/or email from the external database.';
 
 // Form submit login check
 $string['longincheck_login'] = 'Your session has timed out. In order to save 

@@ -144,6 +144,134 @@ class local_ucla_prepop_testcase extends advanced_testcase {
      */
     public function tearDown() {
         unset($this->trace);
+
+        // Purge usermapping cache.
+        $cache = cache::make('local_ucla', 'usermappings');
+        $cache->purge();
+    }
+
+    /**
+     * Make sure createorfinduser throws an exception if it finds multiple
+     * records for a given idnumber.
+     *
+     * Note, cannot make a test case if there are multiple username names
+     * returned, because username plus mnet_localhost_id is a unique key.
+     *
+     * @expectedException dml_multiple_records_exception
+     */
+    public function test_createorfinduser_exception_idnumber() {
+        $fieldmappings = array('uid'        => 'idnumber',
+                               'firstname'  => 'firstname',
+                               'lastname'   => 'lastname',
+                               'email'      => 'email',
+                               'username'   => 'username');
+
+        // Create duplicate idnumbers.
+        $uclauser = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user(
+                        array('idnumber' => '123456789'));
+        $uclauser = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user(
+                        array('idnumber' => '123456789'));
+        $enrollment = array();
+        foreach ($fieldmappings as $key => $value) {
+            $enrollment[$key] = $uclauser->$value;
+        }
+        $enrollment['username'] = '';
+
+        $this->mockenrollmenthelper->createorfinduser($enrollment);
+    }
+
+    /**
+     * Make sure createorfinduser can find an existing user.
+     */
+    public function test_createorfinduser_existing() {
+        $fieldmappings = array('uid'        => 'idnumber',
+                               'firstname'  => 'firstname',
+                               'lastname'   => 'lastname',
+                               'email'      => 'email',
+                               'username'   => 'username');
+
+        // Find a UCLA user with idnumber and username set.
+        $uclauser = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user();
+        $enrollment = array();
+        foreach ($fieldmappings as $key => $value) {
+            $enrollment[$key] = $uclauser->$value;
+        }
+
+        // Make sure cache is working.
+        $cache = cache::make('local_ucla', 'usermappings');
+        $cachekey = sprintf('idnumber:%s:username:%s',
+                $enrollment['uid'], $enrollment['username']);
+        $result = $cache->get($cachekey);
+        $this->assertFalse($result);
+
+        // Make sure exact user is found.
+        $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+        $this->assertNotNull($founduser);
+        foreach ($fieldmappings as $key => $value) {
+            $this->assertEquals($uclauser->$value, $founduser->$value);
+        }
+        $result = $cache->get($cachekey);
+        $this->assertEquals($result, $founduser);
+    }
+
+    /**
+     * Make sure createorfinduser returns null for a nonexisting enrollment
+     * record that is missing the username.
+     */
+    public function test_createorfinduser_invalid() {
+        $enrollment = array('uid'        => '123456789',
+                            'firstname'  => 'Joe',
+                            'lastname'   => 'Bruin',
+                            'email'      => 'test@ucla.edu',
+                            'username'   => '');
+
+        // Make sure cache is working.
+        $cache = cache::make('local_ucla', 'usermappings');
+        $cachekey = sprintf('idnumber:%s:username:%s',
+                $enrollment['uid'], $enrollment['username']);
+        $result = $cache->get($cachekey);
+        $this->assertFalse($result);
+
+        $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+        $this->assertNull($founduser);
+        $result = $cache->get($cachekey);
+        $this->assertEquals($result, $founduser);
+    }
+
+    /**
+     * Make sure createorfinduser creates a non-existing user.
+     */
+    public function test_createorfinduser_nonexisting() {
+        $fieldmappings = array('uid'        => 'idnumber',
+                               'firstname'  => 'firstname',
+                               'lastname'   => 'lastname',
+                               'email'      => 'email',
+                               'username'   => 'username');
+
+        $enrollment = array('uid'        => '123456789',
+                            'firstname'  => 'Joe',
+                            'lastname'   => 'Bruin',
+                            'email'      => 'test@ucla.edu',
+                            'username'   => 'joe.bruin@ucla.edu');
+
+        // Make sure cache is working.
+        $cache = cache::make('local_ucla', 'usermappings');
+        $cachekey = sprintf('idnumber:%s:username:%s',
+                $enrollment['uid'], $enrollment['username']);
+        $result = $cache->get($cachekey);
+        $this->assertFalse($result);
+
+        // Make sure user is created.
+        $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+        $this->assertNotNull($founduser);
+        foreach ($fieldmappings as $key => $value) {
+            $this->assertEquals($enrollment[$key], $founduser->$value);
+        }
+        $result = $cache->get($cachekey);
+        $this->assertEquals($result, $founduser);
     }
 
     /**
@@ -297,7 +425,6 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         $entry = array_pop($class);
         $term = $entry->term;
         $srs = $entry->srs;
-        $courseid = $entry->courseid;
         foreach ($instructors as $rolecode => $role) {
             $reginstructors[] = array('term' => $term,
                                       'srs' => $srs,
@@ -321,7 +448,7 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         $this->assertNotEmpty($enrollments);
 
         // Make sure users return have proper roles and proper data returned.
-        foreach ($enrollments[$courseid] as $enrollment) {
+        foreach ($enrollments as $enrollment) {
             if ($enrollment['uid'] == $instructor->idnumber) {
                 $this->assertEquals($this->createdroles['editinginstructor'],
                         $enrollment['role']);
