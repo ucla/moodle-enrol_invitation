@@ -539,7 +539,7 @@ class enrol_database_plugin extends enrol_plugin {
             // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
             //if ($rs = $extdb->Execute($sql)) {
             if ($overrideenroldatabase) {
-                $requested_roles = $this->enrollmenthelper;
+                $requested_roles = $this->enrollmenthelper->get_requested_roles($course);
             } else if ($rs = $extdb->Execute($sql)) {
             // END UCLA MOD: CCLE-4061
                 if (!$rs->EOF) {

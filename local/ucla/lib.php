@@ -247,8 +247,7 @@ function ucla_map_courseid_to_termsrses($courseid) {
         return $termsrses;
     }
     
-    $termsrses = $DB->get_records('ucla_request_classes',
-            array('courseid' => $courseid), '', 'id, term, srs, hostcourse, courseid');
+    $termsrses = $DB->get_records('ucla_request_classes', array('courseid' => $courseid));
 
     $cache->set($cachekey, $termsrses);
     return $termsrses;

@@ -53,6 +53,47 @@ class local_ucla_prepop_testcase extends advanced_testcase {
     private $trace = null;
 
     /**
+     * Helper method to create an entry for the mocked registrar call to 
+     * ccle_courseinstructorsget.
+     * 
+     * @param string $term
+     * @param string $srs
+     * @param string $rolecode
+     * @param object $user
+     *
+     * @return array
+     */
+    private function create_ccle_courseinstructorsget_entry($term, $srs, $rolecode, $user) {
+            return array('term' => $term,
+                         'srs' => $srs,
+                         'role' => $rolecode,
+                         'ucla_id' => $user->idnumber,
+                         'first_name_person' => $user->firstname,
+                         'last_name_person' => $user->lastname,
+                         'bolid' => str_replace('@ucla.edu', '', $user->username),
+                         'ursa_email' => $user->email);
+    }
+
+    /**
+     * Helper method to check if given user with given user name is enrolled
+     * in a course or not.
+     *
+     * @param int $courseid
+     * @param string $username
+     */
+    private function is_username_enrolled($courseid, $username) {
+        global $DB;
+
+        $context = context_course::instance($courseid);
+        $user = $DB->get_record('user', array('username' => $username));
+        if (empty($user)) {
+            return false;
+        }
+
+        return is_enrolled($context, $user);
+    }
+
+    /**
      * Stubs the query_registrar method of local_ucla_enrollment_helper class,
      * so we aren't actually making a live call to the Registrar.
      *
@@ -69,7 +110,8 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         /* The $mockregdata array is indexed as follows:
          *  [storedprocedure] => [term] => [srs] => [array of results]
          */
-        return $this->mockregdata[$sp][$term][$srs];
+        @$retval = $this->mockregdata[$sp][$term][$srs];
+        return $retval;
     }
 
     /**
@@ -111,6 +153,7 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         set_config('remoteuserfield', 'uid', 'enrol_database');
         set_config('localcoursefield', 'id', 'enrol_database');
         set_config('localrolefield', 'id', 'enrol_database');
+        set_config('localuserfield', 'idnumber', 'enrol_database');
         set_config('unenrolaction', ENROL_EXT_REMOVED_UNENROL, 'enrol_database');
         set_config('overrideenroldatabase', 1, 'local_ucla');
 
@@ -280,9 +323,8 @@ class local_ucla_prepop_testcase extends advanced_testcase {
      * not already have it.
      */
     public function test_enrol_database_plugin_add_instance() {
-        $enrol = enrol_get_plugin('database');
-
         // Add mocked enrollment helper.
+        $enrol = enrol_get_plugin('database');
         $enrol->enrollmenthelper = $this->mockenrollmenthelper;
 
         $class = $this->getDataGenerator()->
@@ -357,6 +399,63 @@ class local_ucla_prepop_testcase extends advanced_testcase {
     }
 
     /**
+     * Test syncing of a given roster (instructors and students) including
+     * enrolling/unenrolling.
+     *
+     * @group totest
+     */
+    public function test_enrol_database_plugin_sync_enrolments() {
+        // Add mocked enrollment helper.
+        $enrol = enrol_get_plugin('database');
+        $enrol->enrollmenthelper = $this->mockenrollmenthelper;
+
+        $class = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(
+                        array('term' => '13S', 'subj_area' => 'MATH', 'division' => 'PS'));
+        $course = array_pop($class);
+        $term = $course->term;
+        $srs = $course->srs;
+        $courseid = $course->courseid;
+
+        $courseusernames = array();
+
+        // Create enrollment records, first for instructors. Let system find
+        // Instructor, but create the TA.
+        $instructor = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->
+                create_user(array('idnumber' => '123456789',
+                                  'username' => 'instructor@ucla.edu'));
+        $courseusernames[] = $instructor->username;
+        $ta = new stdClass();
+        $ta->firstname = 'Joe';
+        $ta->lastname = 'Bruin';
+        $ta->username = 'ta@ucla.edu';
+        $ta->email = 'ta@ucla.edu';
+        $ta->idnumber = '987654321';
+        $courseusernames[] = $ta->username;
+
+        $reginstructors = array();
+        $reginstructors[] = $this->create_ccle_courseinstructorsget_entry(
+                    $term, $srs, '01', $instructor);
+        $reginstructors[] = $this->create_ccle_courseinstructorsget_entry(
+                    $term, $srs, '02', $ta);
+        $this->set_mockregdata('ccle_courseinstructorsget', $term, $srs, $reginstructors);
+
+        // Make sure that users are currently not enrolled.
+        foreach ($courseusernames as $username) {
+            $result = $this->is_username_enrolled($courseid, $username);
+            $this->assertFalse($result);
+        }
+
+        // Run sync_enrolments and magically all users should be enrolled.
+        $enrol->sync_enrolments($this->trace, array('13S'));
+        foreach ($courseusernames as $username) {
+            $result = $this->is_username_enrolled($courseid, $username);
+            $this->assertTrue($result);
+        }
+    }
+
+    /**
      * Make sure that get_external_enrollment_courses returns the proper data.
      */
     public function test_get_external_enrollment_courses() {
@@ -426,14 +525,8 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         $term = $entry->term;
         $srs = $entry->srs;
         foreach ($instructors as $rolecode => $role) {
-            $reginstructors[] = array('term' => $term,
-                                      'srs' => $srs,
-                                      'role' => $rolecode,
-                                      'ucla_id' => $role->idnumber,
-                                      'first_name_person' => $role->firstname,
-                                      'last_name_person' => $role->lastname,
-                                      'bolid' => str_replace('@ucla.edu', '', $role->username),
-                                      'ursa_email' => $role->email);
+            $reginstructors[] = $this->create_ccle_courseinstructorsget_entry(
+                    $term, $srs, $rolecode, $role);
         }
         $this->set_mockregdata('ccle_courseinstructorsget', $term, $srs, $reginstructors);
 
@@ -457,6 +550,55 @@ class local_ucla_prepop_testcase extends advanced_testcase {
                 $this->assertEquals($this->createdroles['supervising_instructor'],
                         $enrollment['role']);
                 $this->assertEquals($enrollment['username'], $supervisinginstructor->username);
+            }
+        }
+    }
+
+    /**
+     * Make sure that get_requested_roles returns an properly formatted array of
+     * users and their roles.
+     */
+    public function test_get_requested_roles() {
+        global $DB;
+        $class = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(array());
+
+        // Create results to use for ccle_courseinstructorsget.
+        $course = array_pop($class);
+        $term = $course->term;
+        $srs = $course->srs;
+
+        // Create Instructor and Supervising instructor.
+        $instructor = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user();
+        $supervisinginstructor = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user();
+        $instructors = array('01' => $instructor,
+                             '03' => $supervisinginstructor);
+        foreach ($instructors as $rolecode => $role) {
+            $reginstructors[] = $this->create_ccle_courseinstructorsget_entry(
+                    $term, $srs, $rolecode, $role);
+        }
+        $this->set_mockregdata('ccle_courseinstructorsget', $term, $srs, $reginstructors);
+
+        $courseobj = $DB->get_record('course', array('id' => $course->courseid));
+        $returnedroles = $this->mockenrollmenthelper->get_requested_roles($courseobj);
+
+        // Make sure instructors are returned.
+        foreach ($instructors as $rolecode => $expected) {
+            foreach ($returnedroles as $userid => $roles) {
+                if ($expected->id == $userid) {
+                    if ($rolecode == '01') {
+                        // Returned roleid should be for editinginstructor.
+                        $roleid = $DB->get_field('role', 'id',
+                                array('shortname' => 'editinginstructor'));
+                    } else if ($rolecode == '03') {
+                        $roleid = $DB->get_field('role', 'id',
+                                array('shortname' => 'supervising_instructor'));
+                    }
+                    $true = in_array($roleid, $roles);
+                    $this->assertTrue($true);
+                }
             }
         }
     }

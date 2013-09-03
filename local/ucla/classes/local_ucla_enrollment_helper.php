@@ -241,6 +241,10 @@ class local_ucla_enrollment_helper {
             $instructors = $this->query_registrar('ccle_courseinstructorsget',
                     $requestclass->term, $requestclass->srs);
 
+            if (empty($instructors)) {
+                continue;
+            }
+
             // Need to create mapping of role code to primary/secondary
             // sections.
             $otherroles = array();
@@ -322,19 +326,19 @@ class local_ucla_enrollment_helper {
         $retval = array();
 
         $requestclasses = ucla_map_courseid_to_termsrses($course->id);
-        $enrollments = $this->get_enrollments($requestclassses);
+        $enrollments = $this->get_enrollments($requestclasses);
 
         // Go through each enrollment and either create user or find/update
         // their info.
         foreach ($enrollments as $enrollment) {
-            $userid = $this->createorfinduser($enrollment);
-            $roleid = $enrollment->{$this->remoterolefield};
-            if (empty($userid)) {
-                // Cannot create or find user!
-                $this->trace->output('Cannot create user: ' . implode(',', $enrollment));
+            $user = $this->createorfinduser($enrollment);
+            if (empty($user)) {
+                // Cannot create user!
+                $this->trace->output('Skipping user: ' . implode(',', $enrollment));
                 continue;
             }
-            $retval[$userid][$roleid] = $roleid;
+            $roleid = $enrollment[$this->remoterolefield];
+            $retval[$user->id][$roleid] = $roleid;
         }
 
         return $retval;
