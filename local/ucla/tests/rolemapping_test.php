@@ -213,8 +213,6 @@ class rolemapping_test extends advanced_testcase {
     /**
      * Test role mapping with repeated calls to check if cache is working
      * properly.
-     *
-     * @group totest
      */
     public function test_role_mapping_cache() {
         $profcode = array('primary' => array('01'));

@@ -338,6 +338,7 @@ $CFG->forced_plugin_settings['enrol_database']['remoteuserfield'] = 'uid';
 $CFG->forced_plugin_settings['enrol_database']['remoterolefield'] = 'role';
 $CFG->forced_plugin_settings['enrol_database']['localcoursefield'] = 'id';
 $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
+$CFG->forced_plugin_settings['enrol_database']['localuserfield'] = 'idnumber';
 // CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't 
 // lose grading data
 $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles

@@ -247,8 +247,7 @@ function ucla_map_courseid_to_termsrses($courseid) {
         return $termsrses;
     }
     
-    $termsrses = $DB->get_records('ucla_request_classes',
-            array('courseid' => $courseid), '', 'id, term, srs, hostcourse, courseid');
+    $termsrses = $DB->get_records('ucla_request_classes', array('courseid' => $courseid));
 
     $cache->set($cachekey, $termsrses);
     return $termsrses;
@@ -651,20 +650,12 @@ function role_mapping($profcode, array $otherroles, $subjectarea="*SYSTEM*") {
         $otherroles['primary'] = $otherroles;
     }
 
-    // Check to see if we queried for this particular mapping before.
-    $cache = cache::make('local_ucla', 'rolemappings');
-    $cachekey = serialize($profcode).':'.serialize($otherroles).':'.$subjectarea;
-    if ($rolemapping = $cache->get($cachekey)) {
-        return $rolemapping;
-    }
-
     // Logic to parse profcodes, and return pseudorole.
     $pseudorole = get_pseudorole($profcode, $otherroles);
     
     // Convert pseudorole to the appropiate role for given subject area.
     $moodleroleid = get_moodlerole($pseudorole, $subjectarea);
 
-    $cache->set($cachekey, $moodleroleid);
     return $moodleroleid;
 }
 
@@ -806,25 +797,30 @@ function ucla_validator($type, $value) {
  * @throws moodle_exception         Throws moodle exception if no role mapping 
  *                                  is found
  * 
- * @global type $CFG
- * @global type $DB
- * 
  * @param string $pseudorole
- * @param string $subject_area      Default "*SYSTEM*".
+ * @param string $subjectarea       Default "*SYSTEM*".
  * 
  * @return int                      Moodle role id. 
  */
-function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
+function get_moodlerole($pseudorole, $subjectarea='*SYSTEM*') {
     global $CFG, $DB;
+
+    $subjectarea = trim($subjectarea);
+
+    // Check to see if we queried for this particular mapping before.
+    $cache = cache::make('local_ucla', 'rolemappings');
+    $cachekey = $pseudorole.':'.$subjectarea;
+    if ($moodleroleid = $cache->get($cachekey)) {
+        return $moodleroleid;
+    }
 
     require($CFG->dirroot . '/local/ucla/rolemappings.php');
 
-    $subject_area = trim($subject_area);
-
     // if mapping exists in file, then don't care what values are in the db
-    if (!empty($role[$pseudorole][$subject_area])) {
+    if (!empty($role[$pseudorole][$subjectarea])) {
         if ($moodlerole = $DB->get_record('role', 
-                array('shortname' => $role[$pseudorole][$subject_area]))) {
+                array('shortname' => $role[$pseudorole][$subjectarea]))) {
+            $cache->set($cachekey, $moodlerole->id);
             return $moodlerole->id;
         }            
     }
@@ -833,8 +829,9 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
     if ($moodlerole = $DB->get_record('ucla_rolemapping', 
             array(
                 'pseudo_role' => $pseudorole, 
-                'subject_area' => $subject_area
+                'subject_area' => $subjectarea
             ))) {
+        $cache->set($cachekey, $moodlerole->moodle_roleid);
         return $moodlerole->moodle_roleid;    
     }
     
@@ -843,6 +840,7 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
     if (!empty($role[$pseudorole]['*SYSTEM*'])) {
         if ($moodlerole = $DB->get_record('role', 
                 array('shortname' => $role[$pseudorole]['*SYSTEM*']))) {
+            $cache->set($cachekey, $moodlerole->id);
             return $moodlerole->id;
         } else {
             debugging('pseudorole mapping found, but local role not found');
@@ -851,8 +849,8 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
     
     // oh no... didn't find proper role mapping, stop the presses
     throw new moodle_exception('invalidrolemapping', 'local_ucla', null, 
-            sprintf('Params: $pseudorole - %s, $subject_area - %s', 
-                    $pseudorole, $subject_area));
+            sprintf('Params: $pseudorole - %s, $subjectarea - %s', 
+                    $pseudorole, $subjectarea));
 }
 
 /**

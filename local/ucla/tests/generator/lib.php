@@ -200,6 +200,7 @@ class local_ucla_generator extends testing_data_generator {
      * @return array        Returns an array of shortname to roleid.
      */
     public function create_ucla_roles() {
+        global $DB;
         $retval = array();
 
         $roles[] = array('name' => 'Instructor',
@@ -226,6 +227,10 @@ class local_ucla_generator extends testing_data_generator {
                     $role['shortname'], '', $role['archetype']);
         }
 
+        // Although we didn't create it, we need the roleid for student.
+        $student = $DB->get_record('role', array('shortname' => 'student'));
+        $retval[$student->shortname] = $student->id;
+
         return $retval;
     }
 
@@ -241,12 +246,14 @@ class local_ucla_generator extends testing_data_generator {
 
         $record = (array) $record;
 
-        // Make sure the user has username with @ucla.edu and idnumber that is
-        // a 9 digit number.
-        $i = $this->usercounter;
         if (!isset($record['mnethostid'])) {
             $record['mnethostid'] = $CFG->mnet_localhost_id;
         }
+        $record['auth'] = 'shibboleth';
+
+        // Make sure the user has username with @ucla.edu and idnumber that is
+        // a 9 digit number.
+        $i = $this->usercounter;        
         if (!isset($record['username'])) {
             $record['username'] = 'username' . $i . '@ucla.edu';
             $j = 2;
@@ -260,13 +267,6 @@ class local_ucla_generator extends testing_data_generator {
             debugging('Given username does not end with @ucla.edu');
         }
         if (!isset($record['idnumber'])) {
-            $record['username'] = 'username' . $i . '@ucla.edu';
-            while ($DB->record_exists('user',
-                    array('username' => $record['username'],
-                'mnethostid' => $record['mnethostid']))) {
-                $record['username'] = 'username' . $i . '_' . $j . '@ucla.edu';
-                $j++;
-            }
             do {
                 $record['idnumber'] = rand(100000000, 999999999);
             } while ($DB->record_exists('user',

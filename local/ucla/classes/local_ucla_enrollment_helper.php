@@ -39,8 +39,25 @@ ucla_require_registrar();
 class local_ucla_enrollment_helper {
 
     /**
+     * If set, is course that we are processing.
+     * @var int
+     */
+    private $courseid = null;
+
+    /**
+     * Value of enrol_database|localuserfield.
+     *
+     * Should be "idnumber".
+     *
+     * @var string
+     */
+    protected $localuserfield;
+
+    /**
      * Value of enrol_database|remoterolefield.
-     * 
+     *
+     * Should be "role".
+     *
      * @var string
      */
     protected $remoterolefield;
@@ -48,9 +65,17 @@ class local_ucla_enrollment_helper {
     /**
      * Value of enrol_database|remoteuserfield.
      *
+     * Should be "uid".
+     *
      * @var string
      */
     protected $remoteuserfield;
+
+    /**
+     * If set, are terms that we are processing.
+     * @var int
+     */
+    private $terms = null;
 
     /**
      * Used to output any messages.
@@ -60,52 +85,168 @@ class local_ucla_enrollment_helper {
     protected $trace;
 
     /**
+     * Constructor.
      *
      * @param progress_trace $trace
      * @param enrol_database_plugin $enroldatabase
-     * @param array $roles
+     * @param int|array $termsorcourseid
      */
     public function __construct(progress_trace $trace,
-            enrol_database_plugin $enroldatabase) {
+            enrol_database_plugin $enroldatabase, $termsorcourseid = null) {
 
         $this->trace = $trace;
 
         // Store needed config variables.
+        $this->localuserfield = $enroldatabase->get_config('localuserfield');
         $this->remoterolefield = $enroldatabase->get_config('remoterolefield');
         $this->remoteuserfield = $enroldatabase->get_config('remoteuserfield');
+
+        $this->set_run_parameter($termsorcourseid);
     }
 
     /**
+     * Will try to create or find user that matches the given enrollment record.
      *
-     * @param array $requestclasss Array of results from ucla_request_classes
+     * @param arrray $enrollment    Enrollment records returned by
+     *                              $this->get_instructors and
+     *                              $this->get_students
      *
-     * @return array
+     * @return object               Returns user record matching enrollment
+     *                              record. If no user is found and cannot
+     *                              create the user, will return null.
+     *
+     * @throws dml_multiple_records_exception If multiple users were found for
+     *                                        a given idnumber or username.
+     * @throws dml_write_exception            If cannot create user.
+     */
+    public function createorfinduser(array $enrollment) {
+        global $CFG, $DB;
+        $retval = null;
+        /* Expecting array with following keys:
+         * $this->remoteuserfield | 'uid'
+         * 'firstname'
+         * 'lastname'
+         * 'email'
+         * 'username'
+         * $this->remoterolefield | 'role'
+         */
+
+        // Let's use Moodle caching since we are going to be processing the same
+        // users for multiple courses.
+        $cache = cache::make('local_ucla', 'usermappings');
+        $cachekey = sprintf('idnumber:%s:username:%s',
+                $enrollment[$this->remoteuserfield], $enrollment['username']);
+        $retval = $cache->get($cachekey);
+        if ($retval !== false) {
+            // Cache returns false if record does not exist. But we are setting
+            // null for a given cachekey if the user cannot be created, because
+            // if is missing the username. So we need to make sure to explicitly
+            // check for false and return null.
+            return $retval;
+        }
+
+        // Unable to find cached user, so let's try to find a user. Need to be
+        // flexible in trying to find a user. In order of preference we will try
+        // to find a user by:
+        
+        // 1) localuserfield/remoteuserfield, aka UCLA UID, aka user.idnumber.
+
+        if (!empty($enrollment[$this->remoteuserfield])) {
+            try {
+                $retval = $DB->get_record('user',
+                        array($this->localuserfield => $enrollment[$this->remoteuserfield],
+                              'mnethostid' => $CFG->mnet_localhost_id,
+                              'auth' => 'shibboleth'), '*', MUST_EXIST);
+            } catch (dml_missing_record_exception $notfound) {
+                // This is okay and expected, so just continue along.
+            }
+            // We are not catching dml_multiple_records_exception exceptions,
+            // because we want those thrown up the chain and stop prepop.
+        }
+
+        // 2) username, aka UCLA LogonID, aka user.username.
+        if (empty($retval) && !empty($enrollment['username'])) {
+            try {
+                $retval = $DB->get_record('user',
+                        array('username' => $enrollment['username'],
+                              'mnethostid' => $CFG->mnet_localhost_id,
+                              'auth' => 'shibboleth'), '*', MUST_EXIST);
+            } catch (dml_missing_record_exception $notfound) {
+                // This is okay and expected, so just continue along.
+            }
+        }
+
+        // User is not found on the local system, so we have to create one.
+        if (empty($retval)) {
+            if (empty($enrollment['username'])) {
+                // Cannot create a user with no username.
+                $this->trace->output(sprintf('Cannot create user without username: %s',
+                        implode(',', $enrollment)), 1);
+                // Set cachekey to return null, so we don't keep on trying to
+                // find and fail to create this user.
+                $cache->set($cachekey, null);
+                return null;
+            }
+            // Taken from user/editadvanced.php.
+            $retval = new stdclass();
+            $retval->confirmed = 1;
+            $retval->auth = 'shibboleth';
+            $retval->mnethostid = $CFG->mnet_localhost_id;
+            $retval->{$this->localuserfield} = $enrollment[$this->remoteuserfield];
+            $retval->firstname = $enrollment['firstname'];
+            $retval->lastname = $enrollment['lastname'];
+            $retval->email = $enrollment['email'];
+            $retval->username = $enrollment['username'];
+            $retval->id = user_create_user($retval);
+
+            $this->trace->output(sprintf('Created user: %s',
+                    implode(',', $enrollment)), 1);
+        }
+
+        $cache->set($cachekey, $retval);
+        return $retval;
+    }
+
+    /**
+     * For a given course, will return an array of enrollment records containing
+     * a user's information and role in course.
+     *
+     * @param array $requestclasss  Array of ucla_request_classes entries for a
+     *                              single course.
+     *
+     * @return array                Array of enrollment records of user info and
+     *                              user's roleid.
      */
     public function get_enrollments(array $requestclassses) {
         $instructors = $this->get_instructors($requestclassses);
-        $students = array();
+        $students = $this->get_students($requestclassses);
         return array_merge($instructors, $students);
     }
 
     /**
      * Calls stored procedure ccle_courseinstructorsget, translates results,
      * and then does the role mapping to return an array of instructors and
-     * their roles.
+     * their roles for a given course.
      *
-     * @param array $requestclasss Array of results from ucla_request_classes
+     * @param array $requestclasss  Array of ucla_request_classes entries for a
+     *                              single course.
      *
-     * @return array
+     * @return array                Array of enrollment records of user info and
+     *                              user's roleid.
      */
     public function get_instructors(array $requestclasses) {
-        $enrolments = array();
+        $retval = array();
 
         foreach ($requestclasses as $requestclass) {
             $subjarea = $requestclass->department;
-            $courseid = $requestclass->courseid;
 
             // Query registrar for instructors.
             $instructors = $this->query_registrar('ccle_courseinstructorsget',
                     $requestclass->term, $requestclass->srs);
+
+            if (empty($instructors)) {
+                continue;
+            }
 
             // Need to create mapping of role code to primary/secondary
             // sections.
@@ -136,18 +277,124 @@ class local_ucla_enrollment_helper {
                     );
                 } catch (moodle_exception $me) {
                     // Cannot find a good role map, so skip processing.
-                    $this->trace('Could not get good mapping for ' .
+                    $this->trace('Could not get good mapping for instructor: ' .
                             implode('|', $instructor), 1);
                     continue;
                 }
 
                 $user = $this->translate_ccle_course_instructorsget($instructor);
                 $user[$this->remoterolefield] = $localrole;
-                $enrolments[$courseid][] = $user;
+                $retval[] = $user;
             }
         }
 
-        return $enrolments;
+        return $retval;
+    }
+
+    /**
+     * Calls stored procedure ccle_roster_class, translates results, and then
+     * does the role mapping to return an array of students and their roles for
+     * a given course.
+     *
+     * @param array $requestclasss  Array of ucla_request_classes entries for a
+     *                              single course.
+     *
+     * @return array                Array of enrollment records of user info and
+     *                              user's roleid.
+     */
+    public function get_students(array $requestclasses) {
+        $retval = array();
+
+        foreach ($requestclasses as $requestclass) {
+            $subjarea = $requestclass->department;
+
+            // Query registrar for $students.
+            $students = $this->query_registrar('ccle_roster_class',
+                    $requestclass->term, $requestclass->srs);
+
+            if (empty($students)) {
+                continue;
+            }
+
+            foreach ($students as $student) {
+                $pseudorole = get_student_pseudorole($student['enrl_stat_cd']);
+                if (empty($pseudorole)) {
+                    // Student has dropped or cancelled.
+                    continue;
+                }
+
+                try {
+                    $localrole = get_moodlerole($pseudorole, $subjarea);
+                } catch (moodle_exception $me) {
+                    // Cannot find a good role map, so skip processing.
+                    $this->trace('Could not get good mapping for student: ' .
+                            implode('|', $student), 1);
+                    continue;
+                }
+
+                $user = $this->translate_ccle_roster_class($student);
+                $user[$this->remoterolefield] = $localrole;
+                $retval[] = $user; 
+            }
+        }
+
+        return $retval;
+    }
+
+    /**
+     * Returns an array of courseids mapped to a boolean that is expected by the
+     * enrol_database plugin when it is checking which courses to add the
+     * enrollment plugin.
+     */
+    public function get_external_enrollment_courses() {
+        global $DB;
+        $retval = array();
+
+        if (empty($this->terms)) {
+            throw new Exception('No terms to query');
+        }
+
+        $records = $DB->get_records_list('ucla_request_classes', 'term', $this->terms);
+        foreach ($records as $record) {
+            $retval[$record->courseid] = true;
+        }
+
+        return $retval;
+    }
+
+    /**
+     * Returns mapping of userid to roleid enrollments for given course.
+     *
+     * Since returned mapping needs to have a userid, will create users who
+     * are returned by the Registrar, but do not currently exist on the server.
+     * Else will update a user's information.
+     *
+     * @param object $course    Database record with following attributes:
+     *                              id, visible, shortname
+     *
+     * @return array            Returns in following format:
+     *                          [userid][roleid] => roleid
+     */
+    public function get_requested_roles($course) {
+        $retval = array();
+
+        $requestclasses = ucla_map_courseid_to_termsrses($course->id);
+        $enrollments = $this->get_enrollments($requestclasses);
+
+        // Go through each enrollment and either create user or find/update
+        // their info.
+        foreach ($enrollments as $enrollment) {
+            $user = $this->createorfinduser($enrollment);
+            if (empty($user)) {
+                // Cannot create user!
+                $this->trace->output('Skipping user: ' . implode(',', $enrollment));
+                continue;
+            }
+            $roleid = $enrollment[$this->remoterolefield];
+            $retval[$user->id][$roleid] = $roleid;
+        }
+
+        return $retval;
     }
 
     /**
@@ -157,6 +404,7 @@ class local_ucla_enrollment_helper {
      * @return string           Returns an empty string in bolid is empty.
      */
     public function normalize_bolid($bolid) {
+        $bolid = trim($bolid);
         if (!empty($bolid)) {
             return $bolid . '@ucla.edu';
         }
@@ -182,12 +430,45 @@ class local_ucla_enrollment_helper {
 
         // Log any failed results.
         if (!empty($results[registrar_query::failed_outputs])) {
-            $this->trace(sprintf('%d failed results from %s (%s, %s)',
+            $this->trace->output(sprintf('%d failed results from %s (%s, %s):',
                     count($results[registrar_query::failed_outputs]), $sp,
-                    $term, $srs));
+                    $term, $srs), 1);
+            foreach ($results[registrar_query::failed_outputs] as $failed) {
+                $this->trace->output(implode(',', $failed), 2);
+            }
         }
 
         return $results[registrar_query::query_results];
+    }
+
+    /**
+     * Sets what type of enrollment we are doing.
+     *
+     * @param int|array $termsorcourseid
+     *
+     * @throws Exception
+     */
+    public function set_run_parameter($termsorcourseid = null) {
+        global $DB;
+        $this->courseid = null;
+        $this->terms = null;
+
+        if (is_array($termsorcourseid)) {
+            // Really a list of terms to process.
+            foreach ($termsorcourseid as $term) {
+                if (!ucla_validator('term', $term)) {
+                    throw new Exception('Invalid term: ' . $term);
+                }
+            }
+            $this->terms = $termsorcourseid;
+        } else if (is_int($termsorcourseid)) {
+            // Make sure that given term belongs to a reg course.
+            if (!$DB->record_exists('ucla_request_classes', 
+                    array('courseid' => $termsorcourseid))) {
+                throw new Exception('Invalid courseid: ' . $termsorcourseid);
+            }
+            $this->courseid = $termsorcourseid;
+        }
     }
 
     /**
@@ -195,7 +476,7 @@ class local_ucla_enrollment_helper {
      * fields expected by Moodle.
      *
      * @param progress_trace $trace
-     * @param array $regdata             Data row from "ccle_roster_class" SP.
+     * @param array $regdata            Data row from "ccle_roster_class" SP.
      * @param string $remoteuserfield   Config enrol_database|remoteuserfield.
      *
      * @return array
@@ -206,7 +487,7 @@ class local_ucla_enrollment_helper {
 
         if (empty($names)) {
             $this->trace->output('WARNING: Found user with no name from ' .
-                    'ccle_roster_class: ' . implode(', ', array_keys($regdata)));
+                    'ccle_roster_class: ' . implode(', ', $regdata), 1);
             $names[0] = '';
             $firstmiddle = '';
         } else if (empty($names[1])) {

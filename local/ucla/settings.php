@@ -45,4 +45,9 @@ if ($hassiteconfig) {
             get_string('overrideenroldatabase', 'local_ucla'),
             get_string('overrideenroldatabasedesc', 'local_ucla'),
             0));
+    // CCLE-2924 - Prevent blind updating of users, give a time-out before
+    // registrar information trumps shibboleth information
+    $temp->add(new admin_setting_configtext('local_ucla/minuserupdatewaitdays',
+            get_string('minuserupdatewaitdays', 'local_ucla'),
+            get_string('minuserupdatewaitdays_desc', 'local_ucla'), 30));
 }

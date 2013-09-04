@@ -56,11 +56,18 @@ list($options, $unrecognized) = cli_get_params(
 
 $parameterterms = array();
 if ($unrecognized) {
-    // Maybe someone is passing us terms to run.
     foreach ($unrecognized as $index => $param) {
+        // Maybe someone is passing us terms to run.
         if (ucla_validator('term', $param)) {
             $parameterterms[] = $param;
             unset($unrecognized[$index]);
+        }
+        // Maybe someone is passing a courseid.
+        if ($options['courseid']) {
+            if ((int)$param > 1) {
+                $options['courseid'] = (int)$param;
+                unset($unrecognized[$index]);
+            }
         }
     }
 
@@ -101,10 +108,6 @@ if (!enrol_is_enabled('database')) {
     cli_error('enrol_database plugin is disabled, synchronization stopped', 2);
 }
 
-debugging('currentterm = ' . get_config('', 'currentterm'));
-debugging('$CFG->currentterm = ' . $CFG->currentterm);
-
-
 // Figure out how script was called.
 $parameters = array();
 if (!empty($options['courseid']) && is_int($options['courseid'])) {
@@ -112,20 +115,18 @@ if (!empty($options['courseid']) && is_int($options['courseid'])) {
     $parameters = $options['courseid'];
 } else if (!empty($options['currentterm']) && !empty($CFG->currentterm)) {
     // Just run pre-pop for the current term.
-    $parameters['terms'] = array($CFG->currentterm);
+    $parameters = array($CFG->currentterm);
 } else if (!empty($parameterterms)) {
     // Run pre-pop for the given set of terms.
-    $parameters['terms'] = $parameterterms;
+    $parameters = $parameterterms;
 } else {
     // No parameters set, so just run all active terms.
     $terms = get_active_terms();
     if (empty($terms)) {
         cli_error('No terms to run for.');
     }
-    $parameters['terms'] = $terms;
+    $parameters = $terms;
 }
-
-print_r($parameters);exit;
 
 if (empty($options['verbose'])) {
     $trace = new null_progress_trace();
