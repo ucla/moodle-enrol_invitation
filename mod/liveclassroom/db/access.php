@@ -45,7 +45,7 @@ $capabilities = array(
         )
     ),
 
-    'block/ucla_alert:addinstance' => array(
+    'mod/liveclassroom:addinstance' => array(
         'riskbitmask' => RISK_SPAM | RISK_XSS,
 
         'captype' => 'write',
