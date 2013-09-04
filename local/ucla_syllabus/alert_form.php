@@ -76,5 +76,6 @@ class alert_form extends moodleform {
         $mform->closeHeaderBefore('alert_buttons');
 
         $mform->addElement('hidden', 'manualsyllabus', $manualsyllabusid);
+        $mform->setType('manualsyllabus', PARAM_INT);
     }
 }
