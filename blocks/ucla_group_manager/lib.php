@@ -14,6 +14,14 @@ ucla_require_registrar();
  *  
  **/
 class ucla_group_manager {
+    
+    private $enrollment_helper;
+    
+    function __construct() {
+        $trace = new text_progress_trace();
+        $enrol = enrol_get_plugin('database');
+        $this->enrollment_helper = new local_ucla_enrollment_helper($trace, $enrol);
+    }
     // These are what are used to distinguish grouping names
 
     // Hierarchical groupings
@@ -41,10 +49,23 @@ class ucla_group_manager {
     }
 
     /**
+     * Function to query registrar
+     * 
+     * @param string $sp stored procedure call
+     * @param array $request_arr containing the term and srs
+     * @param bool $filter
+     * 
+     */
+    public function query_registrar($sp, $request_arr, $filter) {
+        $results = registrar_query::run_registrar_query($sp, $request_arr, $filter);
+        return $results[registrar_query::query_results]; 
+    }
+
+    /**
      *  Fetches section enrollments for a particular course set.
      *  @param $courseid int
      **/
-    static function course_sectionroster($courseid) {
+    public function course_sectionroster($courseid) {
         global $PAGE;
 
         $requests = ucla_get_course_info($courseid);
@@ -63,21 +84,20 @@ class ucla_group_manager {
     
         $requestsectioninfos = array();
 
-        // get the information needed
-        // TODO extract this out and make it available globally
-        $enrol = enrol_get_plugin('database');
-
+        // get the information needed            
         foreach ($requests_arr as $reqarr) {
-            $sections = registrar_query::run_registrar_query(
-                'ccle_class_sections', $reqarr, true);
+            $sections = $this->query_registrar(
+                            'ccle_class_sections',
+                            array($reqarr['term'], $reqarr['srs']),
+                            true
+                        );
 
             echo "* " . make_idnumber($reqarr) . " has " . count($sections) 
                 . " sections\n";
         
             // Check this roster against section rosters to look for
             // stragglers
-            $requestroster = 
-                registrar_query::run_registrar_query(
+            $requestroster = $this->query_registrar(
                         'ccle_roster_class', 
                         array($reqarr['term'], $reqarr['srs']), 
                         true
@@ -86,7 +106,7 @@ class ucla_group_manager {
             $indexedrequestroster = array();
             foreach ($requestroster as $student) {
                 $indexedrequestroster[] = 
-                    $enrol->translate_ccle_roster_class($student);
+                    $this->enrollment_helper->translate_ccle_roster_class($student);
             }
             
             $reqobj = new stdclass();
@@ -124,19 +144,20 @@ class ucla_group_manager {
                         $termsrsarr['term'], $termsrsarr['srs']
                     );
 
-                $sectionroster = 
-                    registrar_query::run_registrar_query(
-                        'ccle_roster_class', $rqa, true);
+                $sectionroster = $this->query_registrar('ccle_roster_class', $rqa, true);
 
                 $indexedsectionroster = array();
+
+                // Filter out students that have dropped course.
                 foreach ($sectionroster as $student) {
-                    $indexedsectionroster[] = 
-                        $enrol->translate_ccle_roster_class($student);
+                    if ($student['enrol_stat_cd'] != 'D' && $student['enrol_stat_cd'] != 'C') {
+                        $indexedsectionroster[] = $this->enrollment_helper->translate_ccle_roster_class($student);
+                    }
                 }
                 
                 if ($debug) {
                     echo "-   " . make_idnumber($termsrsarr) . ' has ' 
-                        . count($sectionroster) . " students\n";
+                        . count($indexedsectionroster) . " students\n";
                 }
 
                 $sectioninfo->roster = $indexedsectionroster;
@@ -155,7 +176,7 @@ class ucla_group_manager {
     /**
      *  Fully sets up and synchronizes groups for a course.
      **/
-    static function sync_course($courseid) {
+    public function sync_course($courseid) {
         $reqsecinfos = self::course_sectionroster($courseid);
         if ($reqsecinfos === false) {
             echo "Not a real course $courseid!\n";
