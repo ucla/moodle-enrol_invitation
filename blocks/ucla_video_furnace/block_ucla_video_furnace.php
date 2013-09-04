@@ -63,13 +63,14 @@ class block_ucla_video_furnace extends block_base {
     public static function get_navigation_nodes($course) {
         global $DB;
         $nodes = array();
+        $courseid = $course['course']->id;
         
         $records_found = $DB->get_records('ucla_video_furnace', 
-                array('courseid' => $course->id));
+                array('courseid' => $courseid));
         
         if (!empty($records_found)) {
             // Must hardcode the naming string since this is a static function
-            $nodes[] = navigation_node::create('Video furnace', self::get_action_link($course->id));
+            $nodes[] = navigation_node::create('Video furnace', self::get_action_link($courseid));
         }
         
         return $nodes;
