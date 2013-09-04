@@ -1,11 +1,7 @@
-<?php // $Id: version.php,v 1.1.2.2 2009/03/18 16:45:55 mchurch Exp $
-
-/////////////////////////////////////////////////////////////////////////////////
-///  Code fragment to define the version of Blackboard Collaborate
-///  This fragment is called by moodle_needs_upgrading() and /admin/index.php
-/////////////////////////////////////////////////////////////////////////////////
-
-$module->requires = 2010080300;	// Requires this Moodle version
-$module->version  = 2012082802;  // The current module version (Date: YYYYMMVERSION#)
+<?php
+$module->requires = 2010112400;
+$module->version  = 2013080201;  // The current module version (Date: YYYYMMDDxx)
 $module->cron     = 600;         // Period for cron to check this module (secs)
-
+$module->release  = '3.1.0-7';	 // Human Readable version number
+$module->maturity = MATURITY_STABLE;
+$module->component = 'mod_elluminate';

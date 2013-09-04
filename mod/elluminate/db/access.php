@@ -157,6 +157,28 @@ $capabilities = array(
          )
     ),
     
+    // Ability to convert all recordings
+    'mod/elluminate:convertallrecordings' => array(
+    
+             'captype' => 'write',
+             'contextlevel' => CONTEXT_MODULE,
+             'legacy' => array(
+                      'editingteacher' => CAP_ALLOW,
+                      'manager' => CAP_ALLOW
+             )
+    ),
+    
+    // Ability to convert recordings where current user is owner
+    'mod/elluminate:convertownrecordings' => array(
+    
+             'captype' => 'write',
+             'contextlevel' => CONTEXT_MODULE,
+             'legacy' => array(
+                      'editingteacher' => CAP_ALLOW,
+                      'manager' => CAP_ALLOW
+             )
+    ),
+    
     // Ability to add / remove moderators.
     'mod/elluminate:managemoderators' => array(
 
@@ -234,35 +256,29 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW
          )
     ),
-
-    // START UCLA MOD: CCLE-2966-replace-elluminate-with-blackboard-web-conferencing
-    'mod/elluminate:addinstance' => array(
-        'riskbitmask' => RISK_SPAM,
-
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE,
-        'legacy' => array(
-            'manager' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW
-    ),
-    'clonepermissionsfrom' => 'moodle/course:manageactivities'
-    ),
-    // END UCLA MOD: CCLE-2966-replace-elluminate-with-blackboard-web-conferencing
     
-
     // Ability to view guest link.
     'mod/elluminate:viewguestlink' => array(
 
         'captype' => 'read',
-        'contextlevel' => CONTEXT_COURSE,
+        'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
             'manager' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW
          )
+    ),
+    
+	//Ability to add a session instance
+	'mod/elluminate:addinstance' => array(
+	        'riskbitmask' => RISK_XSS,
+       		'captype' => 'write',
+        	'contextlevel' => CONTEXT_COURSE,
+        	'archetypes' => array(
+            	'editingteacher' => CAP_ALLOW,
+            	'manager' => CAP_ALLOW
+			),
+			'clonepermissionsfrom' => 'moodle/course:manageactivities'
     )
- 
 );
 
 
