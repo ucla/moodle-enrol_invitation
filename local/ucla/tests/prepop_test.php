@@ -75,6 +75,26 @@ class local_ucla_prepop_testcase extends advanced_testcase {
     }
 
     /**
+     * Helper method to create an entry for the mocked registrar call to
+     * ccle_roster_class.
+     *
+     * @param string $term
+     * @param string $srs
+     * @param string $enrollmentcode
+     * @param object $user
+     *
+     * @return array
+     */
+    private function create_ccle_roster_class_entry($term, $srs, $enrollmentcode, $user) {
+            return array('term_cd' => $term,
+                         'stu_id' => $user->idnumber,
+                         'full_name_person' => sprintf('%s, %s', $user->lastname, $user->firstname),
+                         'enrl_stat_cd' => $enrollmentcode,
+                         'ss_email_addr' => $user->email,
+                         'bolid' => str_replace('@ucla.edu', '', $user->username));
+    }
+
+    /**
      * Helper method to check if given user with given user name is enrolled
      * in a course or not.
      *
@@ -401,8 +421,6 @@ class local_ucla_prepop_testcase extends advanced_testcase {
     /**
      * Test syncing of a given roster (instructors and students) including
      * enrolling/unenrolling.
-     *
-     * @group totest
      */
     public function test_enrol_database_plugin_sync_enrolments() {
         // Add mocked enrollment helper.
@@ -441,6 +459,20 @@ class local_ucla_prepop_testcase extends advanced_testcase {
                     $term, $srs, '02', $ta);
         $this->set_mockregdata('ccle_courseinstructorsget', $term, $srs, $reginstructors);
 
+        // Create student enrollment records.
+        $students[0] = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user();
+        $students[1] = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user();
+        $students[2] = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user();
+        $regstudents= array();
+        foreach ($students as $index => $student) {
+            $regstudents[$index] = $this->create_ccle_roster_class_entry($term, $srs, 'E', $student);
+            $courseusernames[] = $student->username;
+        }
+        $this->set_mockregdata('ccle_roster_class', $term, $srs, $regstudents);
+
         // Make sure that users are currently not enrolled.
         foreach ($courseusernames as $username) {
             $result = $this->is_username_enrolled($courseid, $username);
@@ -453,6 +485,13 @@ class local_ucla_prepop_testcase extends advanced_testcase {
             $result = $this->is_username_enrolled($courseid, $username);
             $this->assertTrue($result);
         }
+
+        // Drop a student and make sure they do not appear in the enrollment.
+        $droppedstudent = $students[2];
+        unset($regstudents[2]);
+        $enrol->sync_enrolments($this->trace, array('13S'));
+        $result = $this->is_username_enrolled($courseid, $droppedstudent->username);
+        $this->assertTrue($result);
     }
 
     /**
@@ -501,8 +540,7 @@ class local_ucla_prepop_testcase extends advanced_testcase {
     }
 
     /**
-     * Test adding enrollment for a course for users that are already existing
-     * in the system.
+     * Test getting enrollment for course instructors.
      */
     public function test_get_instructors() {
         // Get a non-crosslisted class.
@@ -601,6 +639,65 @@ class local_ucla_prepop_testcase extends advanced_testcase {
                 }
             }
         }
+    }
+
+    /**
+     * Test getting enrollment for a course roster for students.
+     */
+    public function test_get_students() {
+        // Get a non-crosslisted class.
+        $class = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(array());
+
+        // Create students to enroll.
+        $dropped = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user();
+        $enrolled = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user();
+        $waitlist = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user();
+
+        // Index by enrollment code.
+        $students = array('D' => $dropped,
+                          'E' => $enrolled,
+                          'W' => $waitlist);
+
+        // Create results to use for ccle_roster_class.
+        $entry = array_pop($class);
+        $term = $entry->term;
+        $srs = $entry->srs;
+        foreach ($students as $enrollmentcode => $role) {
+            $regstudents[] = $this->create_ccle_roster_class_entry(
+                    $term, $srs, $enrollmentcode, $role);
+        }
+        $this->set_mockregdata('ccle_roster_class', $term, $srs, $regstudents);
+
+        // Get data to send query get_students().
+        $termcourses = ucla_get_courses_by_terms(array($term));
+
+        // Should only be one, since we only created 1 course.
+        $this->assertEquals(1, count($termcourses));
+        $requestclasses = array_pop($termcourses);
+
+        $enrollments = $this->mockenrollmenthelper->get_students($requestclasses);
+        $this->assertNotEmpty($enrollments);
+
+        // Make sure users return have proper roles and proper data returned.
+        $founddropped = false;
+        foreach ($enrollments as $enrollment) {
+            if ($enrollment['uid'] == $dropped->idnumber) {
+                $founddropped = true;
+            } else if ($enrollment['uid'] == $enrolled->idnumber) {
+                $this->assertEquals($this->createdroles['student'],
+                        $enrollment['role']);
+                $this->assertEquals($enrollment['username'], $enrolled->username);
+            } else if ($enrollment['uid'] == $waitlist->idnumber) {
+                $this->assertEquals($this->createdroles['student'],
+                        $enrollment['role']);
+                $this->assertEquals($enrollment['username'], $waitlist->username);
+            }
+        }
+        $this->assertFalse($founddropped);
     }
 
     /**

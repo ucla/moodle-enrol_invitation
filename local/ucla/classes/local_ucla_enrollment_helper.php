@@ -198,6 +198,9 @@ class local_ucla_enrollment_helper {
             $retval->email = $enrollment['email'];
             $retval->username = $enrollment['username'];
             $retval->id = user_create_user($retval);
+
+            $this->trace->output(sprintf('Created user: %s',
+                    implode(',', $enrollment)), 1);
         }
 
         $cache->set($cachekey, $retval);
@@ -216,7 +219,7 @@ class local_ucla_enrollment_helper {
      */
     public function get_enrollments(array $requestclassses) {
         $instructors = $this->get_instructors($requestclassses);
-        $students = array();
+        $students = $this->get_students($requestclassses);
         return array_merge($instructors, $students);
     }
 
@@ -274,7 +277,7 @@ class local_ucla_enrollment_helper {
                     );
                 } catch (moodle_exception $me) {
                     // Cannot find a good role map, so skip processing.
-                    $this->trace('Could not get good mapping for ' .
+                    $this->trace('Could not get good mapping for instructor: ' .
                             implode('|', $instructor), 1);
                     continue;
                 }
@@ -282,6 +285,56 @@ class local_ucla_enrollment_helper {
                 $user = $this->translate_ccle_course_instructorsget($instructor);
                 $user[$this->remoterolefield] = $localrole;
                 $retval[] = $user;
+            }
+        }
+
+        return $retval;
+    }
+
+    /**
+     * Calls stored procedure ccle_roster_class, translates results, and then
+     * does the role mapping to return an array of students and their roles for
+     * a given course.
+     *
+     * @param array $requestclasss  Array of ucla_request_classes entries for a
+     *                              single course.
+     *
+     * @return array                Array of enrollment records of user info and
+     *                              user's roleid.
+     */
+    public function get_students(array $requestclasses) {
+        $retval = array();
+
+        foreach ($requestclasses as $requestclass) {
+            $subjarea = $requestclass->department;
+
+            // Query registrar for $students.
+            $students = $this->query_registrar('ccle_roster_class',
+                    $requestclass->term, $requestclass->srs);
+
+            if (empty($students)) {
+                continue;
+            }
+
+            foreach ($students as $student) {
+                $pseudorole = get_student_pseudorole($student['enrl_stat_cd']);
+                if (empty($pseudorole)) {
+                    // Student has dropped or cancelled.
+                    continue;
+                }
+
+                try {
+                    $localrole = get_moodlerole($pseudorole, $subjarea);
+                } catch (moodle_exception $me) {
+                    // Cannot find a good role map, so skip processing.
+                    $this->trace('Could not get good mapping for student: ' .
+                            implode('|', $student), 1);
+                    continue;
+                }
+
+                $user = $this->translate_ccle_roster_class($student);
+                $user[$this->remoterolefield] = $localrole;
+                $retval[] = $user; 
             }
         }
 
@@ -377,9 +430,12 @@ class local_ucla_enrollment_helper {
 
         // Log any failed results.
         if (!empty($results[registrar_query::failed_outputs])) {
-            $this->trace(sprintf('%d failed results from %s (%s, %s)',
+            $this->trace->output(sprintf('%d failed results from %s (%s, %s):',
                     count($results[registrar_query::failed_outputs]), $sp,
-                    $term, $srs));
+                    $term, $srs), 1);
+            foreach ($results[registrar_query::failed_outputs] as $failed) {
+                $this->trace->output(implode(',', $failed), 2);
+            }
         }
 
         return $results[registrar_query::query_results];
@@ -396,6 +452,7 @@ class local_ucla_enrollment_helper {
         global $DB;
         $this->courseid = null;
         $this->terms = null;
+
         if (is_array($termsorcourseid)) {
             // Really a list of terms to process.
             foreach ($termsorcourseid as $term) {
@@ -430,7 +487,7 @@ class local_ucla_enrollment_helper {
 
         if (empty($names)) {
             $this->trace->output('WARNING: Found user with no name from ' .
-                    'ccle_roster_class: ' . implode(', ', $regdata));
+                    'ccle_roster_class: ' . implode(', ', $regdata), 1);
             $names[0] = '';
             $firstmiddle = '';
         } else if (empty($names[1])) {

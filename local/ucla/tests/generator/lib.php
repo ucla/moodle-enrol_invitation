@@ -200,6 +200,7 @@ class local_ucla_generator extends testing_data_generator {
      * @return array        Returns an array of shortname to roleid.
      */
     public function create_ucla_roles() {
+        global $DB;
         $retval = array();
 
         $roles[] = array('name' => 'Instructor',
@@ -225,6 +226,10 @@ class local_ucla_generator extends testing_data_generator {
             $retval[$role['shortname']] = create_role($role['name'],
                     $role['shortname'], '', $role['archetype']);
         }
+
+        // Although we didn't create it, we need the roleid for student.
+        $student = $DB->get_record('role', array('shortname' => 'student'));
+        $retval[$student->shortname] = $student->id;
 
         return $retval;
     }
