@@ -976,7 +976,7 @@ function qanda_print_entry_icons($course, $cm, $qanda, $entry, $mode = '', $hook
             }
 
             $return_alt .= "<a class='qanda-delete' title=\"" . get_string("delete") . "\" href=\"deleteentry.php?id=$cm->id&amp;mode=delete&amp;entry=$entry->id&amp;prevmode=$mode&amp;hook=" . urlencode($hook) . "\">" . get_string("delete") . "</a>";
-//            
+           
         } elseif ($importedentry) {
             $return .= "<font size=\"-1\">" . get_string("exportedentry", "qanda") . "</font>";
         }
@@ -993,10 +993,7 @@ function qanda_print_entry_icons($course, $cm, $qanda, $entry, $mode = '', $hook
             }
         }
         $fs = get_file_storage();
-        if ($files = $fs->get_area_files($filecontext->id, 'mod_qanda', 'attachment', $entry->id, "timemodified", false)
-                || $files = $fs->get_area_files($filecontext->id, 'mod_qanda', 'question', $entry->id, "timemodified", false)
-                || $files = $fs->get_area_files($filecontext->id, 'mod_qanda', 'answer', $entry->id, "timemodified", false)
-                || $files = $fs->get_area_files($filecontext->id, 'mod_qanda', 'entry', $entry->id, "timemodified", false)) {
+        if ($files = $fs->get_area_files($filecontext->id, 'mod_qanda', 'attachment', $entry->id, "timemodified", false) || $files = $fs->get_area_files($filecontext->id, 'mod_qanda', 'question', $entry->id, "timemodified", false) || $files = $fs->get_area_files($filecontext->id, 'mod_qanda', 'answer', $entry->id, "timemodified", false) || $files = $fs->get_area_files($filecontext->id, 'mod_qanda', 'entry', $entry->id, "timemodified", false)) {
 
             $button->set_formats(PORTFOLIO_FORMAT_RICHHTML);
         } else {
@@ -1108,8 +1105,7 @@ function qanda_print_entry_approval($cm, $entry, $mode, $align = "right", $insid
             echo '<table class="qanda-approval" align="' . $align . '"><tr><td align="' . $align . '">';
         }
         echo $OUTPUT->action_icon(
-                new moodle_url('approve.php', array('eid' => $entry->id, 'mode' => $mode, 'sesskey' => sesskey())), new pix_icon('t/approve', get_string('approve', 'qanda'), '',
-                        array('class' => 'iconsmall', 'align' => $align))
+                new moodle_url('approve.php', array('eid' => $entry->id, 'mode' => $mode, 'sesskey' => sesskey())), new pix_icon('t/approve', get_string('approve', 'qanda'), '', array('class' => 'iconsmall', 'align' => $align))
         );
         if ($insidetable) {
             echo '</td></tr></table>';
@@ -1799,6 +1795,7 @@ function qanda_generate_export_file($qanda, $ignored = "", $hook = 0, $cm) {
     $co .= qanda_full_tag("INTRO", 2, false, $qanda->intro);
     $co .= qanda_full_tag("INTROFORMAT", 2, false, $qanda->introformat);
     $co .= qanda_full_tag("ALLOWDUPLICATEDENTRIES", 2, false, $qanda->allowduplicatedentries);
+    $co .= qanda_full_tag("MAINQANDA", 2, false, $qanda->mainqanda);
     $co .= qanda_full_tag("DISPLAYFORMAT", 2, false, $qanda->displayformat);
     $co .= qanda_full_tag("SHOWSPECIAL", 2, false, $qanda->showspecial);
     $co .= qanda_full_tag("SHOWALPHABET", 2, false, $qanda->showalphabet);
@@ -2173,8 +2170,7 @@ function qanda_reset_userdata($data) {
     $ratingdeloptions->ratingarea = 'entry';
 
     // delete entries if requested
-    if (!empty($data->reset_qanda_all)
-            or (!empty($data->reset_qanda_types) and in_array('main', $data->reset_qanda_types) and in_array('secondary', $data->reset_qanda_types))) {
+    if (!empty($data->reset_qanda_all) or (!empty($data->reset_qanda_types) and in_array('main', $data->reset_qanda_types) and in_array('secondary', $data->reset_qanda_types))) {
 
         $params[] = 'qanda_entry';
         $DB->delete_records_select('comments', "itemid IN ($allentriessql) AND commentarea=?", $params);
@@ -2279,8 +2275,7 @@ function qanda_reset_userdata($data) {
         $rs = $DB->get_recordset_sql($entriessql, $params);
         if ($rs->valid()) {
             foreach ($rs as $entry) {
-                if (array_key_exists($entry->userid, $notenrolled) or !$entry->userexists or $entry->userdeleted
-                        or !is_enrolled($course_context, $entry->userid)) {
+                if (array_key_exists($entry->userid, $notenrolled) or !$entry->userexists or $entry->userdeleted or !is_enrolled($course_context, $entry->userid)) {
                     $DB->delete_records('comments', array('commentarea' => 'qanda_entry', 'itemid' => $entry->id));
                     $DB->delete_records('qanda_entries', array('id' => $entry->id));
 
@@ -2407,13 +2402,13 @@ function qanda_get_completion_state($course, $cm, $userid, $type) {
 function qanda_extend_navigation($navigation, $course, $module, $cm) {
     global $CFG;
     //Hide navigation bar links that print under each course Q&A
-//    $navigation->add(get_string('standardview', 'qanda'), new moodle_url('/mod/qanda/view.php', array('id' => $cm->id, 'mode' => 'letter')));
+    //   $navigation->add(get_string('standardview', 'qanda'), new moodle_url('/mod/qanda/view.php', array('id' => $cm->id, 'mode' => 'letter')));
     //   $navigation->add(get_string('categoryview', 'qanda'), new moodle_url('/mod/qanda/view.php', array('id' => $cm->id, 'mode' => 'cat')));
     //   $navigation->add(get_string('dateview', 'qanda'), new moodle_url('/mod/qanda/view.php', array('id' => $cm->id, 'mode' => 'date')));
     //   $navigation->add(get_string('authorview', 'qanda'), new moodle_url('/mod/qanda/view.php', array('id' => $cm->id, 'mode' => 'author')));
-//Navigation links for viewing entries and adding a new entry
-//    $navigation->add(get_string('addentry', 'qanda'), new moodle_url('/mod/qanda/edit.php', array('cmid' => $cm->id)));
-//    $navigation->add(get_string('qanda:view', 'qanda'), new moodle_url('/mod/qanda/view.php', array('id' => $cm->id)));
+    //Navigation links for viewing entries and adding a new entry
+    //    $navigation->add(get_string('addentry', 'qanda'), new moodle_url('/mod/qanda/edit.php', array('cmid' => $cm->id)));
+    //    $navigation->add(get_string('qanda:view', 'qanda'), new moodle_url('/mod/qanda/view.php', array('id' => $cm->id)));
 }
 
 /**

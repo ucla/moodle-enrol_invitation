@@ -91,6 +91,7 @@ if ($xml = qanda_read_imported_file($result)) {
             $qanda->name = ($xmlqanda['NAME'][0]['#']);
             $qanda->course = $course->id;
             $qanda->globalqanda = ($xmlqanda['GLOBALQANDA'][0]['#']);
+
             $qanda->intro = ($xmlqanda['INTRO'][0]['#']);
             $qanda->introformat = isset($xmlqanda['INTROFORMAT'][0]['#']) ? $xmlqanda['INTROFORMAT'][0]['#'] : FORMAT_MOODLE;
             $qanda->showspecial = ($xmlqanda['SHOWSPECIAL'][0]['#']);
@@ -105,6 +106,11 @@ if ($xml = qanda_read_imported_file($result)) {
                 $qanda->entbypage = ($xmlqanda['ENTBYPAGE'][0]['#']);
             } else {
                 $qanda->entbypage = $CFG->qanda_entbypage;
+            }
+            if (isset($xmlqanda['MAINQANDA'][0]['#'])) {
+                $qanda->mainqanda = ($xmlqanda['MAINQANDA'][0]['#']);
+            } else {
+                $qanda->mainqanda = 0;
             }
             if (isset($xmlqanda['ALLOWDUPLICATEDENTRIES'][0]['#'])) {
                 $qanda->allowduplicatedentries = ($xmlqanda['ALLOWDUPLICATEDENTRIES'][0]['#']);
@@ -163,13 +169,18 @@ if ($xml = qanda_read_imported_file($result)) {
                 if (!$mod->coursemodule = add_course_module($mod)) {
                     print_error('cannotaddcoursemodule');
                 }
-// Function was written for Moodle 2.4 in which add_mod_to_section() was deprecated.
-//                $sectionid = course_add_cm_to_section($course, $mod->coursemodule, 0);
-                $sectionid = add_mod_to_section($mod);
+                // After Moodle 2.3 the add_mod_to_section() function was deprecated.
+                $sectionid = course_add_cm_to_section($course, $mod->coursemodule, 0);
+                
                 //We get the section's visible field status
                 $visible = $DB->get_field("course_sections", "visible", array("id" => $sectionid));
 
                 $DB->set_field("course_modules", "visible", $visible, array("id" => $mod->coursemodule));
+
+
+                // mdl_course_modules.section was set to 0, instead of the index of mdl_course_sections.section=0
+                //Set the proper course_modules.section with the retrieved $sectionid (the index of the 0 section from  mdl_course_sections for that course)
+                $DB->set_field("course_modules", "section", $sectionid, array("id" => $mod->coursemodule));
 
                 add_to_log($course->id, "course", "add mod", "../mod/$mod->modulename/view.php?id=$mod->coursemodule", "$mod->modulename $mod->instance");
                 add_to_log($course->id, $mod->modulename, "add", "view.php?id=$mod->coursemodule", "$mod->instance", $mod->coursemodule);
@@ -341,7 +352,7 @@ if ($xml = qanda_read_imported_file($result)) {
         echo $rejections;
         echo '</table><hr />';
     }
-/// Print continue button, based on results
+    // Print continue button, based on results
     if ($importedentries) {
         echo $OUTPUT->continue_button('view.php?id=' . $id);
     } else {
