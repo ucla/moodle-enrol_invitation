@@ -25,6 +25,8 @@
  **/
 
 $string['pluginname'] = 'Course menu';
+$string['ucla_course_menu'] = 'Course menu';
+$string['ucla_course_menu:addinstance'] = 'Add a new Course menu block';
 $string['title'] = 'Site menu';
 $string['chapter'] = 'Chapter';
 $string['subchapter'] = 'Sub-chapter';
