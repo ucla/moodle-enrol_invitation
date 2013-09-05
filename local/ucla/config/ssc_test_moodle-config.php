@@ -191,6 +191,7 @@ $CFG->forced_plugin_settings['message']['message_provider_moodle_instantmessage_
 $CFG->usetags = 0;
 $CFG->enablenotes = 0;
 $CFG->bloglevel = 0; // Disable blog system completely
+$CFG->enablebadges = 0; // Disable badges
 
 // Site administration > Users > Permissions > User policies
 $CFG->autologinguests = true;
