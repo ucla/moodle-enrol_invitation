@@ -694,7 +694,10 @@ function local_kaltura_get_swfdoc_flashvars($client_obj, $entry_id = '', $admin_
     $vars = array();
     $vars['showCloseButton'] = 'true';
     $vars['close'] = 'onContributionWizardClose';
-    $vars['host']  = str_replace('http://', '', local_kaltura_get_host());
+    // START UCLA MOD: CCLE-2842 - Install Kaltura plugin for M2
+    //$vars['host']  = str_replace('http://', '', local_kaltura_get_host());
+    $vars['host']  = str_replace('https://', '', local_kaltura_get_host());
+    // END UCLA MOD: CCLE-2842
     $vars['partnerid']  = local_kaltura_get_partner_id();
     $vars['subpid']     = local_kaltura_get_partner_id() * 100; // http://www.kaltura.org/kaltura-terminology#kaltura-sub-partner-id
     $vars['uid']        = $USER->username;
@@ -1443,7 +1446,10 @@ function local_kaltura_create_swfdoc($document_entry_id, $video_entry_id) {
            '/type/download/format/swf/direct_serve/1';
 
     if (strpos($url, 'www.kaltura.com')) {
-        $url = str_replace('www.kaltura.com', 'cdn.kaltura.com', $url);
+        // START UCLA MOD: CCLE-2842 - Install Kaltura plugin for M2
+        //$url = str_replace('www.kaltura.com', 'cdn.kaltura.com', $url);
+        $url = str_replace('www.kaltura.com', 'cdnsecakmi.kaltura.com', $url);
+        // END UCLA MOD: CCLE-2842
     }
 
     $xml = '<sync><video><entryId>'.$video_entry_id.'</entryId></video><slide><path>'.$url.'</path></slide>';
