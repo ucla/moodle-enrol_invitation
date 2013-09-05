@@ -601,8 +601,6 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
     /**
      * Makes sure that the sync_user_enrolments() method is working with the
      * UCLA modifications.
-     *
-     * @group totest
      */
     public function test_enrol_database_plugin_sync_user_enrolments() {
         global $DB;
@@ -647,7 +645,6 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
 
         // Run sync, and user should get enrolled appropiately.
         $enrol = enrol_get_plugin('database');
-        $enrol->enrollmenthelper = $this->mockenrollmenthelper;
         $enrol->sync_user_enrolments($user);
 
         foreach ($classes as $role => $class) {

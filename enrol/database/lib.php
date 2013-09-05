@@ -119,6 +119,10 @@ class enrol_database_plugin extends enrol_plugin {
         // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
         // See if we are using UCLA specific changes to database enrollment.
         $overrideenroldatabase = get_config('local_ucla', 'overrideenroldatabase');
+        if ($overrideenroldatabase && !isset($this->enrollmenthelper)) {
+            $trace = new null_progress_trace();
+            $this->enrollmenthelper = new local_ucla_enrollment_helper($trace, $this);
+        }
         // END UCLA MOD: CCLE-4061
 
         $table            = $this->get_config('remoteenroltable');
