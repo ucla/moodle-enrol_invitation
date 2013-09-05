@@ -120,7 +120,7 @@ if ($displayforms) {
     echo html_writer::tag('h1', get_string('prepoprun', 'tool_uclasupportconsole'));
     echo "<pre>";
     $trace = new text_progress_trace();
-    $dbenrol->sync_enrolments($trace, array('courseid' => $courseid));
+    $dbenrol->sync_enrolments($trace, $courseid);
     echo "</pre>";
 
     $consoles->no_finish = true;
