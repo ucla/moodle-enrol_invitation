@@ -38,6 +38,8 @@ class requestor_shared_form extends moodleform {
              get_string($this->type, $ucr));
 
         $mform->addGroup($requestline, $gn, null, ' ', true);
+        $mform->setType('requestgroup[srs]', PARAM_ALPHANUM);
+        $mform->setType('requestgroup[term]', PARAM_ALPHANUM);
         $mform->setDefaults(
             array(
                 $gn => array(
