@@ -208,6 +208,32 @@ class local_ucla_enrollment_helper {
     }
 
     /**
+     * Used by sync_user_enrolments to map the remote course field termsrs to a
+     * local Moodle course.
+     *
+     * @param string $termsrs
+     *
+     * @return object           Returns the course object, if any.
+     */
+    public function get_course($termsrs) {
+        global $DB;
+
+        list($term, $srs) = explode('-', $termsrs);
+        if (empty($term) || empty($srs)) {
+            return false;
+        }
+
+        $sql = 'SELECT  c.*
+                FROM    {course} c
+                JOIN    {ucla_request_classes} urc ON urc.courseid = c.id
+                WHERE   urc.term = :term AND
+                        urc.srs = :srs';
+        $course = $DB->get_record_sql($sql, array('term' => $term, 'srs' => $srs));
+
+        return $course;
+    }
+
+    /**
      * For a given course, will return an array of enrollment records containing
      * a user's information and role in course.
      *
@@ -292,6 +318,26 @@ class local_ucla_enrollment_helper {
     }
 
     /**
+     * Returns roleid for give pseudorole and subject area pair.
+     *
+     * @param string $pseudorole
+     * @param string $subjarea
+     * @return int                  Role id for given mapping. Returns false on
+     *                              error.
+     */
+    public function get_role($pseudorole, $subjarea){
+        try {
+            $roleid = get_moodlerole($pseudorole, $subjarea);
+        } catch (moodle_exception $me) {
+            // Cannot find a good role map, so skip processing.
+            $this->trace(sprintf('Could not get role mapping for %s|%s',
+                    $pseudorole, $subjarea), 1);
+            return false;
+        }
+        return $roleid;
+    }
+
+    /**
      * Calls stored procedure ccle_roster_class, translates results, and then
      * does the role mapping to return an array of students and their roles for
      * a given course.
@@ -323,17 +369,13 @@ class local_ucla_enrollment_helper {
                     continue;
                 }
 
-                try {
-                    $localrole = get_moodlerole($pseudorole, $subjarea);
-                } catch (moodle_exception $me) {
-                    // Cannot find a good role map, so skip processing.
-                    $this->trace('Could not get good mapping for student: ' .
-                            implode('|', $student), 1);
+                $roleid = $this->get_role($pseudorole, $subjarea);
+                if (empty($roleid)) {
                     continue;
                 }
 
                 $user = $this->translate_ccle_roster_class($student);
-                $user[$this->remoterolefield] = $localrole;
+                $user[$this->remoterolefield] = $roleid;
                 $retval[] = $user; 
             }
         }

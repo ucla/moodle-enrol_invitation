@@ -16,7 +16,7 @@
 
 /**
  * Tests the UCLA modifications to the external database enrollment plugin
- * involved in doing pre-pop enrollment.
+ * involved in doing login-time/pre-pop enrollment.
  *
  * @package    local_ucla
  * @category   phpunit
@@ -26,7 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-class local_ucla_prepop_testcase extends advanced_testcase {
+class local_ucla_enrollment_testcase extends advanced_testcase {
     /**
      * Mapping of role shortname to roleid.
      * @var array
@@ -92,6 +92,110 @@ class local_ucla_prepop_testcase extends advanced_testcase {
                          'enrl_stat_cd' => $enrollmentcode,
                          'ss_email_addr' => $user->email,
                          'bolid' => str_replace('@ucla.edu', '', $user->username));
+    }
+
+    /**
+     * Creates a temporary table to be used to fake the enroll2 table used
+     * during login time enrollment.
+     *
+     * Code copied from enrol/database/tests/sync_test.php: init_enrol_database
+     *
+     * @throws exception
+     */
+    protected function create_enroll2_table() {
+        global $DB, $CFG;
+
+        $dbman = $DB->get_manager();
+
+        set_config('dbencoding', 'utf-8', 'enrol_database');
+
+        set_config('dbhost', $CFG->dbhost, 'enrol_database');
+        set_config('dbuser', $CFG->dbuser, 'enrol_database');
+        set_config('dbpass', $CFG->dbpass, 'enrol_database');
+        set_config('dbname', $CFG->dbname, 'enrol_database');
+
+        if (!empty($CFG->dboptions['dbport'])) {
+            set_config('dbhost', $CFG->dbhost.':'.$CFG->dboptions['dbport'], 'enrol_database');
+        }
+
+        switch (get_class($DB)) {
+            case 'mssql_native_moodle_database':
+                set_config('dbtype', 'mssql_n', 'enrol_database');
+                set_config('dbsybasequoting', '1', 'enrol_database');
+                break;
+
+            case 'mysqli_native_moodle_database':
+                set_config('dbtype', 'mysqli', 'enrol_database');
+                set_config('dbsetupsql', "SET NAMES 'UTF-8'", 'enrol_database');
+                set_config('dbsybasequoting', '0', 'enrol_database');
+                if (!empty($CFG->dboptions['dbsocket'])) {
+                    $dbsocket = $CFG->dboptions['dbsocket'];
+                    if ((strpos($dbsocket, '/') === false and strpos($dbsocket, '\\') === false)) {
+                        $dbsocket = ini_get('mysqli.default_socket');
+                    }
+                    set_config('dbtype', 'mysqli://'.rawurlencode($CFG->dbuser).':'.rawurlencode($CFG->dbpass).'@'.rawurlencode($CFG->dbhost).'/'.rawurlencode($CFG->dbname).'?socket='.rawurlencode($dbsocket), 'enrol_database');
+                }
+                break;
+
+            case 'oci_native_moodle_database':
+                set_config('dbtype', 'oci8po', 'enrol_database');
+                set_config('dbsybasequoting', '1', 'enrol_database');
+                break;
+
+            case 'pgsql_native_moodle_database':
+                set_config('dbtype', 'postgres7', 'enrol_database');
+                $setupsql = "SET NAMES 'UTF-8'";
+                if (!empty($CFG->dboptions['dbschema'])) {
+                    $setupsql .= "; SET search_path = '".$CFG->dboptions['dbschema']."'";
+                }
+                set_config('dbsetupsql', $setupsql, 'enrol_database');
+                set_config('dbsybasequoting', '0', 'enrol_database');
+                if (!empty($CFG->dboptions['dbsocket']) and ($CFG->dbhost === 'localhost' or $CFG->dbhost === '127.0.0.1')) {
+                    if (strpos($CFG->dboptions['dbsocket'], '/') !== false) {
+                      set_config('dbhost', $CFG->dboptions['dbsocket'], 'enrol_database');
+                    } else {
+                      set_config('dbhost', '', 'enrol_database');
+                    }
+                }
+                break;
+
+            case 'sqlsrv_native_moodle_database':
+                set_config('dbtype', 'mssqlnative', 'enrol_database');
+                set_config('dbsybasequoting', '1', 'enrol_database');
+                break;
+
+            default:
+                throw new exception('Unknown database driver '.get_class($DB));
+        }
+
+        // NOTE: It is stongly discouraged to create new tables in advanced_testcase classes,
+        //       but there is no other simple way to test ext database enrol sync.
+
+        $table = new xmldb_table('enrol_database_test_enroll2');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('termsrs', XMLDB_TYPE_CHAR, '13', null, null, null);
+        $table->add_field('uid', XMLDB_TYPE_CHAR, '9', null, null, null);
+        $table->add_field('role', XMLDB_TYPE_CHAR, '25', null, null, null);
+        $table->add_field('subj_area', XMLDB_TYPE_CHAR, '7', null, null, null);
+        $table->add_field('catlg_no', XMLDB_TYPE_CHAR, '8', null, null, null);
+        $table->add_field('term_int', XMLDB_TYPE_INTEGER, '3', null, null, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+        $dbman->create_table($table);
+        set_config('remoteenroltable', $CFG->prefix.'enrol_database_test_enroll2', 'enrol_database');
+    }
+
+    /**
+     * Drops the table that was created by create_enroll2_table().
+     */
+    protected function drop_enroll2_table() {
+        global $DB;
+
+        $dbman = $DB->get_manager();
+        $table = new xmldb_table('enrol_database_test_enroll2');
+        $dbman->drop_table($table);
     }
 
     /**
@@ -492,6 +596,115 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         $enrol->sync_enrolments($this->trace, array('13S'));
         $result = $this->is_username_enrolled($courseid, $droppedstudent->username);
         $this->assertTrue($result);
+    }
+
+    /**
+     * Makes sure that the sync_user_enrolments() method is working with the
+     * UCLA modifications.
+     *
+     * @group totest
+     */
+    public function test_enrol_database_plugin_sync_user_enrolments() {
+        global $DB;
+
+        // Setup enroll2 table.
+        $this->create_enroll2_table();
+
+        // Create some classes and what role the user should have.
+        $classes = array();
+        $roles = array('editingteacher', 'student', 'student_instructor',
+            'ta_instructor', 'supervising_instructor');
+        foreach ($roles as $role) {
+            $classes[$role] = $this->getDataGenerator()->
+                    get_plugin_generator('local_ucla')->create_class();
+        }
+
+        // Create a user to add to those classes.
+        $user = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_user();
+        $this->setUser($user);
+
+        // Add that user to enroll2 table with given role.
+        $numcourses = 0;
+        foreach ($classes as $role => $class) {
+            $course = array_pop($class);
+            $term = $course->term;
+            $srs = $course->srs;
+
+            $classinfo = ucla_get_reg_classinfo($term, $srs);
+            $record = new stdClass();
+            $record->termsrs = $term.'-'.$srs;
+            $record->uid = $user->idnumber;
+            $record->role = $role;
+            $record->subj_area = $classinfo->subj_area;
+            $record->catlg_no = $classinfo->crsidx;
+            $record->sect_no = $classinfo->classidx;
+
+            $DB->insert_record('enrol_database_test_enroll2', $record);
+            ++$numcourses;
+        }
+        $this->assertEquals(count($classes), $numcourses);
+
+        // Run sync, and user should get enrolled appropiately.
+        $enrol = enrol_get_plugin('database');
+        $enrol->enrollmenthelper = $this->mockenrollmenthelper;
+        $enrol->sync_user_enrolments($user);
+
+        foreach ($classes as $role => $class) {
+            $course = array_pop($class);
+            $term = $course->term;
+            $srs = $course->srs;
+            $courseid = $course->courseid;
+            $context = context_course::instance($courseid);
+
+            $isenrolled = $this->is_username_enrolled($courseid, $user->username);
+            $this->assertTrue($isenrolled);
+
+            // Role name from Registrar do not always line up with Moodle role.
+            $roleshortname = '';
+            switch ($role) {
+                case 'editingteacher':
+                    $roleshortname = 'editinginstructor';
+                    break;
+                case 'student_instructor':
+                    $roleshortname = 'studentfacilitator';
+                    break;
+                default:
+                    $roleshortname = $role;
+            }
+
+            $hasrole = has_role_in_context($roleshortname, $context);
+            $this->assertTrue($hasrole);
+        }
+
+        // Cleaup after ourselves.
+        $this->drop_enroll2_table();
+    }
+
+    /**
+     * Make sure that get_course returns the proper course record for a given
+     * term/srs.
+     */
+    public function test_get_course() {
+        global $DB;
+
+        // Create non-crosslist course.
+        $classA = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(array());
+        // Create crosslisted courses.
+        $classB = $this->getDataGenerator()->
+                get_plugin_generator('local_ucla')->create_class(array(), array(), array());
+        $classsections = array_merge($classA, $classB);
+
+        foreach ($classsections as $course) {
+            $term = $course->term;
+            $srs = $course->srs;
+            $courseid = $course->courseid;
+
+            $actualcourse = $this->mockenrollmenthelper->get_course($term.'-'.$srs);
+            $expectedcourse = $DB->get_record('course', array('id' => $courseid));
+            $this->assertEquals($expectedcourse, $actualcourse);            
+        }        
     }
 
     /**
