@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: controller.php 165 2012-08-23 01:12:09Z azeckoski@gmail.com $ */
+/* $Id: controller.php 179 2013-01-25 20:13:56Z azeckoski@gmail.com $ */
 
 /**
  * Handles controller functions related to the views
@@ -180,6 +180,9 @@ class iclicker_controller {
 
     public function processRegistration() {
         // process calls to the registration view
+        if (!iclicker_service::get_current_user_id()) {
+            throw new ClickerSecurityException('Current user is not logged in and cannot access the registration view');
+        }
         $this->results['new_reg'] = false;
         $this->results['clicker_id_val'] = "";
         if ('POST' == $this->method) {
@@ -199,7 +202,11 @@ class iclicker_controller {
                     }
                     catch (ClickerRegisteredException $e) {
                         $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.duplicate', $clicker_id);
-                        $this->addMessage(self::KEY_BELOW, 'reg.registered.below.duplicate', $clicker_id);
+                        if (iclicker_service::$allow_remote_sharing) {
+                            $this->addMessage(self::KEY_BELOW, 'reg.registered.below.duplicate', $clicker_id);
+                        } else {
+                            $this->addMessage(self::KEY_BELOW, 'reg.registered.below.duplicate.noshare', $clicker_id);
+                        }
                     }
                     catch (ClickerIdInvalidException $e) {
                         if (ClickerIdInvalidException::F_EMPTY == $e->type) {
@@ -265,7 +272,6 @@ class iclicker_controller {
         $courses = array();
         if ($course_id) {
             $course = iclicker_service::get_course($course_id);
-            $this->results['course_title'] = $course->fullname;
             $courses[] = $course;
         } else {
             $courses = iclicker_service::get_courses_for_instructor();
@@ -329,13 +335,43 @@ class iclicker_controller {
                 $pageNum = 1;
             }
         }
-        $this->results['page'] = $pageNum;
-        $this->results['perPage'] = $perPageNum;
+
         $sort = 'clicker_id';
         if (optional_param('sort', null, PARAM_ALPHANUM) != null) {
             $sort = required_param('sort', PARAM_ALPHANUMEXT);
         }
         $this->results['sort'] = $sort;
+
+        // get filtering params
+        $search = optional_param('search', null, PARAM_ALPHANUMEXT);
+        if (empty($search)) {
+            $search = null;
+        }
+
+        $startDate = null;
+        $startDateText = '';
+        if (optional_param('start_date', null, PARAM_ALPHANUMEXT) != null) {
+            $startDate = required_param('start_date', PARAM_ALPHANUMEXT);
+            $startDate = strtotime($startDate);
+            if ($startDate) {
+                $startDateText = date('Y-m-d', $startDate);
+            } else {
+                $startDate = null;
+            }
+        }
+
+        $endDate = null;
+        $endDateText = '';
+        if (optional_param('end_date', null, PARAM_ALPHANUMEXT) != null) {
+            $endDate = required_param('end_date', PARAM_ALPHANUMEXT);
+            $endDate = strtotime($endDate);
+            if ($endDate) {
+                $endDateText = date('Y-m-d', $endDate);
+            } else {
+                $endDate = null;
+            }
+        }
+
 
         if ("POST" == $this->method) {
             if (optional_param('activate', null, PARAM_ALPHANUM) != null) {
@@ -354,28 +390,48 @@ class iclicker_controller {
                         $this->addMessage(self::KEY_INFO, "admin.activate.success.".($cr->activated ? 'true' : 'false'), $args);
                     }
                 }
-            } else {
-                if (optional_param('remove', null, PARAM_ALPHANUM) != null) {
-                    if (optional_param('registrationId', null, PARAM_ALPHANUMEXT) == null) {
-                        $this->addMessage(self::KEY_ERROR, "reg.activate.registrationId.empty", null);
-                    } else {
-                        $reg_id = required_param('registrationId', PARAM_INT);
-                        $cr = iclicker_service::get_registration_by_id($reg_id);
-                        if ($cr) {
-                            iclicker_service::remove_registration($reg_id);
-                            $args = new stdClass();
-                            $args->cid = $cr->clicker_id;
-                            $args->rid = $reg_id;
-                            $args->user = iclicker_service::get_user_displayname($cr->owner_id);
-                            $this->addMessage(self::KEY_INFO, "admin.delete.success", $args);
-                        }
-                    }
+
+            } else if (optional_param('remove', null, PARAM_ALPHANUM) != null) {
+                if (optional_param('registrationId', null, PARAM_ALPHANUMEXT) == null) {
+                    $this->addMessage(self::KEY_ERROR, "reg.activate.registrationId.empty", null);
                 } else {
-                    // invalid POST
-                    error('WARN: Invalid POST: does not contain remove, or activate, nothing to do');
+                    $reg_id = required_param('registrationId', PARAM_INT);
+                    $cr = iclicker_service::get_registration_by_id($reg_id);
+                    if ($cr) {
+                        iclicker_service::remove_registration($reg_id);
+                        $args = new stdClass();
+                        $args->cid = $cr->clicker_id;
+                        $args->rid = $reg_id;
+                        $args->user = iclicker_service::get_user_displayname($cr->owner_id);
+                        $this->addMessage(self::KEY_INFO, "admin.delete.success", $args);
+                    }
                 }
+
+            } else if (optional_param('purge', null, PARAM_ALPHANUM) != null) {
+                // actually do the purging
+                $count = iclicker_service::purge_registrations($search, $startDate, $endDate);
+                $this->addMessage(self::KEY_INFO, "admin.purge.success", $count);
+                // reset all search params to defaults
+                $search = null;
+                $startDate = null;
+                $endDate = null;
+                $pageNum = 1;
+                $perPageNum = 20;
+                $sort = 'clicker_id';
+
+            } else {
+                // invalid POST
+                error('WARN: Invalid POST: does not contain remove, purge, or activate, nothing to do');
             }
         }
+
+        // put search and sort data into the page
+        $this->results['search'] = $search;
+        $this->results['startDate'] = $startDate;
+        $this->results['endDate'] = $endDate;
+        $this->results['page'] = $pageNum;
+        $this->results['perPage'] = $perPageNum;
+        $this->results['sort'] = $sort;
 
         // put config data into page
         $this->results['sso_enabled'] = iclicker_service::$block_iclicker_sso_enabled;
@@ -388,11 +444,11 @@ class iclicker_controller {
 
         // handling the calcs for paging
         $first = ($pageNum - 1) * $perPageNum;
-        $totalCount = iclicker_service::count_all_registrations();
+        $totalCount = iclicker_service::count_all_registrations($search, $startDate, $endDate);
         $pageCount = floor(($totalCount + $perPageNum - 1) / $perPageNum);
         $this->results['total_count'] = $totalCount;
         $this->results['page_count'] = $pageCount;
-        $this->results['registrations'] = iclicker_service::get_all_registrations($first, $perPageNum, $sort, null);
+        $this->results['registrations'] = iclicker_service::get_all_registrations($first, $perPageNum, $sort, $search, $startDate, $endDate);
 
         $pagerHTML = "";
         if ($totalCount > 0) {
@@ -410,13 +466,32 @@ class iclicker_controller {
                     $pagerHTML .= '<span class="paging_current paging_item">'.$marker.'</span>'."\n";
                 } else {
                     // make it a link
-                    $pagerHTML .= '<a class="paging_link paging_item" href="'.$adminPath.'&page='.$currentPage.'&sort='.$sort.'&nc='.($timestamp.$currentPage).'">'.$marker.'</a>'."\n";
+                    $pagingURL = $adminPath.'&page='.$currentPage.'&sort='.$sort;
+                    if (isset($search)) {
+                        $pagingURL .= '&search='.urlencode($search);
+                    }
+                    if (!empty($startDateText)) {
+                        $pagingURL .= '&start_date='.urlencode($startDateText);
+                    }
+                    if (!empty($endDateText)) {
+                        $pagingURL .= '&end_date='.urlencode($endDateText);
+                    }
+                    $pagingURL .= '&nc='.($timestamp.$currentPage);
+                    $pagerHTML .= '<a class="paging_link paging_item" href="'.$pagingURL.'">'.$marker.'</a>'."\n";
                 }
             }
             $this->results['pagerHTML'] = $pagerHTML;
         }
     }
 
+    public function processAdminCSV() {
+        global $CFG;
+        // admin check
+        if (!iclicker_service::is_admin()) {
+            throw new ClickerSecurityException("Current user is not an admin and cannot make CSV of all regs");
+        }
+        $this->results['registrations'] = iclicker_service::get_all_registrations();
+    }
 
     // MESSAGING
 

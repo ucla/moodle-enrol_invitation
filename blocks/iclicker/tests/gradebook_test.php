@@ -32,8 +32,50 @@ require_once ($CFG->libdir.'/gradelib.php');
 //require_once ($CFG->dirroot.'/blocks/simplehtml/lib.php');
 // grade perm: moodle/grade:manage
 
-/** This class contains the test cases for the functions in iclicker_service.php. */
-class iclicker_gradebook_test extends UnitTestCase {
+/**
+ * This class contains the test cases for the functions in iclicker_service.php.
+ * http://docs.moodle.org/dev/PHPUnit_integration
+ *
+resetAfterTest(bool)
+true means reset automatically after test, false means keep changes to next test method, default null means detect changes
+resetAllData()
+reset global state in the middle of a test
+setAdminUser()
+set current $USER as admin
+setGuestUser()
+set current $USER as guest
+setUser()
+set current $USER to a specific user - use getDataGenerator() to create one
+getDataGenerator()
+returns data generator instance - use if you need to add new courses, users, etc.
+preventResetByRollback()
+terminates active transactions, useful only when test contains own database transaction handling
+createXXXDataSet()
+creates in memory structure of database table contents, used in loadDataSet() (eg: createXMLDataSet(), createCsvDataSet(), createFlatXMLDataSet())
+loadDataSet()
+bulk loading of table contents
+getDebuggingMessages()
+Return debugging messages from the current test. (Moodle 2.4 and upwards)
+resetDebugging()
+Clear all previous debugging messages in current test. (Moodle 2.4 and upwards)
+assertDebuggingCalled()
+Assert that exactly debugging was just called once. (Moodle 2.4 and upwards)
+assertDebuggingNotCalled()
+Assert no debugging happened. (Moodle 2.4 and upwards)
+redirectMessages()
+Captures ongoing messages for later testing (Moodle 2.4 and upwards)
+ *
+ * NOTE: it is not possible to modify database structure such as create new table or drop columns from advanced_testcase.
+ *
+ * To run the tests, please see:
+ * http://docs.moodle.org/dev/PHPUnit
+ *
+ * To run only this test:
+ * vendor/bin/phpunit iclicker_gradebook_test blocks/iclicker/tests/gradebook_test.php
+ *
+ * @group block_iclicker
+ */
+class iclicker_gradebook_test extends advanced_testcase {
 
     var $courseid = 1;
 
@@ -44,48 +86,31 @@ class iclicker_gradebook_test extends UnitTestCase {
     var $item_name = 'az_gradeitem';
     var $grade_score = 91;
 
-    public function setUp() {
-        // cleanup the cats and gradeitems and grades if any exist
-        $grade_cats = grade_category::fetch_all(array(
-            'courseid'=>$this->courseid,
-            'fullname'=>$this->cat_name
-            )
-        );
-        if ($grade_cats) {
-            foreach ($grade_cats as $cat) {
-                $grade_items = grade_item::fetch_all(array(
-                    'courseid'=>$this->courseid,
-                    'categoryid'=>$cat->id,
-                    'itemname'=>$this->item_name
-                    )
-                );
-                if ($grade_items) {
-                    foreach ($grade_items as $item) {
-                        $grades = grade_grade::fetch_all(array(
-                            'itemid'=>$item->id
-                            )
-                        );
-                        if ($grades) {
-                            foreach ($grades as $grade) {
-                                $grade->delete("cleanup");
-                            }
-                        }
-                        $item->delete("cleanup");
-                    }
-                }
-                $cat->delete("cleanup");
-            }
-        }
+    protected function setUp() {
+        // setup the test data (users and course)
+        $student1 = $this->getDataGenerator()->create_user(array('email'=>'guser1@iclicker.com', 'username'=>'guser1'));
+        $this->studentid1 = $student1->id;
+        $student2 = $this->getDataGenerator()->create_user(array('email'=>'guser2@iclicker.com', 'username'=>'guser2'));
+        $this->studentid2 = $student2->id;
+        $category1 = $this->getDataGenerator()->create_category();
+        $course1 = $this->getDataGenerator()->create_course(array('name'=>'iclicker course', 'category'=>$category1->id));
+        $this->courseid = $course1->id;
+        $this->getDataGenerator()->enrol_user($this->studentid1, $this->courseid);
     }
 
-    public function tearDown() {
+    protected function tearDown() {
     }
 
     function test_assert() {
-        $this->assertEqual("AZ", "AZ");
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
+        $this->assertEquals("AZ", "AZ");
     }
 
     function test_gradebook() {
+        global $DB;
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         $location_str = 'manual';
 
         // try to get category
@@ -112,12 +137,12 @@ class iclicker_gradebook_test extends UnitTestCase {
             'fullname'=>$this->cat_name
             )
         );
-        $this->assertTrue($grade_category_fetched);
-        $this->assertEqual($grade_category->id, $grade_category_fetched->id);
-        $this->assertEqual($grade_category->courseid, $grade_category_fetched->courseid);
-        $this->assertEqual($grade_category->path, $grade_category_fetched->path);
-        $this->assertEqual($grade_category->fullname, $grade_category_fetched->fullname);
-        $this->assertEqual($grade_category->parent, $grade_category_fetched->parent);
+        $this->assertTrue($grade_category_fetched !== false);
+        $this->assertEquals($grade_category->id, $grade_category_fetched->id);
+        $this->assertEquals($grade_category->courseid, $grade_category_fetched->courseid);
+        $this->assertEquals($grade_category->path, $grade_category_fetched->path);
+        $this->assertEquals($grade_category->fullname, $grade_category_fetched->fullname);
+        $this->assertEquals($grade_category->parent, $grade_category_fetched->parent);
 
         // try to get grade item
         $grade_item = grade_item::fetch(array(
@@ -152,11 +177,11 @@ class iclicker_gradebook_test extends UnitTestCase {
             'itemname'=>$this->item_name
             )
         );
-        $this->assertTrue($grade_item_fetched);
-        $this->assertEqual($grade_item->id, $grade_item_fetched->id);
-        $this->assertEqual($grade_item->courseid, $grade_item_fetched->courseid);
-        $this->assertEqual($grade_item->categoryid, $grade_item_fetched->categoryid);
-        $this->assertEqual($grade_item->itemname, $grade_item_fetched->itemname);
+        $this->assertTrue($grade_item_fetched !== false);
+        $this->assertEquals($grade_item->id, $grade_item_fetched->id);
+        $this->assertEquals($grade_item->courseid, $grade_item_fetched->courseid);
+        $this->assertEquals($grade_item->categoryid, $grade_item_fetched->categoryid);
+        $this->assertEquals($grade_item->itemname, $grade_item_fetched->itemname);
 
         // get empty grades list
         $all_grades = grade_grade::fetch_all(array(
@@ -179,11 +204,11 @@ class iclicker_gradebook_test extends UnitTestCase {
             'userid'=>$this->studentid1
             )
         );
-        $this->assertTrue($grade_grade_fetched);
-        $this->assertEqual($grade_grade->id, $grade_grade_fetched->id);
-        $this->assertEqual($grade_grade->itemid, $grade_grade_fetched->itemid);
-        $this->assertEqual($grade_grade->userid, $grade_grade_fetched->userid);
-        $this->assertEqual($grade_grade->rawgrade, $grade_grade_fetched->rawgrade);
+        $this->assertTrue($grade_grade_fetched !== false);
+        $this->assertEquals($grade_grade->id, $grade_grade_fetched->id);
+        $this->assertEquals($grade_grade->itemid, $grade_grade_fetched->itemid);
+        $this->assertEquals($grade_grade->userid, $grade_grade_fetched->userid);
+        $this->assertEquals($grade_grade->rawgrade, $grade_grade_fetched->rawgrade);
 
         // update the grade
         $grade_grade->rawgrade = 50;
@@ -193,18 +218,18 @@ class iclicker_gradebook_test extends UnitTestCase {
             'id'=>$grade_grade->id
             )
         );
-        $this->assertTrue($grade_grade_fetched);
-        $this->assertEqual($grade_grade->id, $grade_grade_fetched->id);
-        $this->assertEqual($grade_grade->rawgrade, $grade_grade_fetched->rawgrade);
-        $this->assertEqual(50, $grade_grade_fetched->rawgrade);
+        $this->assertTrue($grade_grade_fetched !== false);
+        $this->assertEquals($grade_grade->id, $grade_grade_fetched->id);
+        $this->assertEquals($grade_grade->rawgrade, $grade_grade_fetched->rawgrade);
+        $this->assertEquals(50, $grade_grade_fetched->rawgrade);
 
         // get grades
         $all_grades = grade_grade::fetch_all(array(
             'itemid'=>$grade_item->id
             )
         );
-        $this->assertTrue($all_grades);
-        $this->assertEqual(1, sizeof($all_grades));
+        $this->assertTrue($all_grades !== false);
+        $this->assertEquals(1, sizeof($all_grades));
 
         // add more grades
         $grade_grade2 = new grade_grade();
@@ -218,8 +243,8 @@ class iclicker_gradebook_test extends UnitTestCase {
             'itemid'=>$grade_item->id
             )
         );
-        $this->assertTrue($all_grades);
-        $this->assertEqual(2, sizeof($all_grades));
+        $this->assertTrue($all_grades !== false);
+        $this->assertEquals(2, sizeof($all_grades));
 
         // make sure this can run
         $result = $grade_item->regrade_final_grades();
@@ -248,6 +273,8 @@ class iclicker_gradebook_test extends UnitTestCase {
         $this->assertTrue(method_exists($grade_category, 'delete'));
         $result = $grade_category->delete($location_str);
         $this->assertTrue($result);
+
+        $this->resetAfterTest();
     }
 
 }

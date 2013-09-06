@@ -319,7 +319,8 @@ $CFG->forced_plugin_settings['tool_ucladatasourcesync']['contact_email']='ccle-o
 
 // Site administration > Plugins > Blocks > i>clicker Moodle integrate
 $CFG->forced_plugin_settings['block_iclicker']['block_iclicker_notify_emails'] = 'ccle-operations@lists.ucla.edu';
-$CFG->block_iclicker_notify_emails = 'ccle-operations@lists.ucla.edu';  // due to bad coding, two variables exist to do the same thing 
+$CFG->block_iclicker_notify_emails = 'ccle-operations@lists.ucla.edu';  // due to bad coding, two variables exist to do the same thing
+$CFG->forced_plugin_settings['block_iclicker']['block_iclicker_enable_shortname'] = 1;
 
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'tbd';

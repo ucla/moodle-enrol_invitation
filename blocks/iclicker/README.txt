@@ -17,10 +17,10 @@ Administrators
 
 Moodle Compatibility
 --------------------
-This version of the plug-in works with Moodle 2.x and supports single sign-on. Users running Moodle v1.8-1.9
+This version of the plug-in works with Moodle 2.1 or newer and supports single sign-on. Users running Moodle v1.8-1.9
 without SSO may use the previous version of the plug-in. Installations of Moodle older than version 1.8 are not supported by the i>clicker integrate plug-in.
 
-This plugin will work with Moodle 2.x. It is developed as a Moodle plugin/block.
+This plugin will work with Moodle 2.1 or newer. It is developed as a Moodle plugin/block.
 
 Download Binary
 ---------------
@@ -54,10 +54,20 @@ Unit Tests
 ----------
 If you are interested you can run the unit tests for the plugin to verify that it is compatible with your installation.
 If all the tests pass then you can be confident that the plugin will work correctly.
+
+For Moodle 2.3 or older:
 NOTE: You need to have at least 1 user (other than the admin) in your moodle instance to run the tests successfully.
 Go to the following URL in your moodle instance when logged in as an admin::
 
     /admin/report/unittest/index.php?path=blocks%2Ficlicker
+
+For Moodle 2.4 or newer:
+To run the tests, please see the instructions here:
+http://docs.moodle.org/dev/PHPUnit
+
+To run only the tests for the iclicker plugin:
+vendor/bin/phpunit --group block_iclicker
+
 
 Configuration
 -------------

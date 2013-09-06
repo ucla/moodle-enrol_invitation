@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: block_iclicker.php 148 2012-06-19 00:25:08Z azeckoski@gmail.com $ */
+/* $Id: block_iclicker.php 181 2013-04-17 22:02:13Z azeckoski@gmail.com $ */
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -203,7 +203,8 @@ class block_iclicker extends block_base {
     }
 
     /**
-     * Requires a config_global.html file
+     * Required for moodle 2.4+
+     * Checks for the settings.php file
      *
      * @return bool true if this block is configurable
      */

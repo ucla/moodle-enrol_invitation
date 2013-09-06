@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: admin.php 165 2012-08-23 01:12:09Z azeckoski@gmail.com $ */
+/* $Id: admin.php 177 2012-11-05 23:25:58Z azeckoski@gmail.com $ */
 
 /**
  * Handles rendering the form for creating new pages and the submission of the form as well
@@ -43,6 +43,13 @@ $PAGE->set_heading( iclicker_service::msg('app.iclicker').' '.iclicker_service::
 $PAGE->navbar->add(iclicker_service::msg('admin.title'));
 $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(false);
+// NOTE: switching over to locally hosted JS and CSS files
+$PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/jquery-1.5.2.min.js', true);
+$PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/jquery-ui-1.8.min.js', true);
+//$PAGE->requires->js( new moodle_url('https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js'), true);
+//$PAGE->requires->js( new moodle_url('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js'), true);
+$PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/jquery-ui-1.8.css');
+//$PAGE->requires->css( new moodle_url('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css'), true);
 $PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/iclicker.css');
 $PAGE->set_url(iclicker_service::BLOCK_PATH.'/admin.php');
 echo $OUTPUT->header();
@@ -55,14 +62,37 @@ echo $OUTPUT->header();
     ?>
 
     <div class="main_content">
-        <!-- pager control -->
-        <div class="paging_bar">
-            <?php echo iclicker_service::msg('admin.paging') ?>
-            <?php if ($total_count > 0) {
-            echo $pagerHTML;
-        } else {
-            echo '<i>'.iclicker_service::msg('admin.no.regs').'</i>';
-        } ?>
+
+        <div class="main_content_header">
+            <!-- pager control -->
+            <div class="paging_bar" style="float:left;">
+                <?php echo iclicker_service::msg('admin.paging') ?>
+                <?php if ($total_count > 0) {
+                    echo $pagerHTML;
+                } else {
+                    echo '<i>'.iclicker_service::msg('admin.no.regs').'</i>';
+                } ?>
+            </div>
+            <div class="search_filters" style="float:right;">
+                <form method="get" action="<?php echo iclicker_service::block_url('admin.php') ?>" style="margin:0;">
+                    <input type="hidden" name="page" value="<?php echo $page ?>" />
+                    <input type="hidden" name="sort" value="<?php echo $sort ?>" />
+
+                    <span><?php echo iclicker_service::msg('admin.search.id') ?></span>
+                    <input name="search" value="<?php echo $search ?>" class="clicker_id_filter" type="text" size="8" maxlength="12" />
+
+                    <span><?php echo iclicker_service::msg('admin.search.start') ?></span>
+                    <input name="start_date" value="<?php echo $startDate ?>" class="datepicker startdate date_picker_marker" type="text" size="8" maxlength="12" title="yyyy-mm-dd" />
+                    <span><?php echo iclicker_service::msg('admin.search.end') ?></span>
+                    <input name="end_date" value="<?php echo $endDate ?>" class="datepicker enddate date_picker_marker" type="text" size="8" maxlength="12" title="yyyy-mm-dd" />
+
+                    <input type="submit" class="small" value="<?php echo iclicker_service::msg('admin.search.search') ?>" alt="<?php echo iclicker_service::msg('admin.search.search') ?>" />
+                    <input name="purge" id="purgeFormSubmit" type="submit" class="small" value="<?php echo iclicker_service::msg('admin.search.purge') ?>" alt="<?php echo iclicker_service::msg('admin.search.purge') ?>" />
+                </form>
+                <form method="get" style="margin:0;">
+                    <input type="submit" class="small" value="<?php echo iclicker_service::msg('admin.search.reset') ?>" alt="<?php echo iclicker_service::msg('admin.search.reset') ?>" />
+                </form>
+            </div>
         </div>
 
         <!-- clicker registration listing -->
@@ -94,6 +124,9 @@ echo $OUTPUT->header();
                     <form method="post">
                         <input type="hidden" name="page" value="<?php echo $page ?>" />
                         <input type="hidden" name="sort" value="<?php echo $sort ?>" />
+                        <input type="hidden" name="search" value="<?php echo $search ?>" />
+                        <input type="hidden" name="start_date" value="<?php echo $startDate ?>" />
+                        <input type="hidden" name="end_date" value="<?php echo $endDate ?>" />
                         <input type="hidden" name="registrationId" value="<?php echo $registration->id ?>" />
                         <?php if ($registration->activated) { ?>
                         <input type="button" class="small" value="<?php echo iclicker_service::msg('app.activate') ?>" disabled="disabled" />
@@ -134,6 +167,8 @@ echo $OUTPUT->header();
     </div>
     <?php } ?>
 
+    <div class="download_link"><a href="<?php echo iclicker_service::block_url('adminCSV.php') ?>"><?php echo iclicker_service::msg('admin.csv.download') ?></a></div>
+
     <div class="admin_config">
         <fieldset class="visibleFS">
             <legend class="admin_config_header">
@@ -150,6 +185,11 @@ echo $OUTPUT->header();
                     <?php echo iclicker_service::msg('config_notify_emails') ?>:
                     <?php echo (!empty($adminEmailAddress) ? iclicker_service::msg('config_notify_emails_enabled', $adminEmailAddress) : iclicker_service::msg('config_notify_emails_disabled')) ?>
                 </li>
+                <?php /* forced to sharing on for now
+                <li class="admin_config_list_item">
+                    <?php echo iclicker_service::msg('config_allow_sharing') ?>:
+                    <?php echo (iclicker_service::$allow_remote_sharing) ? iclicker_service::msg('app.allowed') : iclicker_service::msg('config_notify_emails_disabled') ?>
+                </li> */ ?>
             </ul>
         </fieldset>
     </div>
@@ -173,5 +213,27 @@ echo $OUTPUT->header();
     <div class="iclicker_version">Version <?php echo iclicker_service::VERSION ?> (<?php echo iclicker_service::BLOCK_VERSION ?>)</div>
 
 </div>
+
+<script type="text/javascript">
+    jQuery(document).ready(function() {
+        // date pickers
+        jQuery( ".iclicker .date_picker_marker" ).datepicker({
+            dateFormat: "yy-mm-dd",
+            changeMonth: true,
+            changeYear: true
+        });
+        // purge confirmation
+        jQuery("#purgeFormSubmit").click(function(e) {
+            if (!confirm("<?php echo iclicker_service::msg('admin.search.purge.confirm', $total_count) ?>")) {
+                e.preventDefault();
+                return false;
+            } else {
+                // switch the form to POST for purge submission
+                $(this).closest("form").attr("method", "POST");
+            }
+            return true;
+        });
+    });
+</script>
 
 <?php echo $OUTPUT->footer(); ?>

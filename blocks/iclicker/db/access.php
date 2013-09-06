@@ -17,14 +17,34 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: version.php 186 2013-05-15 02:00:25Z azeckoski@gmail.com $ */
-
+/* $Id: access.php 181 2013-04-17 22:02:13Z azeckoski@gmail.com $ */
+/**
+ * http://docs.moodle.org/dev/Blocks#db.2Faccess.php
+ * User: azeckoski
+ * Date: 4/17/13
+ */
 defined('MOODLE_INTERNAL') || die();
 
-// http://docs.moodle.org/dev/version.php
-$plugin->version    = 2013051400;        // The current plugin version (Date: YYYYMMDDXX) - must match iclicker_service constant
-$plugin->requires   = 2011120100;        // moodle 2.0 - Requires this Moodle version - 2.0 = 2010112400; 2.1 = 2011070100; 2.2 = 2011120100; 2.3 = 2012062500; 2.4 = 2012120300
-$plugin->cron       = 86400;
-$plugin->component  = 'block_iclicker';    // Full name of the plugin (used for diagnostics)
-$plugin->maturity   = MATURITY_STABLE;
-$plugin->release    = '1.4 (Build: 2013051400)'; // visible version - must match iclicker_service constant
+$capabilities = array(
+
+    'block/iclicker:myaddinstance' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+            'user' => CAP_ALLOW
+        ),
+        'clonepermissionsfrom' => 'moodle/my:manageblocks'
+    ),
+
+    'block/iclicker:addinstance' => array(
+        'riskbitmask' => RISK_SPAM | RISK_XSS,
+
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_BLOCK,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        ),
+        'clonepermissionsfrom' => 'moodle/site:manageblocks'
+    ),
+);

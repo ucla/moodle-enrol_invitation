@@ -30,108 +30,101 @@ require_once ($CFG->dirroot.'/blocks/iclicker/iclicker_service.php');
 
 /**
  * Unit tests for the iclicker services
- * Execute tests at:
- * moodle/admin/report/unittest/index.php?path=blocks%2Ficlicker
+ *
+ * http://docs.moodle.org/dev/PHPUnit_integration
+ *
+resetAfterTest(bool)
+true means reset automatically after test, false means keep changes to next test method, default null means detect changes
+resetAllData()
+reset global state in the middle of a test
+setAdminUser()
+set current $USER as admin
+setGuestUser()
+set current $USER as guest
+setUser()
+set current $USER to a specific user - use getDataGenerator() to create one
+getDataGenerator()
+returns data generator instance - use if you need to add new courses, users, etc.
+preventResetByRollback()
+terminates active transactions, useful only when test contains own database transaction handling
+createXXXDataSet()
+creates in memory structure of database table contents, used in loadDataSet() (eg: createXMLDataSet(), createCsvDataSet(), createFlatXMLDataSet())
+loadDataSet()
+bulk loading of table contents
+getDebuggingMessages()
+Return debugging messages from the current test. (Moodle 2.4 and upwards)
+resetDebugging()
+Clear all previous debugging messages in current test. (Moodle 2.4 and upwards)
+assertDebuggingCalled()
+Assert that exactly debugging was just called once. (Moodle 2.4 and upwards)
+assertDebuggingNotCalled()
+Assert no debugging happened. (Moodle 2.4 and upwards)
+redirectMessages()
+Captures ongoing messages for later testing (Moodle 2.4 and upwards)
+ *
+ * NOTE: it is not possible to modify database structure such as create new table or drop columns from advanced_testcase.
+ *
+ * @group block_iclicker
  */
-class iclicker_services_test extends UnitTestCase {
+class iclicker_services_test extends advanced_testcase {
 
     var $courseid = 1;
     var $clicker_id = '99996666';
 
     var $studentid1 = 1;
     var $studentid2 = 2;
+    var $instructorid = 3;
+    var $instructorRole = 3;
 
     var $cat_name = 'az_category';
     var $item_name = 'az_gradeitem';
     var $grade_score = 91;
 
-    public function cleanup() {
-        // cleanup any clickers before the test
-        $user_id = iclicker_service::require_user();
-        $results = iclicker_service::get_registrations_by_user($user_id);
-        if ($results) {
-            echo "cleanup registrations for user: $user_id  ".PHP_EOL;
-            foreach($results as $reg) {
-                if ($reg->clicker_id == $this->clicker_id) {
-                    iclicker_service::remove_registration($reg->id);
-                    echo "cleanup: $reg->id ".PHP_EOL;
-                }
-            }
-        }
-        // cleanup the test grades
-        $def_grade_cats = grade_category::fetch_all( array(
-            'courseid' => $this->courseid,
-            'fullname' => iclicker_service::GRADE_CATEGORY_NAME
-            )
-        );
-        $stuff_grade_cats = grade_category::fetch_all( array(
-            'courseid' => $this->courseid,
-            'fullname' => 'stuff'
-            )
-        );
-        $grade_cats = $def_grade_cats;
-        if (is_array($def_grade_cats) && is_array($stuff_grade_cats)) {
-            $grade_cats = array_merge($def_grade_cats, $stuff_grade_cats);
-        } else if (is_array($stuff_grade_cats)) {
-            $grade_cats = $stuff_grade_cats;
-        }
-        if ($grade_cats) {
-            foreach ($grade_cats as $cat) {
-                $grade_items = grade_item::fetch_all(array(
-                    'courseid' => $this->courseid,
-                    'categoryid' => $cat->id
-                    )
-                );
-                if ($grade_items) {
-                    foreach ($grade_items as $item) {
-                        $grades = grade_grade::fetch_all(array(
-                            'itemid'=>$item->id
-                            )
-                        );
-                        if ($grades) {
-                            foreach ($grades as $grade) {
-                                $grade->delete("cleanup");
-                            }
-                        }
-                        $item->delete("cleanup");
-                    }
-                }
-                $cat->delete("cleanup");
-            }
-        }
-    }
-
     public function setUp() {
-        $this->cleanup();
+        // setup the test data (users and course)
+        $student1 = $this->getDataGenerator()->create_user(array('email'=>'user1@iclicker.com', 'username'=>'iuser1'));
+        $this->studentid1 = $student1->id;
+        $student2 = $this->getDataGenerator()->create_user(array('email'=>'user2@iclicker.com', 'username'=>'iuser2'));
+        $this->studentid2 = $student2->id;
+        $instructor = $this->getDataGenerator()->create_user(array('email'=>'inst1@iclicker.com', 'username'=>'iinst1'));
+        $this->instructorid = $instructor->id;
+        $category1 = $this->getDataGenerator()->create_category();
+        $course1 = $this->getDataGenerator()->create_course(array('shortname'=>'ic_1', 'fullname'=>'iclicker course', 'summary'=>'iclicker course desc', 'category'=>$category1->id));
+        $this->courseid = $course1->id;
+        $this->getDataGenerator()->enrol_user($this->studentid1, $this->courseid);
+        $this->getDataGenerator()->enrol_user($this->studentid1, $this->courseid);
+        $this->getDataGenerator()->enrol_user($this->instructorid, $this->courseid, $this->instructorRole);
+
         iclicker_service::$test_mode = true;
     }
 
     public function tearDown() {
         iclicker_service::$test_mode = false;
-        $this->cleanup();
     }
 
     function test_arrays_subtract() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         // array_diff and array_diff_key are the same as a subtract when used with 2 arrays -- array_diff(A1, A2) => A1 - A2
         $a1 = array(1,2,3,4,5);
         $a2 = array(3,4,5,6,7);
 
         $result = array_values(array_diff($a1, $a2));
-        $this->assertEqual(2, count($result));
+        $this->assertEquals(2, count($result));
         $this->assertTrue(in_array(1, $result));
         $this->assertTrue(in_array(2, $result));
         $result = array_values(array_diff($a2, $a1));
-        $this->assertEqual(2, count($result));
+        $this->assertEquals(2, count($result));
         $this->assertTrue(in_array(6, $result));
         $this->assertTrue(in_array(7, $result));
 
         $result = array_values(array_intersect($a1, $a2));
-        $this->assertEqual(3, count($result));
+        $this->assertEquals(3, count($result));
         $this->assertTrue(in_array(3, $result));
         $this->assertTrue(in_array(4, $result));
         $this->assertTrue(in_array(5, $result));
         $result = array_values(array_intersect($a2, $a1));
-        $this->assertEqual(3, count($result));
+        $this->assertEquals(3, count($result));
         $this->assertTrue(in_array(3, $result));
         $this->assertTrue(in_array(4, $result));
         $this->assertTrue(in_array(5, $result));
@@ -140,52 +133,65 @@ class iclicker_services_test extends UnitTestCase {
         $a2 = array('C' => 3, 'D' => 4, 'E' => 5, 'F' => 6, 'G' => 7);
 
         $result = array_values(array_diff_key($a1, $a2));
-        $this->assertEqual(2, count($result));
+        $this->assertEquals(2, count($result));
         $this->assertTrue(in_array(1, $result));
         $this->assertTrue(in_array(2, $result));
         $result = array_values(array_diff_key($a2, $a1));
-        $this->assertEqual(2, count($result));
+        $this->assertEquals(2, count($result));
         $this->assertTrue(in_array(6, $result));
         $this->assertTrue(in_array(7, $result));
 
         $result = array_values(array_intersect_key($a1, $a2));
-        $this->assertEqual(3, count($result));
+        $this->assertEquals(3, count($result));
         $this->assertTrue(in_array(3, $result));
         $this->assertTrue(in_array(4, $result));
         $this->assertTrue(in_array(5, $result));
         $result = array_values(array_intersect_key($a2, $a1));
-        $this->assertEqual(3, count($result));
+        $this->assertEquals(3, count($result));
         $this->assertTrue(in_array(3, $result));
         $this->assertTrue(in_array(4, $result));
         $this->assertTrue(in_array(5, $result));
     }
 
     function test_assert() {
-        $this->assertEqual("AZ", "AZ");
-        $this->assertEqual(iclicker_service::$test_mode, true);
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
+        $this->assertEquals("AZ", "AZ");
+        $this->assertEquals(iclicker_service::$test_mode, true);
     }
 
     function test_require_user() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+        $this->setUser($this->studentid1);
+
         $user_id = iclicker_service::require_user();
-        $this->assertTrue($user_id);
+        $this->assertTrue(is_numeric($user_id));
+        $this->assertEquals($this->studentid1, $user_id);
     }
 
     function test_get_users() {
+        global $DB;
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+        $this->setUser($this->studentid1);
+
         $user_id = iclicker_service::require_user();
-        $this->assertTrue($user_id);
+        $this->assertTrue(is_numeric($user_id));
+        $this->assertEquals($this->studentid1, $user_id);
         $results = iclicker_service::get_users(array($user_id));
-        $this->assertTrue($results);
+        $this->assertTrue(!empty($results));
         $this->assertTrue(count($results) == 1);
-        $this->assertEqual($results[$user_id]->id, $user_id);
+        $this->assertEquals($results[$user_id]->id, $user_id);
     }
 
     function test_validate_clickerid() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         $clicker_id = null;
         try {
             iclicker_service::validate_clicker_id($clicker_id);
             $this->fail("should have died");
         } catch (ClickerIdInvalidException $e) {
-            $this->assertEqual(ClickerIdInvalidException::F_EMPTY, $e->type);
+            $this->assertEquals(ClickerIdInvalidException::F_EMPTY, $e->type);
         }
 
         $clicker_id = "XXX";
@@ -193,7 +199,7 @@ class iclicker_services_test extends UnitTestCase {
             iclicker_service::validate_clicker_id($clicker_id);
             $this->fail("should have died");
         } catch (ClickerIdInvalidException $e) {
-            $this->assertEqual(ClickerIdInvalidException::F_CHARS, $e->type);
+            $this->assertEquals(ClickerIdInvalidException::F_CHARS, $e->type);
         }
 
         $clicker_id = "00000000000";
@@ -201,7 +207,7 @@ class iclicker_services_test extends UnitTestCase {
             iclicker_service::validate_clicker_id($clicker_id);
             $this->fail("should have died");
         } catch (ClickerIdInvalidException $e) {
-            $this->assertEqual(ClickerIdInvalidException::F_LENGTH, $e->type);
+            $this->assertEquals(ClickerIdInvalidException::F_LENGTH, $e->type);
         }
 
         $clicker_id = iclicker_service::CLICKERID_SAMPLE;
@@ -209,7 +215,7 @@ class iclicker_services_test extends UnitTestCase {
             iclicker_service::validate_clicker_id($clicker_id);
             $this->fail("should have died");
         } catch (ClickerIdInvalidException $e) {
-            $this->assertEqual(ClickerIdInvalidException::F_SAMPLE, $e->type);
+            $this->assertEquals(ClickerIdInvalidException::F_SAMPLE, $e->type);
         }
 
         $clicker_id = "ABCD0123";
@@ -217,62 +223,67 @@ class iclicker_services_test extends UnitTestCase {
             iclicker_service::validate_clicker_id($clicker_id);
             $this->fail("should have died");
         } catch (ClickerIdInvalidException $e) {
-            $this->assertEqual(ClickerIdInvalidException::F_CHECKSUM, $e->type);
+            $this->assertEquals(ClickerIdInvalidException::F_CHECKSUM, $e->type);
         }
 
         $clicker_id = "112233";
         $result = iclicker_service::validate_clicker_id($clicker_id);
-        $this->assertEqual($result, "00112233");
+        $this->assertEquals($result, "00112233");
 
         $clicker_id = "11111111";
         $result = iclicker_service::validate_clicker_id($clicker_id);
-        $this->assertEqual($result, $clicker_id);
+        $this->assertEquals($result, $clicker_id);
     }
 
     function test_alternate_clickerid() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         $result = NULL;
 
         $result = iclicker_service::translate_clicker_id(null);
-        $this->assertEqual(null, $result);
+        $this->assertEquals(null, $result);
 
         $result = iclicker_service::translate_clicker_id("");
-        $this->assertEqual(null, $result);
+        $this->assertEquals(null, $result);
 
         $result = iclicker_service::translate_clicker_id(iclicker_service::CLICKERID_SAMPLE);
-        $this->assertEqual(null, $result);
+        $this->assertEquals(null, $result);
 
         $result = iclicker_service::translate_clicker_id("11111111");
-        $this->assertEqual(null, $result);
+        $this->assertEquals(null, $result);
 
         $result = iclicker_service::translate_clicker_id("22222222");
-        $this->assertEqual("02222202", $result);
+        $this->assertEquals("02222202", $result);
 
         $result = iclicker_service::translate_clicker_id("33333333");
-        $this->assertEqual(null, $result);
+        $this->assertEquals(null, $result);
 
         $result = iclicker_service::translate_clicker_id("44444444");
-        $this->assertEqual("04444404", $result);
+        $this->assertEquals("04444404", $result);
 
         $result = iclicker_service::translate_clicker_id("55555555");
-        $this->assertEqual(null, $result);
+        $this->assertEquals(null, $result);
 
         $result = iclicker_service::translate_clicker_id("66666666");
-        $this->assertEqual(null, $result);
+        $this->assertEquals(null, $result);
 
         $result = iclicker_service::translate_clicker_id("77777777");
-        $this->assertEqual(null, $result);
+        $this->assertEquals(null, $result);
 
         $result = iclicker_service::translate_clicker_id("88888888");
-        $this->assertEqual("08888808", $result);
+        $this->assertEquals("08888808", $result);
 
         $result = iclicker_service::translate_clicker_id("99999999");
-        $this->assertEqual(null, $result);
+        $this->assertEquals(null, $result);
 
         $result = iclicker_service::translate_clicker_id("40404040");
-        $this->assertEqual("00404000", $result);
+        $this->assertEquals("00404000", $result);
     }
 
     function test_make_clickerid_dates() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+        $this->setUser($this->studentid1);
+
         $user_id = iclicker_service::require_user();
         $reg1 = new stdClass;
         $reg1->clicker_id = '11111111';
@@ -287,20 +298,22 @@ class iclicker_services_test extends UnitTestCase {
         $clickers = array($reg1);
         $result = iclicker_service::make_clicker_ids_and_dates($clickers);
         $this->assertNotNull($result);
-        $this->assertEqual("11111111", $result['clickerid']);
+        $this->assertEquals("11111111", $result['clickerid']);
 
         $clickers = array($reg2);
         $result = iclicker_service::make_clicker_ids_and_dates($clickers);
         $this->assertNotNull($result);
-        $this->assertEqual("22222222,02222202", $result['clickerid']);
+        $this->assertEquals("22222222,02222202", $result['clickerid']);
 
         $clickers[] = $reg1;
         $result = iclicker_service::make_clicker_ids_and_dates($clickers);
         $this->assertNotNull($result);
-        $this->assertEqual("22222222,02222202,11111111", $result['clickerid']);
+        $this->assertEquals("22222222,02222202,11111111", $result['clickerid']);
     }
 
     function test_alphanumeric_gen() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         $rand = iclicker_service::randomAlphaNumeric(10);
         $this->assertNotNull($rand);
         $this->assertTrue(strlen($rand) == 10);
@@ -319,6 +332,8 @@ class iclicker_services_test extends UnitTestCase {
      * cc80462bfc0da7e614237d7cab4b7971b0e71e9f|1332470760
      */
     function test_sso_key_encoding() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         $key = "abcdef1234566890";
         iclicker_service::setSharedKey($key);
 
@@ -356,11 +371,14 @@ class iclicker_services_test extends UnitTestCase {
         $encodedKey = sha1($key . ":" . $timestamp) . '|' . $timestamp;
         $result = iclicker_service::verifyKey($encodedKey);
         $this->assertTrue($result);
-        echo "<div><b>SSO key:</b> key=$key, ts=$timestamp <br/> encoded=<input type='text' size='".(strlen($encodedKey)+2)."' value='$encodedKey'/></div>".PHP_EOL;
+        //echo "<div><b>SSO key:</b> key=$key, ts=$timestamp <br/> encoded=<input type='text' size='".(strlen($encodedKey)+2)."' value='$encodedKey'/></div>".PHP_EOL;
     }
 
     function test_user_keys() {
         global $DB;
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+        $this->setUser($this->instructorid);
+
         $user_id = iclicker_service::require_user();
         $this->assertNotNull($user_id);
 
@@ -369,22 +387,22 @@ class iclicker_services_test extends UnitTestCase {
         $this->assertNotNull($user_key);
 
         $keysCount = $DB->count_records(iclicker_service::USER_KEY_TABLENAME, array('user_id' => $user_id));
-        $this->assertEqual(1, $keysCount);
+        $this->assertEquals(1, $keysCount);
 
         // getting key for user (from make)
         $user_key1 = iclicker_service::makeUserKey($user_id, false);
         $this->assertNotNull($user_key1);
-        $this->assertEqual($user_key, $user_key1);
+        $this->assertEquals($user_key, $user_key1);
 
         // getting key for user (from get)
         $user_key1 = iclicker_service::getUserKey($user_id);
         $this->assertNotNull($user_key1);
-        $this->assertEqual($user_key, $user_key1);
+        $this->assertEquals($user_key, $user_key1);
 
         // update the key should work
         $user_key2 = iclicker_service::makeUserKey($user_id, true);
         $this->assertNotNull($user_key2);
-        $this->assertNotEqual($user_key, $user_key2);
+        $this->assertNotEquals($user_key, $user_key2);
 
         // trying to save another key for this user should fail
         $dupeUserKey = new stdClass();
@@ -411,6 +429,10 @@ class iclicker_services_test extends UnitTestCase {
     }
 
     function test_registrations() {
+        global $DB;
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+        $this->setUser($this->instructorid);
+
         $reg = null;
         $user_id = iclicker_service::require_user();
 
@@ -420,65 +442,66 @@ class iclicker_services_test extends UnitTestCase {
 
         // create registration
         $reg = iclicker_service::create_clicker_registration($this->clicker_id, $user_id);
-        $this->assertTrue($reg);
-        $this->assertEqual($this->clicker_id, $reg->clicker_id);
+        $this->assertTrue(!empty($reg));
+        $this->assertEquals($this->clicker_id, $reg->clicker_id);
         $reg_id = $reg->id;
-        $this->assertTrue($reg_id);
-        $this->assertFalse($reg->from_national);
+        $this->assertTrue(!empty($reg_id));
+        $this->assertEquals(0, $reg->from_national);
 
         // get registration
         $reg1 = iclicker_service::get_registration_by_clicker_id($this->clicker_id, $user_id);
-        $this->assertTrue($reg1);
-        $this->assertEqual($this->clicker_id, $reg1->clicker_id);
-        $this->assertEqual($reg_id, $reg1->id);
+        $this->assertTrue(!empty($reg1));
+        $this->assertEquals($this->clicker_id, $reg1->clicker_id);
+        $this->assertEquals($reg_id, $reg1->id);
 
         $reg2 = iclicker_service::get_registration_by_id($reg_id);
-        $this->assertTrue($reg2);
-        $this->assertEqual($this->clicker_id, $reg2->clicker_id);
-        $this->assertEqual($reg_id, $reg2->id);
+        $this->assertTrue(!empty($reg2));
+        $this->assertEquals($this->clicker_id, $reg2->clicker_id);
+        $this->assertEquals($reg_id, $reg2->id);
 
         // save registration
         $reg->from_national = 1;
         $save_id = iclicker_service::save_registration($reg);
-        $this->assertTrue($save_id);
-        $this->assertEqual($reg_id, $save_id);
+        $this->assertTrue(!empty($save_id));
+        $this->assertEquals($reg_id, $save_id);
 
         // check it changed
         $reg3 = iclicker_service::get_registration_by_id($reg_id);
-        $this->assertTrue($reg3);
-        $this->assertEqual($reg_id, $reg3->id);
-        $this->assertTrue($reg3->from_national);
-        // too fast $this->assertNotEqual($reg->timemodified, $reg3->timemodified);
+        $this->assertTrue(!empty($reg3));
+        $this->assertEquals($reg_id, $reg3->id);
+        $this->assertEquals(1, $reg3->from_national);
+        // too fast $this->assertNotEquals($reg->timemodified, $reg3->timemodified);
 
         // make registration inactive
-        $this->assertTrue($reg->activated);
+        $this->assertEquals(1, $reg->activated);
         $reg4 = iclicker_service::set_registration_active($reg_id, false);
-        $this->assertTrue($reg4);
-        $this->assertFalse($reg4->activated);
+        $this->assertTrue(!empty($reg4));
+        $this->assertEquals(0, $reg4->activated);
         // check it changed
         $reg5 = iclicker_service::get_registration_by_id($reg_id);
-        $this->assertTrue($reg5);
-        $this->assertEqual($reg_id, $reg5->id);
-        $this->assertEqual($reg4->id, $reg5->id);
-        $this->assertFalse($reg5->activated);
+        $this->assertTrue(!empty($reg5));
+        $this->assertEquals($reg_id, $reg5->id);
+        $this->assertEquals($reg4->id, $reg5->id);
+        $this->assertEquals(0, $reg5->activated);
 
         // get all registration
         $results = iclicker_service::get_registrations_by_user($user_id);
-        $this->assertTrue($results);
-        $this->assertEqual(1, count($results));
+        $this->assertTrue(!empty($results));
+        $this->assertEquals(1, count($results));
 
         $results = iclicker_service::get_registrations_by_user($user_id, true);
         $this->assertNotNull($results);
-        $this->assertFalse($results);
-        $this->assertEqual(0, count($results));
+        $this->assertFalse(!empty($results));
+        $this->assertEquals(0, count($results));
 
+        $this->setAdminUser(); // MUST be admin
         $results = iclicker_service::get_all_registrations();
-        $this->assertTrue($results);
+        $this->assertTrue(!empty($results));
         $this->assertTrue(count($results) >= 1);
 
         // remove registration
         $result = iclicker_service::remove_registration($reg_id);
-        $this->assertTrue($result);
+        $this->assertTrue(!empty($results));
 
         // try get registration
         $reg = iclicker_service::get_registration_by_id($reg_id);
@@ -486,6 +509,8 @@ class iclicker_services_test extends UnitTestCase {
     }
 
     function test_encode_decode() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         $xml = <<<XML
 <Register>
   <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456"
@@ -496,9 +521,9 @@ XML;
         $this->assertNotNull($result);
         $this->assertNotNull($result->clicker_id);
         $this->assertNotNull($result->owner_id);
-        $this->assertEqual($result->clicker_id, '11111111');
-        $this->assertEqual($result->owner_id, 101);
-        //$this->assertEqual($result->user_username, 'student01'); // DISABLED - username might be different for this user id
+        $this->assertEquals($result->clicker_id, '11111111');
+        $this->assertEquals($result->owner_id, 101);
+        //$this->assertEquals($result->user_username, 'student01'); // DISABLED - username might be different for this user id
 
         $xml = <<<XML
 <coursegradebook courseid="BFW61">
@@ -515,11 +540,11 @@ XML;
         $result = iclicker_service::decode_gradebook($xml);
         $this->assertNotNull($result);
         $this->assertNotNull($result->course_id);
-        $this->assertEqual($result->course_id, 'BFW61');
+        $this->assertEquals($result->course_id, 'BFW61');
         $this->assertNotNull($result->students);
         $this->assertNotNull($result->items);
-        $this->assertEqual(count($result->students), 2);
-        $this->assertEqual(count($result->items), 3);
+        $this->assertEquals(count($result->students), 2);
+        $this->assertEquals(count($result->items), 3);
         $this->assertNotNull($result->items['05/05/2009']);
         $this->assertNotNull($result->items['06/06/2009']);
         $this->assertNotNull($result->items['07/07/2009']);
@@ -535,20 +560,20 @@ XML;
         $result = iclicker_service::decode_ws_xml($xml);
         $this->assertNotNull($result);
         $this->assertTrue(is_array($result));
-        $this->assertEqual(count($result), 2);
+        $this->assertEquals(count($result), 2);
         $this->assertNotNull($result[0]);
         $this->assertNotNull($result[0]->clicker_id);
         $this->assertNotNull($result[0]->owner_id);
         $this->assertNotNull($result[0]->timecreated);
         $this->assertNotNull($result[0]->activated);
-        $this->assertEqual($result[0]->clicker_id, '11111111');
-        $this->assertEqual($result[0]->user_username, 'student01');
+        $this->assertEquals($result[0]->clicker_id, '11111111');
+        $this->assertEquals($result[0]->user_username, 'student01');
         /* Fails in windows for some reason - not sure why
         Fail: blocks/iclicker/simpletest/test_iclicker_service.php / ► iclicker_services_test / ► test_encode_decode / ►
         Equal expectation fails because [Integer: 1233032400] differs from [Integer: 1233014400] by 18000
         */
-        //$this->assertEqual($result[0]->timecreated, 1233014400);
-        $this->assertEqual($result[0]->activated, true);
+        //$this->assertEquals($result[0]->timecreated, 1233014400);
+        $this->assertEquals($result[0]->activated, true);
 
         // no good way to test this right now
         //$result = iclicker_service::encode_courses($instructor_id);
@@ -578,8 +603,11 @@ XML;
     }
 
     function test_save_grades() {
-        $test_item_name1 = 'testing-iclicker-item1';
+        global $DB;
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+        $this->setUser($this->instructorid);
 
+        $test_item_name1 = 'testing-iclicker-item1';
         $test_item_name2 = 'testing-iclicker-item2';
         $test_item_name3 = 'testing-iclicker-item3';
 
@@ -624,18 +652,18 @@ XML;
         $this->assertNotNull($result->course);
         $this->assertNotNull($result->default_category_id);
         $this->assertNotNull($result->items);
-        $this->assertEqual($result->course_id, $this->courseid);
-        $this->assertEqual(count($result->items), 1);
+        $this->assertEquals($result->course_id, $this->courseid);
+        $this->assertEquals(count($result->items), 1);
         $this->assertNotNull($result->items[0]);
         $this->assertNotNull($result->items[0]->id);
         $this->assertNotNull($result->items[0]->scores);
-        $this->assertEqual(count($result->items[0]->scores), 1);
+        $this->assertEquals(count($result->items[0]->scores), 1);
         $this->assertFalse(isset($result->items[0]->errors));
-        $this->assertEqual($result->items[0]->grademax, 90);
-        $this->assertEqual($result->items[0]->iteminfo, iclicker_service::GRADE_CATEGORY_NAME);
+        $this->assertEquals($result->items[0]->grademax, 90);
+        $this->assertEquals($result->items[0]->iteminfo, iclicker_service::GRADE_CATEGORY_NAME);
         $this->assertNotNull($result->items[0]->categoryid);
-        $this->assertEqual($result->items[0]->courseid, $result->course_id);
-        $this->assertEqual($result->items[0]->itemname, $test_item_name1);
+        $this->assertEquals($result->items[0]->courseid, $result->course_id);
+        $this->assertEquals($result->items[0]->itemname, $test_item_name1);
         $this->assertNotNull($result->items[0]->scores[0]);
         $this->assertFalse(isset($result->items[0]->scores[0]->error));
 
@@ -664,31 +692,31 @@ XML;
         $this->assertNotNull($result->course);
         //$this->assertNotNull($result->default_category_id);
         $this->assertNotNull($result->items);
-        $this->assertEqual($result->course_id, $this->courseid);
-        $this->assertEqual(count($result->items), 1);
+        $this->assertEquals($result->course_id, $this->courseid);
+        $this->assertEquals(count($result->items), 1);
         $this->assertNotNull($result->items[0]);
         $this->assertNotNull($result->items[0]->id);
-        $this->assertEqual($result->items[0]->iteminfo, 'stuff');
+        $this->assertEquals($result->items[0]->iteminfo, 'stuff');
         $this->assertNotNull($result->items[0]->scores);
-        $this->assertEqual(count($result->items[0]->scores), 4);
+        $this->assertEquals(count($result->items[0]->scores), 4);
         $this->assertTrue(isset($result->items[0]->errors));
-        $this->assertEqual(count($result->items[0]->errors), 4);
-        $this->assertEqual($result->items[0]->grademax, 90);
+        $this->assertEquals(count($result->items[0]->errors), 4);
+        $this->assertEquals($result->items[0]->grademax, 90);
         $this->assertNotNull($result->items[0]->categoryid);
-        $this->assertEqual($result->items[0]->courseid, $result->course_id);
-        $this->assertEqual($result->items[0]->itemname, $test_item_name1);
+        $this->assertEquals($result->items[0]->courseid, $result->course_id);
+        $this->assertEquals($result->items[0]->itemname, $test_item_name1);
         $this->assertNotNull($result->items[0]->scores[0]);
         $this->assertTrue(isset($result->items[0]->scores[0]->error));
-        $this->assertEqual($result->items[0]->scores[0]->error, iclicker_service::SCORE_UPDATE_ERRORS);
+        $this->assertEquals($result->items[0]->scores[0]->error, iclicker_service::SCORE_UPDATE_ERRORS);
         $this->assertNotNull($result->items[0]->scores[1]);
         $this->assertTrue(isset($result->items[0]->scores[1]->error));
-        $this->assertEqual($result->items[0]->scores[1]->error, iclicker_service::USER_DOES_NOT_EXIST_ERROR);
+        $this->assertEquals($result->items[0]->scores[1]->error, iclicker_service::USER_DOES_NOT_EXIST_ERROR);
         $this->assertNotNull($result->items[0]->scores[2]);
         $this->assertTrue(isset($result->items[0]->scores[2]->error));
-        $this->assertEqual($result->items[0]->scores[2]->error, iclicker_service::POINTS_POSSIBLE_UPDATE_ERRORS);
+        $this->assertEquals($result->items[0]->scores[2]->error, iclicker_service::POINTS_POSSIBLE_UPDATE_ERRORS);
         $this->assertNotNull($result->items[0]->scores[3]);
         $this->assertTrue(isset($result->items[0]->scores[3]->error));
-        $this->assertEqual($result->items[0]->scores[3]->error, 'SCORE_INVALID');
+        $this->assertEquals($result->items[0]->scores[3]->error, 'SCORE_INVALID');
 
         $xml = iclicker_service::encode_gradebook_results($result);
         $this->assertNotNull($xml);
@@ -714,20 +742,20 @@ XML;
         $this->assertNotNull($result);
         $this->assertNotNull($result->course_id);
         $this->assertNotNull($result->items);
-        $this->assertEqual($result->course_id, $this->courseid);
-        $this->assertEqual(count($result->items), 1);
+        $this->assertEquals($result->course_id, $this->courseid);
+        $this->assertEquals(count($result->items), 1);
         $this->assertNotNull($result->items[0]);
         $this->assertNotNull($result->items[0]->id);
         $this->assertNotNull($result->items[0]->scores);
-        $this->assertEqual(count($result->items[0]->scores), 3);
+        $this->assertEquals(count($result->items[0]->scores), 3);
         $this->assertFalse(isset($result->items[0]->errors));
-        $this->assertEqual($result->items[0]->grademax, 90);
+        $this->assertEquals($result->items[0]->grademax, 90);
         $this->assertNotNull($result->items[0]->scores[0]);
-        $this->assertEqual($result->items[0]->scores[0]->rawgrade, 85);
+        $this->assertEquals($result->items[0]->scores[0]->rawgrade, 85);
         $this->assertNotNull($result->items[0]->scores[1]);
-        $this->assertEqual($result->items[0]->scores[1]->rawgrade, 50);
+        $this->assertEquals($result->items[0]->scores[1]->rawgrade, 50);
         $this->assertNotNull($result->items[0]->scores[2]);
-        $this->assertEqual($result->items[0]->scores[2]->rawgrade, 0);
+        $this->assertEquals($result->items[0]->scores[2]->rawgrade, 0);
 /*
 echo "<pre>";
 var_export($result->items[0]);
@@ -779,50 +807,32 @@ echo "</pre>";
         $this->assertNotNull($result->course_id);
         $this->assertNotNull($result->items);
         $this->assertNotNull($result->default_category_id);
-        $this->assertEqual($result->course_id, $this->courseid);
-        $this->assertEqual(count($result->items), 2);
+        $this->assertEquals($result->course_id, $this->courseid);
+        $this->assertEquals(count($result->items), 2);
         $this->assertNotNull($result->items[0]);
         $this->assertNotNull($result->items[0]->id);
         $this->assertNotNull($result->items[0]->scores);
-        $this->assertEqual(count($result->items[0]->scores), 2);
+        $this->assertEquals(count($result->items[0]->scores), 2);
         $this->assertFalse(isset($result->items[0]->errors));
-        $this->assertEqual($result->items[0]->grademax, 100);
+        $this->assertEquals($result->items[0]->grademax, 100);
         $this->assertNotNull($result->items[0]->scores[0]);
-        $this->assertEqual($result->items[0]->scores[0]->rawgrade, 80);
+        $this->assertEquals($result->items[0]->scores[0]->rawgrade, 80);
         $this->assertNotNull($result->items[0]->scores[1]);
-        $this->assertEqual($result->items[0]->scores[1]->rawgrade, 90);
+        $this->assertEquals($result->items[0]->scores[1]->rawgrade, 90);
         $this->assertNotNull($result->items[1]);
         $this->assertNotNull($result->items[1]->id);
         $this->assertNotNull($result->items[1]->scores);
-        $this->assertEqual(count($result->items[1]->scores), 2);
+        $this->assertEquals(count($result->items[1]->scores), 2);
         $this->assertFalse(isset($result->items[1]->errors));
-        $this->assertEqual($result->items[1]->grademax, 50);
+        $this->assertEquals($result->items[1]->grademax, 50);
         $this->assertNotNull($result->items[1]->scores[0]);
-        $this->assertEqual($result->items[1]->scores[0]->rawgrade, 45);
+        $this->assertEquals($result->items[1]->scores[0]->rawgrade, 45);
         $this->assertNotNull($result->items[1]->scores[1]);
-        $this->assertEqual($result->items[1]->scores[1]->rawgrade, 40);
+        $this->assertEquals($result->items[1]->scores[1]->rawgrade, 40);
 
         $xml = iclicker_service::encode_gradebook_results($result);
         $this->assertNull($xml);
 
-    }
-
-    // TODO - disabled
-    function disabled_test_save_ws() {
-        $result = iclicker_service::ws_get_students();
-        $this->assertNotNull($result);
-
-        $clicker_reg = new stdClass();
-        $clicker_reg->owner_id = '101'; // student01
-        $clicker_reg->clicker_id = '11111111';
-// NOTE: disable this to avoid putting test data into the real domain of systems
-/*
-        $result = iclicker_service::ws_save_clicker($clicker_reg);
-        $this->assertNotNull($result);
-*/
-
-        $result = iclicker_service::ws_get_student('student01');
-        $this->assertNotNull($result);
     }
 
 }
