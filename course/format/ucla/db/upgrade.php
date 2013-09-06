@@ -15,10 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Keeps track of upgrades to the global search block
+ * Keeps track of upgrades to the UCLA format.
  *
- * @package    ucla
- * @subpackage format
+ * @package    format_ucla
  * @copyright  2012 UC Regents
  */
 
@@ -85,4 +84,6 @@ function xmldb_format_ucla_upgrade($oldversion) {
         // ucla savepoint reached
         upgrade_plugin_savepoint(true, 2013081203, 'format', 'ucla'); 
     }
+
+    return true;
 }
