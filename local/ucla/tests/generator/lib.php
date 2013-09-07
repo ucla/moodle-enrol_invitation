@@ -404,6 +404,34 @@ class local_ucla_generator extends testing_data_generator {
     }
 
     /**
+     * Returns the power set of a one dimensional array, a 2-D array.
+     * [a,b,c] -> [ [a], [b], [c], [a, b], [a, c], [b, c], [a, b, c] ]
+     *
+     * @source http://stackoverflow.com/a/6092999/6001
+     *
+     * @param array $in
+     * @param int $minlength
+     *
+     * @return array
+     */
+    public function power_set(array $in, $minlength = 1) {
+        $count = count($in);
+        $members = pow(2, $count); 
+        $return = array();
+        for ($i = 0; $i < $members; $i++) {
+            $b = sprintf("%0".$count."b",$i);
+            $out = array();
+            for ($j = 0; $j < $count; $j++) {
+                if ($b{$j} == '1') $out[] = $in[$j];
+            }
+            if (count($out) >= $minlength) {
+                $return[] = $out;
+            }
+        }
+        return $return;
+    }
+
+    /**
      * Helper function to set division. Includes creating entry in
      * ucla_reg_division table and creating division category.
      *

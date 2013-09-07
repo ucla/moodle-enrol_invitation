@@ -21,20 +21,19 @@
  * enrollment plugin to support UCLA's unique way of mapping Registrar data
  * to Moodle courses and roles.
  *
- * @package    enrol_database
- * @copyright  2010 Petr Skoda {@link http://skodak.org}
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package local_ucla
+ * @author  Rex Lorenzo - based on code by Yangmun Choi
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/local/ucla/lib.php');
+require_once($CFG->dirroot . '/local/ucla/datetimehelpers.php');
 require_once($CFG->dirroot . '/user/lib.php');
 ucla_require_registrar();
 
 /**
  * Helper class for database enrolment plugin implementation.
- * @author  Rex Lorenzo - based on code by Yangmun Choi
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class local_ucla_enrollment_helper {
 
@@ -52,6 +51,15 @@ class local_ucla_enrollment_helper {
      * @var string
      */
     protected $localuserfield;
+
+    /**
+     * Value of local_ucla|minuserupdatewaitdays times # of seconds in a day.
+     *
+     * Default is 30 * 86400.
+     *
+     * @var int
+     */
+    protected $minuserupdatewait;
 
     /**
      * Value of enrol_database|remoterolefield.
@@ -100,6 +108,8 @@ class local_ucla_enrollment_helper {
         $this->localuserfield = $enroldatabase->get_config('localuserfield');
         $this->remoterolefield = $enroldatabase->get_config('remoterolefield');
         $this->remoteuserfield = $enroldatabase->get_config('remoteuserfield');
+
+        $this->minuserupdatewait = ((int) get_config('local_ucla', 'minuserupdatewaitdays')) * 86400;
 
         $this->set_run_parameter($termsorcourseid);
     }
@@ -201,6 +211,45 @@ class local_ucla_enrollment_helper {
 
             $this->trace->output(sprintf('Created user: %s',
                     implode(',', $enrollment)), 1);
+        } else {
+            // User was found on local system, so update their info, if needed.
+            $needsupdating = false;
+            $updateuserfields = array('firstname', 'lastname', 'email');
+
+            // Clone, because we might not use the updates if minuserupdatewait
+            // did not pass, but still want to be notified of potentially out
+            // of date data from the Registrar.
+            $user = clone($retval);
+
+            foreach ($updateuserfields as $field) {
+                if (textlib::strtolower($enrollment[$field])
+                        !== textlib::strtolower($user->$field)) {
+                    $needsupdating = true;
+                    $this->trace->output(
+                            sprintf('User %d needs update: %s [%s] => [%s]',
+                                    $retval->id, $field, $retval->$field,
+                                    $enrollment[$field]), 2);
+                    $user->$field = $enrollment[$field];
+                }
+            }
+
+            if ($needsupdating) {
+                // Check if it has passed minuserupdatewaitdays, else we are just
+                // fighting against Shibboleth data.
+                if ((time() - $user->lastaccess) > $this->minuserupdatewait) {
+                    // We aren't updating a user's password.
+                    unset($user->password);
+                    user_update_user($user);
+                    $this->trace->output(sprintf('Updated user %d', $user->id), 2);
+                    // User was updated, so replace what we queried for before.
+                    $retval = $user;
+                } else {
+                    $this->trace->output(sprintf(
+                            'Skip updating user %d, because user logged in %s ago',
+                            $user->id,
+                            distance_of_time_in_words($user->lastaccess, time())), 2);
+                }
+            }
         }
 
         $cache->set($cachekey, $retval);
