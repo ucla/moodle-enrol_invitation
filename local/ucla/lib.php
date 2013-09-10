@@ -475,7 +475,22 @@ function ucla_format_name($name=null) {
                 unset($name_array[$key]);   // don't use element if it is blank
             }
         }
-        $name = implode(' ', $name_array);  // combine elements back        
+        $name = implode(' ', $name_array);  // combine elements back
+
+        // Handle European multipart names.
+        // See https://public.wsu.edu/~brians/errors/multipart.html.
+        $multipartnames = array('Della', 'Le', 'La', 'Du', 'Des', 'Del', 'De La',
+                                'Van Der', 'De', 'Da', 'Di', 'Von', 'Van');
+        $replacementcount = 0;
+        foreach ($multipartnames as $multipartname) {
+            $name = preg_replace("/^$multipartname /",
+                    textlib::strtolower($multipartname) . ' ', $name, 1,
+                    $replacementcount);
+            if ($replacementcount > 0) {
+                // Should only have 1 type of multipart name, exit early.
+                break;
+            }
+        }
     }
 
     // has hypen?
@@ -1579,4 +1594,50 @@ function hide_courses($term) {
 
     return array($num_hidden_courses, $num_hidden_tasites,
                  $num_problem_courses, $error_messages);
+}
+
+/**
+ * Given a displayname in the following format:
+ *  LAST, FIRST MIDDLE, SUFFIX
+ * Will return an array for a user's lastname and firstname.
+ *
+ * Consolidates name formating used in shib_transform.php and prepop.
+ *
+ * @param string $displayname
+ *
+ * @return array
+ */
+function format_displayname($displayname) {
+    $retval = array('firstname' => '', 'lastname' => '');
+
+    // Expecting name in following format: LAST, FIRST MIDDLE, SUFFIX.
+    $names = explode(',',  $displayname);
+    // Trim every element.
+    $names = array_map('trim', $names);
+
+    if (empty($names)) {
+        // No name found.
+    } else if (empty($names[1])) {
+        // No first name.
+        $retval['lastname'] = $names[0];
+    } else {
+        // First name might have middle name data.
+        $retval['firstname'] = $names[1];
+        $retval['lastname'] = $names[0];
+    }
+
+    // Might have a suffix.
+    if (isset($names[2])) {
+        $retval['lastname'] .= ' ' . $names[2];
+    }
+
+    // Make sure the name is properly capitalized.
+    if (!empty($retval['firstname'])) {
+        $retval['firstname'] = ucla_format_name($retval['firstname']);
+    }
+    if (!empty($retval['lastname'])) {
+        $retval['lastname'] = ucla_format_name($retval['lastname']);
+    }
+
+    return $retval;
 }

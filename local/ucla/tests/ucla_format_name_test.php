@@ -94,5 +94,18 @@ class ucla_format_name_test extends basic_testcase {
         $result = ucla_format_name("MCMARY HAD A LITTLE-LAMB & IT'S FLEECE / WAS WHITE AS SNOW");
         $this->assertEquals($result, "McMary Had a Little-Lamb & It's Fleece / Was White as Snow");    
     }
+
+    /**
+     * Make sure that European multipart names are handled properly.
+     */
+    function test_multipart_names() {
+        $testcases = array('VAN GOGH' => 'van Gogh',
+                           'DE BEAUVOIR' => 'de Beauvoir',
+                           'VAN DER BRUIN' => 'van der Bruin',
+                           'DA DABS' => 'da Dabs');
+        foreach ($testcases as $testcase => $expected) {
+            $actual = ucla_format_name($testcase);
+            $this->assertEquals($expected, $actual);
+        }
+    }
 }
-?>

@@ -400,10 +400,11 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
     }
 
     /**
-     * Make sure createorfinduser returns null for a nonexisting enrollment
-     * record that is missing the username.
+     * Make sure createorfinduser returns null for several cases of an invalid
+     * enrollment record.
      */
     public function test_createorfinduser_invalid() {
+        // Make sure that enrollment records without usernames are rejected.
         $enrollment = array('uid'        => '123456789',
                             'firstname'  => 'Joe',
                             'lastname'   => 'Bruin',
@@ -421,6 +422,41 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
         $this->assertNull($founduser);
         $result = $cache->get($cachekey);
         $this->assertEquals($result, $founduser);
+
+        // Make sure that createorfinduser checks that UIDs and usernames match.
+        $user = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_user(array('idnumber' => '123456789'));
+
+        // Generate enrollment record, but with different UID.
+        $enrollment = array('uid'        => '987654321',
+                            'firstname'  => $user->firstname,
+                            'lastname'   => $user->lastname,
+                            'email'      => $user->email,
+                            'username'   => $user->username);
+        $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+        $this->assertNull($founduser);
+    }
+
+    /**
+     * Make sure createorfinduser does not update invalid emails.
+     *
+     * @group totest
+     */
+    public function test_createorfinduser_invalid_email() {
+        $user = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
+
+        // Make sure that enrollment records with invalid emails are handled.
+        $enrollment = array('uid'        => $user->idnumber,
+                            'firstname'  => $user->firstname,
+                            'lastname'   => $user->lastname,
+                            'email'      => 'invalid-email',
+                            'username'   => $user->username);
+
+        $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+        $this->assertNotEmpty($founduser);
+        $this->assertEquals($user->email, $founduser->email);
     }
 
     /**
@@ -462,7 +498,6 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
      * logged in for a while.
      *
      * @dataProvider diff_conditions_provider
-     * @group totest
      */
     public function test_createorfinduser_update_needed(array $diffconditions) {
         global $DB;
@@ -498,6 +533,43 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
             $this->assertEquals($diffuser->$field, $founduser->$field, 
                     'Field being processed: ' . $field);
             // Make sure local DB was updated as well.
+            $this->assertEquals($dbuser->$field, $founduser->$field,
+                    'Field being processed: ' . $field);
+        }
+    }
+
+    /**
+     * Make sure that when createorfinduser does update a user's information it
+     * will not update with empty data.
+     */
+    public function test_createorfinduser_update_notempty() {
+        global $DB;
+
+        // Set user's last access time to some very far time, after
+        // minuserupdatewaitdays.
+        $mintime = ((int) get_config('local_ucla', 'minuserupdatewaitdays')) * 86401;
+        $lastaccess = max(time() - mt_rand($mintime, mt_getrandmax()), 0);
+        $user = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_user(array('lastaccess' => $lastaccess));
+
+        // Fields that we will try to make an empty enrollment record for.
+        $emptyfields = array('firstname', 'lastname', 'email');
+        foreach ($emptyfields as $field) {
+            $enrollment = array('uid'       => $user->idnumber,
+                                'firstname' => $user->firstname,
+                                'lastname'  => $user->lastname,
+                                'email'     => $user->email,
+                                'username'  => $user->username);
+            $enrollment[$field] = '';
+            $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+
+            // Make sure returned user does not have empty info updated.
+            $this->assertEquals($user->$field, $founduser->$field,
+                    'Field being processed: ' . $field);
+
+            // Make sure local DB was not updated as well.
+            $dbuser = $DB->get_record('user', array('id' => $user->id));
             $this->assertEquals($dbuser->$field, $founduser->$field,
                     'Field being processed: ' . $field);
         }
@@ -622,8 +694,11 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
     /**
      * Test syncing of a given roster (instructors and students) including
      * enrolling/unenrolling.
+     *
+     * @group totest
      */
     public function test_enrol_database_plugin_sync_enrolments() {
+        global $DB;
         // Add mocked enrollment helper.
         $enrol = enrol_get_plugin('database');
         $enrol->enrollmenthelper = $this->mockenrollmenthelper;
@@ -695,6 +770,23 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
         $enrol->sync_enrolments($this->trace, array('13S'));
         $result = $this->is_username_enrolled($courseid, $droppedstudent->username);
         $this->assertTrue($result);
+
+        // Make sure we are not syncing enrollments for any other term.
+        $class = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_class(array('term' => '13F'));
+        $course = array_pop($class);
+        $courseid = $course->courseid;
+        $courseobj = $DB->get_record('course', array('id' => $courseid));
+        $instanceid = $enrol->add_instance($courseobj);
+        $instance = $DB->get_record('enrol', array('id' => $instanceid));
+
+        $enrol->enrol_user($instance, $instructor->id, $this->createdroles['editinginstructor']);
+        $result = $this->is_username_enrolled($courseid, $instructor->username);
+        $this->assertTrue($result);
+        $enrol->sync_enrolments($this->trace, array('13S'));
+        $result = $this->is_username_enrolled($courseid, $instructor->username);
+        $this->assertTrue($result);        
     }
 
     /**
@@ -808,6 +900,7 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
      * Make sure that get_external_enrollment_courses returns the proper data.
      */
     public function test_get_external_enrollment_courses() {
+        global $DB;
         $courseidsexpected = array();
 
         // Create non-crosslist course.
@@ -829,6 +922,7 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
         sort($courseidsexpected);
         sort($courseidsreturned);
         $this->assertEquals($courseidsexpected, $courseidsreturned);
+        $springcourseidsexpected = $courseidsexpected;
 
         // Create courses in another term and check they are returned.
         $class = $this->getDataGenerator()
@@ -847,6 +941,25 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
         sort($courseidsexpected);
         sort($courseidsreturned);
         $this->assertEquals($courseidsexpected, $courseidsreturned);
+
+        // Query just for Sprint again and make sure nothing else is returned.
+        $this->mockenrollmenthelper->set_run_parameter(array('13S'));
+        $results = $this->mockenrollmenthelper->get_external_enrollment_courses();
+        $springcourseidsreturned = array_keys($results);
+        sort($springcourseidsreturned);
+        $this->assertEquals($springcourseidsexpected, $springcourseidsreturned);
+
+        // Add an course request that hasn't beeen built to Spring and make
+        // sure it isn't returned.
+        $request = new stdClass();
+        $request->term = '13S';
+        $request->srs = '000000001';
+        $request->department = 'MATH';
+        $request->course = '1';
+        $request->action = UCLA_COURSE_TOBUILD;
+        $DB->insert_record('ucla_request_classes', $request);
+        $results = $this->mockenrollmenthelper->get_external_enrollment_courses();
+        $this->assertEquals(count($springcourseidsreturned), count($results));
     }
 
     /**

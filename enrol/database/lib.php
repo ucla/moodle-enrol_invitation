@@ -490,6 +490,15 @@ class enrol_database_plugin extends enrol_plugin {
             }
             $rs->close();
 
+            // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+            // Yes, this is duplicating work above, but we only want courses for
+            // a certain term.
+            if ($overrideenroldatabase) {
+                unset($existing);
+                $existing = $this->enrollmenthelper->get_existing_courses();
+            }
+            // END UCLA MOD: CCLE-4061
+
             // Add necessary enrol instances that are not present yet.
             $params = array();
             $localnotempty = "";
@@ -692,6 +701,9 @@ class enrol_database_plugin extends enrol_plugin {
         //$extdb->Close();
         if (!$overrideenroldatabase) {
             $extdb->Close();
+        } else {
+            // Trigger event to notify of recent enrollment changes.
+            $this->enrollmenthelper->trigger_sync_enrolments_event($existing);
         }
         // END UCLA MOD: CCLE-4061
 

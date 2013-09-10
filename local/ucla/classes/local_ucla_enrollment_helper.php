@@ -27,9 +27,11 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclacourserequestor/lib.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once($CFG->dirroot . '/local/ucla/datetimehelpers.php');
 require_once($CFG->dirroot . '/user/lib.php');
+require_once($CFG->libdir . '/validateurlsyntax.php');
 ucla_require_registrar();
 
 /**
@@ -42,6 +44,15 @@ class local_ucla_enrollment_helper {
      * @var int
      */
     private $courseid = null;
+
+    /**
+     * Value of enrol_database|localcoursefield.
+     *
+     * Should be "id".
+     *
+     * @var string
+     */
+    protected $localcoursefield;
 
     /**
      * Value of enrol_database|localuserfield.
@@ -105,9 +116,10 @@ class local_ucla_enrollment_helper {
         $this->trace = $trace;
 
         // Store needed config variables.
-        $this->localuserfield = $enroldatabase->get_config('localuserfield');
-        $this->remoterolefield = $enroldatabase->get_config('remoterolefield');
-        $this->remoteuserfield = $enroldatabase->get_config('remoteuserfield');
+        $this->localcoursefield = $enroldatabase->get_config('localcoursefield');
+        $this->localuserfield   = $enroldatabase->get_config('localuserfield');
+        $this->remoterolefield  = $enroldatabase->get_config('remoterolefield');
+        $this->remoteuserfield  = $enroldatabase->get_config('remoteuserfield');
 
         $this->minuserupdatewait = ((int) get_config('local_ucla', 'minuserupdatewaitdays')) * 86400;
 
@@ -214,7 +226,7 @@ class local_ucla_enrollment_helper {
         } else {
             // User was found on local system, so update their info, if needed.
             $needsupdating = false;
-            $updateuserfields = array('firstname', 'lastname', 'email');
+            $updateuserfields = array('uid', 'firstname', 'lastname', 'email');
 
             // Clone, because we might not use the updates if minuserupdatewait
             // did not pass, but still want to be notified of potentially out
@@ -222,7 +234,47 @@ class local_ucla_enrollment_helper {
             $user = clone($retval);
 
             foreach ($updateuserfields as $field) {
-                if (textlib::strtolower($enrollment[$field])
+                if (empty($enrollment[$field])) {
+                    // We do not want to process blank values from enrollment.
+                    continue;
+                }
+
+                // Do not accept invalid emails.
+                if ($field == 'email') {
+                    if (!validateEmailSyntax($enrollment[$field])) {
+                        $this->trace->output(sprintf('Invalid email: %s. ' .
+                                'Enrollment record: %s', $enrollment[$field],
+                                implode(',', $enrollment)), 2);
+                        continue;
+                    }
+                }
+
+                // We only want to update idnumber if it is blank locally.
+                if ($field == 'uid') {
+                    if (empty($user->{$this->localuserfield})) {
+                        // Local idnumber is not set for some reason.
+                        $needsupdating = true;
+                        $this->trace->output(
+                                sprintf('User %d setting %s/%s: [%s]',
+                                        $retval->id, $field,
+                                        $this->localuserfield,
+                                        $enrollment[$field]), 2);
+                        $user->{$this->localuserfield} = $enrollment[$field];
+                    } else  if ($enrollment[$field]
+                            != $user->{$this->localuserfield}) {
+                        // Sanity check! If uid exists, it should match.
+                        $this->trace->output(sprintf(
+                                'ERROR: Found mismatching user UIDs ' .
+                                '(%s vs %s) for given UCLA LogonID %s. ' .
+                                'Enrollment record: %s', $enrollment[$field],
+                                $user->{$this->localuserfield},
+                                $enrollment['username'],
+                                implode(',', $enrollment)), 2);
+                        $retval = null;
+                        $needsupdating = false;
+                        break;
+                    }
+                } else if (textlib::strtolower($enrollment[$field])
                         !== textlib::strtolower($user->$field)) {
                     $needsupdating = true;
                     $this->trace->output(
@@ -240,7 +292,9 @@ class local_ucla_enrollment_helper {
                     // We aren't updating a user's password.
                     unset($user->password);
                     user_update_user($user);
-                    $this->trace->output(sprintf('Updated user %d', $user->id), 2);
+                    $this->trace->output(sprintf('Updated user %d: ' .
+                            'enrollment record: %s', $user->id,
+                            implode(',', $enrollment)), 2);
                     // User was updated, so replace what we queried for before.
                     $retval = $user;
                 } else {
@@ -433,6 +487,38 @@ class local_ucla_enrollment_helper {
     }
 
     /**
+     * Returns an array of courses for the given terms we are working on that 
+     * already have the enrol_database plugin added.
+     */
+    public function get_existing_courses() {
+        global $DB;
+        $retval = array();
+
+        if (empty($this->terms)) {
+            throw new Exception('No terms to query');
+        }
+
+        list($tconditions, $tparams) = $DB->get_in_or_equal($this->terms);
+
+        $sql = "SELECT  c.id,
+                        c.visible,
+                        c." . $this->localcoursefield . " AS mapping,
+                        e.id AS enrolid,
+                        c.shortname
+                FROM    {course} c
+                JOIN    {enrol} e ON (e.courseid = c.id AND e.enrol = 'database')
+                JOIN    {ucla_request_classes} urc ON (urc.courseid = c.id)
+                WHERE   urc.term $tconditions";
+        $rs = $DB->get_recordset_sql($sql, $tparams);
+        foreach ($rs as $course) {
+            $retval[$course->{$this->localcoursefield}] = $course;
+        }
+        $rs->close();
+
+        return $retval;
+    }
+
+    /**
      * Returns an array of courseids mapped to a boolean that is expected by the
      * enrol_database plugin when it is checking which courses to add the
      * enrollment plugin.
@@ -447,7 +533,10 @@ class local_ucla_enrollment_helper {
 
         $records = $DB->get_records_list('ucla_request_classes', 'term', $this->terms);
         foreach ($records as $record) {
-            $retval[$record->courseid] = true;
+            // Only return records of built courses with courseids.
+            if ($record->action == UCLA_COURSE_BUILT && !empty($record->courseid)) {
+                $retval[$record->courseid] = true;
+            }
         }
 
         return $retval;
@@ -521,10 +610,11 @@ class local_ucla_enrollment_helper {
 
         // Log any failed results.
         if (!empty($results[registrar_query::failed_outputs])) {
-            $this->trace->output(sprintf('%d failed results from %s (%s, %s):',
+            $this->trace->output(sprintf('%d failed results from %s (%s,%s):',
                     count($results[registrar_query::failed_outputs]), $sp,
                     $term, $srs), 1);
             foreach ($results[registrar_query::failed_outputs] as $failed) {
+                $failed = array_map('trim', $failed);
                 $this->trace->output(implode(',', $failed), 2);
             }
         }
@@ -563,6 +653,24 @@ class local_ucla_enrollment_helper {
     }
 
     /**
+     * Translate results from the stored procedure "ccle_course_instructorsget"
+     * to fields expected by Moodle.
+     *
+     * @param array $regdata            Row from "ccle_course_instructorsget".
+     *
+     * @return array
+     */
+    public function translate_ccle_course_instructorsget(array $regdata) {
+        return array(
+            $this->remoteuserfield => trim($regdata['ucla_id']),
+            'firstname' => ucla_format_name(trim($regdata['first_name_person'])),
+            'lastname' => ucla_format_name(trim($regdata['last_name_person'])),
+            'email' => trim($regdata['ursa_email']),
+            'username' => $this->normalize_bolid($regdata['bolid'])
+        );
+    }
+
+    /**
      * Translate results from the stored procedure "ccle_roster_class" to
      * fields expected by Moodle.
      *
@@ -573,47 +681,33 @@ class local_ucla_enrollment_helper {
      * @return array
      */
     public function translate_ccle_roster_class(array $regdata) {
-        // Name of the student in “LAST, FIRST MIDDLE” format.
-        $names = explode(',', trim($regdata['full_name_person']));
-
-        if (empty($names)) {
-            $this->trace->output('WARNING: Found user with no name from ' .
-                    'ccle_roster_class: ' . implode(', ', $regdata), 1);
-            $names[0] = '';
-            $firstmiddle = '';
-        } else if (empty($names[1])) {
-            // No first name.
-            $firstmiddle = '';
-        } else {
-            // Might have MIDDLE name data.
-            $firstmiddle = $names[1];
-        }
-
+        $name = format_displayname($regdata['full_name_person']);
         return array(
-            $this->remoteuserfield => $regdata['stu_id'],
-            'firstname' => $firstmiddle,
-            'lastname' => $names[0],
-            'email' => $regdata['ss_email_addr'],
+            $this->remoteuserfield => trim($regdata['stu_id']),
+            'firstname' => $name['firstname'],
+            'lastname' => $name['lastname'],
+            'email' => trim($regdata['ss_email_addr']),
             'username' => $this->normalize_bolid($regdata['bolid'])
         );
     }
 
     /**
-     * Translate results from the stored procedure "ccle_course_instructorsget"
-     * to fields expected by Moodle.
+     * Let other plugins know that enrollment was updated for the following
+     * courses.
      *
-     * @param array $regdata            Row from "ccle_course_instructorsget".
+     * @param array     Expecting $courses to be an array similar to what is
+     *                  returned by get_existing_courses().
      *
-     * @return array
+     * @return void
      */
-    public function translate_ccle_course_instructorsget(array $regdata) {
-        return array(
-            $this->remoteuserfield => $regdata['ucla_id'],
-            'firstname' => $regdata['first_name_person'],
-            'lastname' => $regdata['last_name_person'],
-            'email' => $regdata['ursa_email'],
-            'username' => $this->normalize_bolid($regdata['bolid'])
-        );
+    public function trigger_sync_enrolments_event($courses) {
+        if (class_exists('phpunit_util') && phpunit_util::is_test_site()) {
+            // Don't run event trigger if running in a unit test, or else will
+            // throw up a bunch of errors.
+            return;
+        }
+        $eventdata = new object();
+        $eventdata->courses = $courses;
+        events_trigger('sync_enrolments_finished', $eventdata);
     }
-
 }

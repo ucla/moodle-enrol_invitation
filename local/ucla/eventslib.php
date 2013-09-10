@@ -78,9 +78,14 @@ function hide_past_courses($weeknum) {
     return true;
 }
 
+/**
+ * After courses are built, run prepop on them.
+ *
+ * @param array $edata
+ * @return boolean
+ */
 function ucla_sync_built_courses($edata) {
     global $CFG;
-    require_once($CFG->dirroot . '/blocks/ucla_group_manager/lib.php');
     
     // This hopefully means that this plugin IS enabled
     $enrol = enrol_get_plugin('database');
@@ -88,21 +93,24 @@ function ucla_sync_built_courses($edata) {
         debugging('Database enrolment plugin is not installed');
         return false;
     }
-    
-    $verbose = debugging();
-    $courseidsenrol = array();
+
+    $trace = null;
+    if (debugging()) {
+        $trace = new text_progress_trace();
+    } else {
+        $trace = new null_progress_trace();
+    }
+    $courseids = array();
     foreach ($edata->completed_requests as $key => $request) {
         if (empty($request->courseid)) {
             continue;
         }
-
-        $courseidsenrol[$request->courseid] = true;
+        $courseids[] = $request->courseid;
     }
 
-    foreach ($courseidsenrol as $courseid => $na) {
-        // Not sure where to log errors...
-        // This will handle auto-groups
-        $enrol->sync_enrolments($verbose, null, $courseid);
+    foreach ($courseids as $courseid) {
+        // This will handle auto-groups via events api.
+        $enrol->sync_enrolments($trace, $courseid);
     }
     
     return true;
