@@ -116,6 +116,15 @@ class enrol_database_plugin extends enrol_plugin {
             return;
         }
 
+        // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+        // See if we are using UCLA specific changes to database enrollment.
+        $overrideenroldatabase = get_config('local_ucla', 'overrideenroldatabase');
+        if ($overrideenroldatabase && !isset($this->enrollmenthelper)) {
+            $trace = new null_progress_trace();
+            $this->enrollmenthelper = new local_ucla_enrollment_helper($trace, $this);
+        }
+        // END UCLA MOD: CCLE-4061
+
         $table            = $this->get_config('remoteenroltable');
         $coursefield      = trim($this->get_config('remotecoursefield'));
         $userfield        = trim($this->get_config('remoteuserfield'));
@@ -175,14 +184,24 @@ class enrol_database_plugin extends enrol_plugin {
                         // Missing course info.
                         continue;
                     }
-                    if (!$course = $DB->get_record('course', array($localcoursefield=>$fields[$coursefield_l]), 'id,visible')) {
+                    // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+                    //if (!$course = $DB->get_record('course', array($localcoursefield=>$fields[$coursefield_l]), 'id,visible')) {
+                    if (!$overrideenroldatabase && (!$course = $DB->get_record('course', array($localcoursefield=>$fields[$coursefield_l]), 'id,visible'))) {
+                        continue;
+                    } else if ($overrideenroldatabase && (!$course = $this->enrollmenthelper->get_course($fields[$coursefield_l]))) {
                         continue;
                     }
+                    // END UCLA MOD: CCLE-4061
                     if (!$course->visible and $ignorehidden) {
                         continue;
                     }
 
-                    if (empty($fields[$rolefield_l]) or !isset($roles[$fields[$rolefield_l]])) {
+                    // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+                    //if (empty($fields[$rolefield_l]) or !isset($roles[$fields[$rolefield_l]])) {
+                    if ($overrideenroldatabase) {
+                        $roleid = $this->enrollmenthelper->get_role($fields[$rolefield_l], $fields['subj_area']);
+                    } else if (empty($fields[$rolefield_l]) or !isset($roles[$fields[$rolefield_l]])) {
+                    // END UCLA MOD: CCLE-4061
                         if (!$defaultrole) {
                             // Role is mandatory.
                             continue;
@@ -240,6 +259,12 @@ class enrol_database_plugin extends enrol_plugin {
 
             $existing = array();
             foreach ($current as $r) {
+                // START UCLA MOD: CCLE-3603 - TA vanished overnight
+                // Temporarily do not unenroll any users from login time enrollment.
+                if ($overrideenroldatabase) {
+                    continue;
+                }
+                // END UCLA MOD: CCLE-3603
                 if (in_array($r->roleid, $roles)) {
                     $existing[$r->roleid] = $r->roleid;
                 } else {
@@ -252,6 +277,13 @@ class enrol_database_plugin extends enrol_plugin {
                 }
             }
         }
+
+        // START UCLA MOD: CCLE-3603 - TA vanished overnight
+        // Temporarily do not unenroll any users from login time enrollment.
+        if ($overrideenroldatabase) {
+            return;
+        }
+        // END UCLA MOD: CCLE-3603
 
         // Unenrol as necessary.
         $sql = "SELECT e.*, c.visible AS cvisible, ue.status AS ustatus
@@ -458,6 +490,15 @@ class enrol_database_plugin extends enrol_plugin {
             }
             $rs->close();
 
+            // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+            // Yes, this is duplicating work above, but we only want courses for
+            // a certain term.
+            if ($overrideenroldatabase) {
+                unset($existing);
+                $existing = $this->enrollmenthelper->get_existing_courses();
+            }
+            // END UCLA MOD: CCLE-4061
+
             // Add necessary enrol instances that are not present yet.
             $params = array();
             $localnotempty = "";
@@ -660,6 +701,9 @@ class enrol_database_plugin extends enrol_plugin {
         //$extdb->Close();
         if (!$overrideenroldatabase) {
             $extdb->Close();
+        } else {
+            // Trigger event to notify of recent enrollment changes.
+            $this->enrollmenthelper->trigger_sync_enrolments_event($existing);
         }
         // END UCLA MOD: CCLE-4061
 

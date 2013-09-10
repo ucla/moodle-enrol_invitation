@@ -54,11 +54,15 @@ class ucla_group_manager {
      * @param string $sp stored procedure call
      * @param array $request_arr containing the term and srs
      * @param bool $filter
-     * 
+     *
+     * @return array
      */
     public function query_registrar($sp, $request_arr, $filter) {
         $results = registrar_query::run_registrar_query($sp, $request_arr, $filter);
-        return $results[registrar_query::query_results]; 
+        if (isset($results[registrar_query::query_results])) {
+            return $results[registrar_query::query_results];
+        }
+        return array();
     }
 
     /**
@@ -94,7 +98,10 @@ class ucla_group_manager {
 
             echo "* " . make_idnumber($reqarr) . " has " . count($sections) 
                 . " sections\n";
-        
+            if (empty($sections)) {
+                continue;
+            }
+
             // Check this roster against section rosters to look for
             // stragglers
             $requestroster = $this->query_registrar(

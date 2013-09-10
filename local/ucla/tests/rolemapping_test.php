@@ -238,50 +238,27 @@ class rolemapping_test extends advanced_testcase {
     
     /**
      * Provides a multitude of role combinations for primary and secondary 
-     * sections with alll possible mixes of 01, 02, and 03.
+     * sections with all possible mixes of 01, 02, and 03.
      */
     public function role_combo_provider() {
-        $ret_val = array();
-        
-        $role_codes = array('01', '02', '03');
+        $retval = array();        
+        $rolecodes = array('01', '02', '03');
         
         // get all the role combos (also include empty sets
-        $primary_role_combos = $this->powerSet($role_codes, 0);
-        $secondary_role_combos = $primary_role_combos;
+        $primaryrolecombos = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->power_set($rolecodes, 0);
+        $secondaryrolecombos = $primaryrolecombos;
         
         $index = 0;
-        foreach ($primary_role_combos as $primary) {            
-            foreach ($secondary_role_combos as $secondary) {
+        foreach ($primaryrolecombos as $primary) {
+            foreach ($secondaryrolecombos as $secondary) {
                 if (empty($primary) && empty($secondary)) continue;                                
-                $ret_val[$index][0]['primary'] = $primary;
-                $ret_val[$index][0]['secondary'] = $secondary;
+                $retval[$index][0]['primary'] = $primary;
+                $retval[$index][0]['secondary'] = $secondary;
                 ++$index;
             }
         }
         
-        return $ret_val;
+        return $retval;
     }
-
-    /** 
-     * Returns the power set of a one dimensional array, a 2-D array. 
-     * [a,b,c] -> [ [a], [b], [c], [a, b], [a, c], [b, c], [a, b, c] ]
-     * 
-     * @source http://stackoverflow.com/a/6092999/6001
-     */ 
-    function powerSet($in, $minLength = 1) { 
-        $count = count($in); 
-        $members = pow(2, $count); 
-        $return = array(); 
-        for ($i = 0; $i < $members; $i++) { 
-            $b = sprintf("%0".$count."b",$i); 
-            $out = array(); 
-            for ($j = 0; $j < $count; $j++) { 
-                if ($b{$j} == '1') $out[] = $in[$j]; 
-            } 
-            if (count($out) >= $minLength) { 
-                $return[] = $out; 
-            } 
-        } 
-        return $return; 
-    } 
 }

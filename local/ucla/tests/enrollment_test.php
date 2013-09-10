@@ -16,7 +16,7 @@
 
 /**
  * Tests the UCLA modifications to the external database enrollment plugin
- * involved in doing pre-pop enrollment.
+ * involved in doing login-time/pre-pop enrollment.
  *
  * @package    local_ucla
  * @category   phpunit
@@ -26,7 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-class local_ucla_prepop_testcase extends advanced_testcase {
+class local_ucla_enrollment_testcase extends advanced_testcase {
     /**
      * Mapping of role shortname to roleid.
      * @var array
@@ -92,6 +92,125 @@ class local_ucla_prepop_testcase extends advanced_testcase {
                          'enrl_stat_cd' => $enrollmentcode,
                          'ss_email_addr' => $user->email,
                          'bolid' => str_replace('@ucla.edu', '', $user->username));
+    }
+
+    /**
+     * Creates a temporary table to be used to fake the enroll2 table used
+     * during login time enrollment.
+     *
+     * Code copied from enrol/database/tests/sync_test.php: init_enrol_database
+     *
+     * @throws exception
+     */
+    protected function create_enroll2_table() {
+        global $DB, $CFG;
+
+        $dbman = $DB->get_manager();
+
+        set_config('dbencoding', 'utf-8', 'enrol_database');
+
+        set_config('dbhost', $CFG->dbhost, 'enrol_database');
+        set_config('dbuser', $CFG->dbuser, 'enrol_database');
+        set_config('dbpass', $CFG->dbpass, 'enrol_database');
+        set_config('dbname', $CFG->dbname, 'enrol_database');
+
+        if (!empty($CFG->dboptions['dbport'])) {
+            set_config('dbhost', $CFG->dbhost.':'.$CFG->dboptions['dbport'], 'enrol_database');
+        }
+
+        switch (get_class($DB)) {
+            case 'mssql_native_moodle_database':
+                set_config('dbtype', 'mssql_n', 'enrol_database');
+                set_config('dbsybasequoting', '1', 'enrol_database');
+                break;
+
+            case 'mysqli_native_moodle_database':
+                set_config('dbtype', 'mysqli', 'enrol_database');
+                set_config('dbsetupsql', "SET NAMES 'UTF-8'", 'enrol_database');
+                set_config('dbsybasequoting', '0', 'enrol_database');
+                if (!empty($CFG->dboptions['dbsocket'])) {
+                    $dbsocket = $CFG->dboptions['dbsocket'];
+                    if ((strpos($dbsocket, '/') === false and strpos($dbsocket, '\\') === false)) {
+                        $dbsocket = ini_get('mysqli.default_socket');
+                    }
+                    set_config('dbtype', 'mysqli://'.rawurlencode($CFG->dbuser).':'.rawurlencode($CFG->dbpass).'@'.rawurlencode($CFG->dbhost).'/'.rawurlencode($CFG->dbname).'?socket='.rawurlencode($dbsocket), 'enrol_database');
+                }
+                break;
+
+            case 'oci_native_moodle_database':
+                set_config('dbtype', 'oci8po', 'enrol_database');
+                set_config('dbsybasequoting', '1', 'enrol_database');
+                break;
+
+            case 'pgsql_native_moodle_database':
+                set_config('dbtype', 'postgres7', 'enrol_database');
+                $setupsql = "SET NAMES 'UTF-8'";
+                if (!empty($CFG->dboptions['dbschema'])) {
+                    $setupsql .= "; SET search_path = '".$CFG->dboptions['dbschema']."'";
+                }
+                set_config('dbsetupsql', $setupsql, 'enrol_database');
+                set_config('dbsybasequoting', '0', 'enrol_database');
+                if (!empty($CFG->dboptions['dbsocket']) and ($CFG->dbhost === 'localhost' or $CFG->dbhost === '127.0.0.1')) {
+                    if (strpos($CFG->dboptions['dbsocket'], '/') !== false) {
+                      set_config('dbhost', $CFG->dboptions['dbsocket'], 'enrol_database');
+                    } else {
+                      set_config('dbhost', '', 'enrol_database');
+                    }
+                }
+                break;
+
+            case 'sqlsrv_native_moodle_database':
+                set_config('dbtype', 'mssqlnative', 'enrol_database');
+                set_config('dbsybasequoting', '1', 'enrol_database');
+                break;
+
+            default:
+                throw new exception('Unknown database driver '.get_class($DB));
+        }
+
+        // NOTE: It is stongly discouraged to create new tables in advanced_testcase classes,
+        //       but there is no other simple way to test ext database enrol sync.
+
+        $table = new xmldb_table('enrol_database_test_enroll2');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('termsrs', XMLDB_TYPE_CHAR, '13', null, null, null);
+        $table->add_field('uid', XMLDB_TYPE_CHAR, '9', null, null, null);
+        $table->add_field('role', XMLDB_TYPE_CHAR, '25', null, null, null);
+        $table->add_field('subj_area', XMLDB_TYPE_CHAR, '7', null, null, null);
+        $table->add_field('catlg_no', XMLDB_TYPE_CHAR, '8', null, null, null);
+        $table->add_field('term_int', XMLDB_TYPE_INTEGER, '3', null, null, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+        $dbman->create_table($table);
+        set_config('remoteenroltable', $CFG->prefix.'enrol_database_test_enroll2', 'enrol_database');
+    }
+
+    /**
+     * Returns an array to be used in testing createfinduser's updating process.
+     * 
+     * @return array    Some combo of firstname, lastname, and email.
+     */
+    public function diff_conditions_provider() {
+        $conditions = array('firstname', 'lastname', 'email');
+        $retval = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->power_set($conditions, 0);
+        foreach ($retval as $index => $value) {
+            $retval[$index] = array($value);
+        }
+        return $retval;
+    }
+
+    /**
+     * Drops the table that was created by create_enroll2_table().
+     */
+    protected function drop_enroll2_table() {
+        global $DB;
+
+        $dbman = $DB->get_manager();
+        $table = new xmldb_table('enrol_database_test_enroll2');
+        $dbman->drop_table($table);
     }
 
     /**
@@ -256,8 +375,8 @@ class local_ucla_prepop_testcase extends advanced_testcase {
                                'username'   => 'username');
 
         // Find a UCLA user with idnumber and username set.
-        $uclauser = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_user();
+        $uclauser = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
         $enrollment = array();
         foreach ($fieldmappings as $key => $value) {
             $enrollment[$key] = $uclauser->$value;
@@ -281,10 +400,11 @@ class local_ucla_prepop_testcase extends advanced_testcase {
     }
 
     /**
-     * Make sure createorfinduser returns null for a nonexisting enrollment
-     * record that is missing the username.
+     * Make sure createorfinduser returns null for several cases of an invalid
+     * enrollment record.
      */
     public function test_createorfinduser_invalid() {
+        // Make sure that enrollment records without usernames are rejected.
         $enrollment = array('uid'        => '123456789',
                             'firstname'  => 'Joe',
                             'lastname'   => 'Bruin',
@@ -302,6 +422,39 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         $this->assertNull($founduser);
         $result = $cache->get($cachekey);
         $this->assertEquals($result, $founduser);
+
+        // Make sure that createorfinduser checks that UIDs and usernames match.
+        $user = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_user(array('idnumber' => '123456789'));
+
+        // Generate enrollment record, but with different UID.
+        $enrollment = array('uid'        => '987654321',
+                            'firstname'  => $user->firstname,
+                            'lastname'   => $user->lastname,
+                            'email'      => $user->email,
+                            'username'   => $user->username);
+        $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+        $this->assertNull($founduser);
+    }
+
+    /**
+     * Make sure createorfinduser does not update invalid emails.
+     */
+    public function test_createorfinduser_invalid_email() {
+        $user = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
+
+        // Make sure that enrollment records with invalid emails are handled.
+        $enrollment = array('uid'        => $user->idnumber,
+                            'firstname'  => $user->firstname,
+                            'lastname'   => $user->lastname,
+                            'email'      => 'invalid-email',
+                            'username'   => $user->username);
+
+        $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+        $this->assertNotEmpty($founduser);
+        $this->assertEquals($user->email, $founduser->email);
     }
 
     /**
@@ -335,6 +488,124 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         }
         $result = $cache->get($cachekey);
         $this->assertEquals($result, $founduser);
+    }
+
+    /**
+     * Make sure that createorfinduser does update a user's information if
+     * information is out of date according to the externaldb and user has not
+     * logged in for a while.
+     *
+     * @dataProvider diff_conditions_provider
+     */
+    public function test_createorfinduser_update_needed(array $diffconditions) {
+        global $DB;
+
+        // Set user's last access time to some very far time, after
+        // minuserupdatewaitdays.
+        $mintime = ((int) get_config('local_ucla', 'minuserupdatewaitdays')) * 86401;
+        $lastaccess = max(time() - mt_rand($mintime, mt_getrandmax()), 0);
+        $user = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_user(array('lastaccess' => $lastaccess));
+
+        $diffuser = clone($user);
+        if (!empty($diffconditions)) {
+            // The empty case makes no sense for this test.
+            return;
+        }
+        foreach ($diffconditions as $field) {
+            $diffuser->$field = str_shuffle($diffuser->$field);
+        }
+
+        $enrollment = array('uid'       => $diffuser->idnumber,
+                            'firstname' => $diffuser->firstname,
+                            'lastname'  => $diffuser->lastname,
+                            'email'     => $diffuser->email,
+                            'username'  => $diffuser->username);
+
+        $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+
+        // Make sure returned user does have info updated.
+        $dbuser = $DB->get_record('user', array('id' => $user->id));
+        foreach (array('firstname', 'lastname', 'email') as $field) {
+            $this->assertEquals($diffuser->$field, $founduser->$field, 
+                    'Field being processed: ' . $field);
+            // Make sure local DB was updated as well.
+            $this->assertEquals($dbuser->$field, $founduser->$field,
+                    'Field being processed: ' . $field);
+        }
+    }
+
+    /**
+     * Make sure that when createorfinduser does update a user's information it
+     * will not update with empty data.
+     */
+    public function test_createorfinduser_update_notempty() {
+        global $DB;
+
+        // Set user's last access time to some very far time, after
+        // minuserupdatewaitdays.
+        $mintime = ((int) get_config('local_ucla', 'minuserupdatewaitdays')) * 86401;
+        $lastaccess = max(time() - mt_rand($mintime, mt_getrandmax()), 0);
+        $user = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_user(array('lastaccess' => $lastaccess));
+
+        // Fields that we will try to make an empty enrollment record for.
+        $emptyfields = array('firstname', 'lastname', 'email');
+        foreach ($emptyfields as $field) {
+            $enrollment = array('uid'       => $user->idnumber,
+                                'firstname' => $user->firstname,
+                                'lastname'  => $user->lastname,
+                                'email'     => $user->email,
+                                'username'  => $user->username);
+            $enrollment[$field] = '';
+            $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+
+            // Make sure returned user does not have empty info updated.
+            $this->assertEquals($user->$field, $founduser->$field,
+                    'Field being processed: ' . $field);
+
+            // Make sure local DB was not updated as well.
+            $dbuser = $DB->get_record('user', array('id' => $user->id));
+            $this->assertEquals($dbuser->$field, $founduser->$field,
+                    'Field being processed: ' . $field);
+        }
+    }
+
+    /**
+     * Make sure that createorfinduser does not update a user's information
+     * even if information is out of date according to the externaldb.
+     *
+     * @dataProvider diff_conditions_provider
+     */
+    public function test_createorfinduser_update_notneeded(array $diffconditions) {
+        // Set user's last access time to some recent time, before
+        // minuserupdatewaitdays.
+        $maxtime = ((int) get_config('local_ucla', 'minuserupdatewaitdays')) * 86400;
+        $user = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_user(array('lastaccess' => time() - mt_rand(0, $maxtime)));
+
+        $diffuser = clone($user);
+        if (!empty($diffconditions)) {
+            foreach ($diffconditions as $field) {
+                $diffuser->$field = str_shuffle($diffuser->$field);
+            }
+        }
+
+        $enrollment = array('uid'       => $diffuser->idnumber,
+                            'firstname' => $diffuser->firstname,
+                            'lastname'  => $diffuser->lastname,
+                            'email'     => $diffuser->email,
+                            'username'  => $diffuser->username);
+
+        $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+
+        // Make sure returned user does not have any info changed.
+        foreach (array('firstname', 'lastname', 'email') as $field) {
+            $this->assertEquals($user->$field, $founduser->$field);
+        }
     }
 
     /**
@@ -379,13 +650,13 @@ class local_ucla_prepop_testcase extends advanced_testcase {
 
         // Now, make sure database enrollment plugin is added if we are
         // processing courses for a term.
-        $class = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_class(
-                        array('term' => '13W'));
+        $class = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_class(array('term' => '13W'));
         $courseidsexpected[] = array_pop($class)->courseid;
-        $class = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_class(
-                        array('term' => '13W'), array('term' => '13W'));
+        $class = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_class(array('term' => '13W'), array('term' => '13W'));
         $courseidsexpected[] = array_pop($class)->courseid;
 
         // Just created courses, so shouldn't have database enrollment plugin.
@@ -423,13 +694,16 @@ class local_ucla_prepop_testcase extends advanced_testcase {
      * enrolling/unenrolling.
      */
     public function test_enrol_database_plugin_sync_enrolments() {
+        global $DB;
         // Add mocked enrollment helper.
         $enrol = enrol_get_plugin('database');
         $enrol->enrollmenthelper = $this->mockenrollmenthelper;
 
-        $class = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_class(
-                        array('term' => '13S', 'subj_area' => 'MATH', 'division' => 'PS'));
+        $class = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_class(array('term' => '13S',
+                                     'subj_area' => 'MATH',
+                                     'division' => 'PS'));
         $course = array_pop($class);
         $term = $course->term;
         $srs = $course->srs;
@@ -439,9 +713,9 @@ class local_ucla_prepop_testcase extends advanced_testcase {
 
         // Create enrollment records, first for instructors. Let system find
         // Instructor, but create the TA.
-        $instructor = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->
-                create_user(array('idnumber' => '123456789',
+        $instructor = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_user(array('idnumber' => '123456789',
                                   'username' => 'instructor@ucla.edu'));
         $courseusernames[] = $instructor->username;
         $ta = new stdClass();
@@ -460,12 +734,12 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         $this->set_mockregdata('ccle_courseinstructorsget', $term, $srs, $reginstructors);
 
         // Create student enrollment records.
-        $students[0] = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_user();
-        $students[1] = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_user();
-        $students[2] = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_user();
+        $students[0] = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
+        $students[1] = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
+        $students[2] = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
         $regstudents= array();
         foreach ($students as $index => $student) {
             $regstudents[$index] = $this->create_ccle_roster_class_entry($term, $srs, 'E', $student);
@@ -492,24 +766,149 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         $enrol->sync_enrolments($this->trace, array('13S'));
         $result = $this->is_username_enrolled($courseid, $droppedstudent->username);
         $this->assertTrue($result);
+
+        // Make sure we are not syncing enrollments for any other term.
+        $class = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_class(array('term' => '13F'));
+        $course = array_pop($class);
+        $courseid = $course->courseid;
+        $courseobj = $DB->get_record('course', array('id' => $courseid));
+        $instanceid = $enrol->add_instance($courseobj);
+        $instance = $DB->get_record('enrol', array('id' => $instanceid));
+
+        $enrol->enrol_user($instance, $instructor->id, $this->createdroles['editinginstructor']);
+        $result = $this->is_username_enrolled($courseid, $instructor->username);
+        $this->assertTrue($result);
+        $enrol->sync_enrolments($this->trace, array('13S'));
+        $result = $this->is_username_enrolled($courseid, $instructor->username);
+        $this->assertTrue($result);        
+    }
+
+    /**
+     * Makes sure that the sync_user_enrolments() method is working with the
+     * UCLA modifications.
+     */
+    public function test_enrol_database_plugin_sync_user_enrolments() {
+        global $DB;
+
+        // Setup enroll2 table.
+        $this->create_enroll2_table();
+
+        // Create some classes and what role the user should have.
+        $classes = array();
+        $roles = array('editingteacher', 'student', 'student_instructor',
+            'ta_instructor', 'supervising_instructor');
+        foreach ($roles as $role) {
+            $classes[$role] = $this->getDataGenerator()
+                    ->get_plugin_generator('local_ucla')->create_class();
+        }
+
+        // Create a user to add to those classes.
+        $user = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
+        $this->setUser($user);
+
+        // Add that user to enroll2 table with given role.
+        $numcourses = 0;
+        foreach ($classes as $role => $class) {
+            $course = array_pop($class);
+            $term = $course->term;
+            $srs = $course->srs;
+
+            $classinfo = ucla_get_reg_classinfo($term, $srs);
+            $record = new stdClass();
+            $record->termsrs = $term.'-'.$srs;
+            $record->uid = $user->idnumber;
+            $record->role = $role;
+            $record->subj_area = $classinfo->subj_area;
+            $record->catlg_no = $classinfo->crsidx;
+            $record->sect_no = $classinfo->classidx;
+
+            $DB->insert_record('enrol_database_test_enroll2', $record);
+            ++$numcourses;
+        }
+        $this->assertEquals(count($classes), $numcourses);
+
+        // Run sync, and user should get enrolled appropiately.
+        $enrol = enrol_get_plugin('database');
+        $enrol->sync_user_enrolments($user);
+
+        foreach ($classes as $role => $class) {
+            $course = array_pop($class);
+            $term = $course->term;
+            $srs = $course->srs;
+            $courseid = $course->courseid;
+            $context = context_course::instance($courseid);
+
+            $isenrolled = $this->is_username_enrolled($courseid, $user->username);
+            $this->assertTrue($isenrolled);
+
+            // Role name from Registrar do not always line up with Moodle role.
+            $roleshortname = '';
+            switch ($role) {
+                case 'editingteacher':
+                    $roleshortname = 'editinginstructor';
+                    break;
+                case 'student_instructor':
+                    $roleshortname = 'studentfacilitator';
+                    break;
+                default:
+                    $roleshortname = $role;
+            }
+
+            $hasrole = has_role_in_context($roleshortname, $context);
+            $this->assertTrue($hasrole);
+        }
+
+        // Cleaup after ourselves.
+        $this->drop_enroll2_table();
+    }
+
+    /**
+     * Make sure that get_course returns the proper course record for a given
+     * term/srs.
+     */
+    public function test_get_course() {
+        global $DB;
+
+        // Create non-crosslist course.
+        $classA = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_class(array());
+        // Create crosslisted courses.
+        $classB = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_class(array(), array(), array());
+        $classsections = array_merge($classA, $classB);
+
+        foreach ($classsections as $course) {
+            $term = $course->term;
+            $srs = $course->srs;
+            $courseid = $course->courseid;
+
+            $actualcourse = $this->mockenrollmenthelper->get_course($term.'-'.$srs);
+            $expectedcourse = $DB->get_record('course', array('id' => $courseid));
+            $this->assertEquals($expectedcourse, $actualcourse);            
+        }        
     }
 
     /**
      * Make sure that get_external_enrollment_courses returns the proper data.
      */
     public function test_get_external_enrollment_courses() {
+        global $DB;
         $courseidsexpected = array();
 
         // Create non-crosslist course.
-        $class = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_class(
-                        array('term' => '13S'));
+        $class = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_class(array('term' => '13S'));
         $courseidsexpected[] = array_pop($class)->courseid;
 
         // Create crosslist course.
-        $class = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_class(
-                        array('term' => '13S'), array('term' => '13S'));
+        $class = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_class(array('term' => '13S'), array('term' => '13S'));
         $courseidsexpected[] = array_pop($class)->courseid;
 
         // Expecting to find all courseids above in result array.
@@ -519,15 +918,16 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         sort($courseidsexpected);
         sort($courseidsreturned);
         $this->assertEquals($courseidsexpected, $courseidsreturned);
+        $springcourseidsexpected = $courseidsexpected;
 
         // Create courses in another term and check they are returned.
-        $class = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_class(
-                        array('term' => '131'));
+        $class = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_class(array('term' => '131'));
         $courseidsexpected[] = array_pop($class)->courseid;
-        $class = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_class(
-                        array('term' => '131'), array('term' => '131'));
+        $class = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_class(array('term' => '131'), array('term' => '131'));
         $courseidsexpected[] = array_pop($class)->courseid;
 
         // Expecting to find all courseids above in result array.
@@ -537,6 +937,25 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         sort($courseidsexpected);
         sort($courseidsreturned);
         $this->assertEquals($courseidsexpected, $courseidsreturned);
+
+        // Query just for Sprint again and make sure nothing else is returned.
+        $this->mockenrollmenthelper->set_run_parameter(array('13S'));
+        $results = $this->mockenrollmenthelper->get_external_enrollment_courses();
+        $springcourseidsreturned = array_keys($results);
+        sort($springcourseidsreturned);
+        $this->assertEquals($springcourseidsexpected, $springcourseidsreturned);
+
+        // Add an course request that hasn't beeen built to Spring and make
+        // sure it isn't returned.
+        $request = new stdClass();
+        $request->term = '13S';
+        $request->srs = '000000001';
+        $request->department = 'MATH';
+        $request->course = '1';
+        $request->action = UCLA_COURSE_TOBUILD;
+        $DB->insert_record('ucla_request_classes', $request);
+        $results = $this->mockenrollmenthelper->get_external_enrollment_courses();
+        $this->assertEquals(count($springcourseidsreturned), count($results));
     }
 
     /**
@@ -544,15 +963,15 @@ class local_ucla_prepop_testcase extends advanced_testcase {
      */
     public function test_get_instructors() {
         // Get a non-crosslisted class.
-        $class = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_class(array());
+        $class = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_class(array());
 
         // Create instructors to enroll. Avoid TA role here, because for some
         // subject areas it maps to either taadmin or ta.
-        $instructor = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_user();
-        $supervisinginstructor = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_user();
+        $instructor = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
+        $supervisinginstructor = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
 
         // Index by role code.
         $instructors = array('01' => $instructor,
@@ -598,8 +1017,8 @@ class local_ucla_prepop_testcase extends advanced_testcase {
      */
     public function test_get_requested_roles() {
         global $DB;
-        $class = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_class(array());
+        $class = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_class(array());
 
         // Create results to use for ccle_courseinstructorsget.
         $course = array_pop($class);
@@ -607,10 +1026,10 @@ class local_ucla_prepop_testcase extends advanced_testcase {
         $srs = $course->srs;
 
         // Create Instructor and Supervising instructor.
-        $instructor = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_user();
-        $supervisinginstructor = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_user();
+        $instructor = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
+        $supervisinginstructor = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
         $instructors = array('01' => $instructor,
                              '03' => $supervisinginstructor);
         foreach ($instructors as $rolecode => $role) {
@@ -646,16 +1065,16 @@ class local_ucla_prepop_testcase extends advanced_testcase {
      */
     public function test_get_students() {
         // Get a non-crosslisted class.
-        $class = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_class(array());
+        $class = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_class(array());
 
         // Create students to enroll.
-        $dropped = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_user();
-        $enrolled = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_user();
-        $waitlist = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_user();
+        $dropped = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
+        $enrolled = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
+        $waitlist = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_user();
 
         // Index by enrollment code.
         $students = array('D' => $dropped,
@@ -704,8 +1123,8 @@ class local_ucla_prepop_testcase extends advanced_testcase {
      * Test that we are not processing dummy "THE STAFF" or TA accounts.
      */
     public function test_nodummy() {
-        $class = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_class();
+        $class = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')->create_class();
 
         // Create results to use for ccle_courseinstructorsget.
         $entry = array_pop($class);
