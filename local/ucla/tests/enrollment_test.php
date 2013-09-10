@@ -440,8 +440,6 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
 
     /**
      * Make sure createorfinduser does not update invalid emails.
-     *
-     * @group totest
      */
     public function test_createorfinduser_invalid_email() {
         $user = $this->getDataGenerator()
@@ -694,8 +692,6 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
     /**
      * Test syncing of a given roster (instructors and students) including
      * enrolling/unenrolling.
-     *
-     * @group totest
      */
     public function test_enrol_database_plugin_sync_enrolments() {
         global $DB;

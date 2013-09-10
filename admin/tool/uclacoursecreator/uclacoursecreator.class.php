@@ -371,7 +371,7 @@ class uclacoursecreator {
         } 
 
         // format result nicely, not in all caps
-        return ucla_format_name($this->reg_trans[$table][$target]);
+        return ucla_format_name($this->reg_trans[$table][$target], true);
     }
 
     /**

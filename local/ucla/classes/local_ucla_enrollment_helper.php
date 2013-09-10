@@ -274,8 +274,7 @@ class local_ucla_enrollment_helper {
                         $needsupdating = false;
                         break;
                     }
-                } else if (textlib::strtolower($enrollment[$field])
-                        !== textlib::strtolower($user->$field)) {
+                } else if ($enrollment[$field] !== $user->$field) {
                     $needsupdating = true;
                     $this->trace->output(
                             sprintf('User %d needs update: %s [%s] => [%s]',

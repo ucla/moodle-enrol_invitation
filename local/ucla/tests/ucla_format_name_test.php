@@ -80,10 +80,10 @@ class ucla_format_name_test extends basic_testcase {
      * "as", "a". Needed when formatting subject areas.
      */
     function test_conjunctions() {
-        $result = ucla_format_name("Conservation Of Archaeological And Ethnographic Materials");
+        $result = ucla_format_name("Conservation Of Archaeological And Ethnographic Materials", true);
         $this->assertEquals($result, "Conservation of Archaeological and Ethnographic Materials");   
 
-        $result = ucla_format_name("Indigenous Languages OF THE Americas");
+        $result = ucla_format_name("Indigenous Languages OF THE Americas", true);
         $this->assertEquals($result, "Indigenous Languages of the Americas");          
     }
     
@@ -91,7 +91,7 @@ class ucla_format_name_test extends basic_testcase {
      * Now test a complex string with every special case in it
      */
     function test_complex_string() {
-        $result = ucla_format_name("MCMARY HAD A LITTLE-LAMB & IT'S FLEECE / WAS WHITE AS SNOW");
+        $result = ucla_format_name("MCMARY HAD A LITTLE-LAMB & IT'S FLEECE / WAS WHITE AS SNOW", true);
         $this->assertEquals($result, "McMary Had a Little-Lamb & It's Fleece / Was White as Snow");    
     }
 
