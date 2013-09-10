@@ -3683,7 +3683,7 @@ input {
 /* line 103, ../sass/_header.scss */
 #page-header.env-test .header-logo .ccle-logo-text,
 #page-header.env-test .weeks-display {
-  color: #f3cda1;
+  color: #f3dcc1;
 }
 /* line 108, ../sass/_header.scss */
 #page-header .header-logo {
@@ -4914,7 +4914,11 @@ input {
   color: #999;
 }
 
-/* line 77, ../sass/_labels.scss */
+/* line 72, ../sass/_labels.scss */
+.groupinglabel {
+  display: inline-block;
+}
+/* line 78, ../sass/_labels.scss */
 a + .groupinglabel {
   margin-left: 12px;
 }

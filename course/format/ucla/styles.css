@@ -1,10 +1,3 @@
-/*
-    Required include for modules
-*/
-/* 360px is iPhone vertical */
-/* 480px is iPhone horizontal */
-/* 768px is iPad horizontal */
-/* 1024px is iPad vertical */
 /* line 6, sass/_course.scss */
 .ccle-generic-box, .course-content .registrar-collapsed {
   display: block;
@@ -113,167 +106,210 @@
   box-shadow: #aaaaaa 1px 2px 2px;
 }
 
-/* line 32, sass/_editing.scss */
+/* line 8, sass/_editing.scss */
+.ucla-format {
+  /*    .commands a, .commands .editing_move {
+          float: left;
+      }*/
+}
+/* line 34, sass/_editing.scss */
 .ucla-format.text-icons .editing_title {
   color: orangered;
 }
-/* line 34, sass/_editing.scss */
+/* line 36, sass/_editing.scss */
 .ucla-format.text-icons .editing_title:after {
   content: attr(title);
   margin-left: 2px;
   margin-right: 12px;
 }
-/* line 32, sass/_editing.scss */
+/* line 34, sass/_editing.scss */
 .ucla-format.text-icons .editing_moveright {
   color: orangered;
 }
-/* line 34, sass/_editing.scss */
+/* line 36, sass/_editing.scss */
 .ucla-format.text-icons .editing_moveright:after {
   content: attr(title);
   margin-left: 2px;
   margin-right: 12px;
 }
-/* line 32, sass/_editing.scss */
+/* line 34, sass/_editing.scss */
 .ucla-format.text-icons .editing_moveleft {
   color: orangered;
 }
-/* line 34, sass/_editing.scss */
+/* line 36, sass/_editing.scss */
 .ucla-format.text-icons .editing_moveleft:after {
   content: attr(title);
   margin-left: 2px;
   margin-right: 12px;
 }
-/* line 32, sass/_editing.scss */
+/* line 34, sass/_editing.scss */
 .ucla-format.text-icons .editing_move {
   color: orangered;
 }
-/* line 34, sass/_editing.scss */
+/* line 36, sass/_editing.scss */
 .ucla-format.text-icons .editing_move:after {
   content: attr(title);
   margin-left: 2px;
   margin-right: 12px;
 }
-/* line 32, sass/_editing.scss */
+/* line 34, sass/_editing.scss */
 .ucla-format.text-icons .editing_duplicate {
   color: orangered;
 }
-/* line 34, sass/_editing.scss */
+/* line 36, sass/_editing.scss */
 .ucla-format.text-icons .editing_duplicate:after {
   content: attr(title);
   margin-left: 2px;
   margin-right: 12px;
 }
-/* line 32, sass/_editing.scss */
+/* line 34, sass/_editing.scss */
 .ucla-format.text-icons .editing_delete {
   color: orangered;
 }
-/* line 34, sass/_editing.scss */
+/* line 36, sass/_editing.scss */
 .ucla-format.text-icons .editing_delete:after {
   content: attr(title);
   margin-left: 2px;
   margin-right: 12px;
 }
-/* line 32, sass/_editing.scss */
+/* line 34, sass/_editing.scss */
 .ucla-format.text-icons .editing_update {
   color: orangered;
 }
-/* line 34, sass/_editing.scss */
+/* line 36, sass/_editing.scss */
 .ucla-format.text-icons .editing_update:after {
   content: attr(title);
   margin-left: 2px;
   margin-right: 12px;
 }
-/* line 32, sass/_editing.scss */
+/* line 34, sass/_editing.scss */
 .ucla-format.text-icons .editing_hide {
   color: orangered;
 }
-/* line 34, sass/_editing.scss */
+/* line 36, sass/_editing.scss */
 .ucla-format.text-icons .editing_hide:after {
   content: attr(title);
   margin-left: 2px;
   margin-right: 12px;
 }
-/* line 32, sass/_editing.scss */
+/* line 34, sass/_editing.scss */
 .ucla-format.text-icons .editing_show {
   color: orangered;
 }
-/* line 34, sass/_editing.scss */
+/* line 36, sass/_editing.scss */
 .ucla-format.text-icons .editing_show:after {
   content: attr(title);
   margin-left: 2px;
   margin-right: 12px;
 }
-/* line 32, sass/_editing.scss */
+/* line 34, sass/_editing.scss */
 .ucla-format.text-icons .editing_section {
   color: orangered;
 }
-/* line 34, sass/_editing.scss */
+/* line 36, sass/_editing.scss */
 .ucla-format.text-icons .editing_section:after {
   content: attr(title);
   margin-left: 2px;
   margin-right: 12px;
 }
-/* line 32, sass/_editing.scss */
+/* line 34, sass/_editing.scss */
 .ucla-format.text-icons .editing_showhide {
   color: orangered;
 }
-/* line 34, sass/_editing.scss */
+/* line 36, sass/_editing.scss */
 .ucla-format.text-icons .editing_showhide:after {
   content: attr(title);
   margin-left: 2px;
   margin-right: 12px;
 }
-/* line 32, sass/_editing.scss */
+/* line 34, sass/_editing.scss */
 .ucla-format.text-icons .edit_course_summary {
   color: orangered;
 }
-/* line 34, sass/_editing.scss */
+/* line 36, sass/_editing.scss */
 .ucla-format.text-icons .edit_course_summary:after {
   content: attr(title);
   margin-left: 2px;
   margin-right: 12px;
 }
-/* line 32, sass/_editing.scss */
+/* line 34, sass/_editing.scss */
 .ucla-format.text-icons .editing_instr_info {
   color: orangered;
 }
-/* line 34, sass/_editing.scss */
+/* line 36, sass/_editing.scss */
 .ucla-format.text-icons .editing_instr_info:after {
   content: attr(title);
   margin-left: 2px;
   margin-right: 12px;
 }
-/* line 43, sass/_editing.scss */
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_makepublic {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_makepublic:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_makeprivate {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_makeprivate:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 45, sass/_editing.scss */
 .ucla-format.text-icons .activityinstance,
 .ucla-format.text-icons .commands {
   float: left;
   width: 100%;
 }
-/* line 48, sass/_editing.scss */
+/* line 50, sass/_editing.scss */
 .ucla-format.text-icons .editing_move:after {
   cursor: move;
 }
-/* line 53, sass/_editing.scss */
+/* line 55, sass/_editing.scss */
 .ucla-format.text-icons li.activity img.iconsmall {
   height: 16px;
   width: 16px;
   vertical-align: middle !important;
 }
-/* line 63, sass/_editing.scss */
+/* line 65, sass/_editing.scss */
 .ucla-format:not(.text-icons) img.iconsmall {
   height: 20px;
   width: 20px;
   vertical-align: middle !important;
 }
-/* line 70, sass/_editing.scss */
+/* line 74, sass/_editing.scss */
 .ucla-format:not(.text-icons) li.activity .commands {
   float: right;
 }
-/* line 73, sass/_editing.scss */
-.ucla-format:not(.text-icons) li.activity .commands a {
+/* line 77, sass/_editing.scss */
+.ucla-format:not(.text-icons) li.activity .commands a, .ucla-format:not(.text-icons) li.activity .commands .editing_move {
   margin-right: 8px;
+  float: left;
 }
-/* line 79, sass/_editing.scss */
+/* line 83, sass/_editing.scss */
+.ucla-format:not(.text-icons) li.activity .commands a.editing_delete {
+  float: right;
+}
+/* line 90, sass/_editing.scss */
+.ucla-format:not(.text-icons) li.activity .commands .editing_move,
+.ucla-format:not(.text-icons) li.activity .commands .editing_duplicate,
+.ucla-format:not(.text-icons) li.activity .commands .publicprivate {
+  padding-right: 8px;
+  margin-right: 12px;
+  border-right: 1px solid #dddddd;
+}
+/* line 95, sass/_editing.scss */
+.ucla-format:not(.text-icons) li.activity .commands .publicprivate {
+  margin-right: 20px;
+}
+/* line 108, sass/_editing.scss */
 .ucla-format .jit-links {
   margin-top: 2px;
   padding-left: 42px;
@@ -281,31 +317,31 @@
   display: inline;
   position: relative;
 }
-/* line 87, sass/_editing.scss */
+/* line 116, sass/_editing.scss */
 .ucla-format .jit-links > a:link,
 .ucla-format .jit-links > a {
   color: orangered;
   margin-right: 12px;
 }
 
-/* line 97, sass/_editing.scss */
+/* line 126, sass/_editing.scss */
 .section-modchooser,
 .section_add_menus {
   border-top: 4px solid #cccccc;
   margin-bottom: 10px;
   padding: 10px;
 }
-/* line 102, sass/_editing.scss */
+/* line 131, sass/_editing.scss */
 .section-modchooser .section-modchooser-link,
 .section_add_menus .section-modchooser-link {
   display: inline-block;
 }
-/* line 106, sass/_editing.scss */
+/* line 135, sass/_editing.scss */
 .section-modchooser .section-modchooser-link .smallicon,
 .section_add_menus .section-modchooser-link .smallicon {
   display: none;
 }
-/* line 107, sass/_editing.scss */
+/* line 136, sass/_editing.scss */
 .section-modchooser .section-modchooser-link a:before,
 .section_add_menus .section-modchooser-link a:before {
   position: relative;
@@ -320,7 +356,7 @@
   margin-right: 4px;
 }
 
-/* line 116, sass/_editing.scss */
+/* line 145, sass/_editing.scss */
 li.activity {
   padding: 5px 10px;
   border-top: 1px solid whitesmoke;
@@ -329,24 +365,24 @@ li.activity {
   display: inline-block;
   width: 100%;
 }
-/* line 128, sass/_editing.scss */
+/* line 157, sass/_editing.scss */
 li.activity:not(.label):nth-child(2n) {
   background-color: #F9F9F9;
 }
-/* line 131, sass/_editing.scss */
+/* line 160, sass/_editing.scss */
 li.activity:not(.label):hover {
   background-color: #F5F5F5;
 }
-/* line 135, sass/_editing.scss */
+/* line 164, sass/_editing.scss */
 li.activity.label:hover {
   background-color: white !important;
 }
-/* line 140, sass/_editing.scss */
+/* line 169, sass/_editing.scss */
 li.activity.yui3-dd-draggable + li.activity.yui3-dd-drop-active-valid {
   border-top: 2px dashed orangered;
 }
 
-/* line 147, sass/_editing.scss */
+/* line 176, sass/_editing.scss */
 .path-course-view li.activity span.autocompletion,
 .path-course-view li.activity form.togglecompletion {
   float: right;
@@ -354,11 +390,11 @@ li.activity.yui3-dd-draggable + li.activity.yui3-dd-drop-active-valid {
   right: 0;
 }
 
-/* line 157, sass/_editing.scss */
+/* line 186, sass/_editing.scss */
 .alloptions > .option > label {
   float: left;
 }
-/* line 159, sass/_editing.scss */
+/* line 188, sass/_editing.scss */
 .alloptions > .option > label > .typename {
   float: right;
   display: inline-block;

@@ -306,7 +306,7 @@ function get_private_public($mod, $sr = null) {
     $publicprivate_course = new PublicPrivate_Course($mod->course);
     $pubpriv = '';
 
-    $baseurl = new moodle_url('/course/mod.php', array('sesskey' => sesskey()));
+    $baseurl = new moodle_url('/local/publicprivate/mod.php', array('sesskey' => sesskey()));
 
     if ($sr !== null) {
         $baseurl->param('sr', $sr);
@@ -328,14 +328,14 @@ function get_private_public($mod, $sr = null) {
                 new moodle_url($baseurl, array('public' => $mod->id)),
                 new pix_icon('t/locked', $public, 'moodle', array('class' => 'iconsmall')),
                 null,
-                array('class' => 'editing_makepublic', 'title' => $public)
+                array('class' => 'editing_makepublic publicprivate', 'title' => $public)
             );                
         } else {
             $actions[] = new action_link(
                 new moodle_url($baseurl, array('private' => $mod->id)),
                 new pix_icon('t/lock', $private, 'moodle', array('class' => 'iconsmall')),
                 null,
-                array('class' => 'editing_makeprivate', 'title' => $private)
+                array('class' => 'editing_makeprivate publicprivate', 'title' => $private)
             );                    
         }
     }

@@ -12,10 +12,6 @@ YUI.add('moodle-local_publicprivate-util', function(Y) {
         MODULEIDPREFIX : 'module-',
     };
     
-    var PREFERENCES_UCLA = {
-        STRINGS : {}
-    };
-    
     var PUBLICPRIVATE = function() {
         PUBLICPRIVATE.superclass.constructor.apply(this, arguments);
     }
@@ -23,66 +19,58 @@ YUI.add('moodle-local_publicprivate-util', function(Y) {
     Y.extend(PUBLICPRIVATE, Y.Base, {
         initializer : function(config) {
             // Set event listeners
-            Y.delegate('click', this.toggle_publicprivate, CSS.PAGECONTENT, CSS.COMMANDSPAN + ' ' + CSS.PUBLICPRIVATE_PUBLIC, this);
-            Y.delegate('click', this.toggle_publicprivate, CSS.PAGECONTENT, CSS.COMMANDSPAN + ' ' + CSS.PUBLICPRIVATE_PRIVATE, this);
+            Y.delegate('click', this.toggle, CSS.PAGECONTENT, CSS.COMMANDSPAN + ' a.publicprivate', this);
 
             // Let moodle know we exist
             M.course.coursebase.register_module(this);
         },
-        toggle_publicprivate : function(e) {
+        toggle : function(e) {
             e.preventDefault();
-
-            var button = e.target;
-            var resource = e.target.ancestor(CSS.MODINDENTDIV);
-            var element   = e.target.ancestor(CSS.ACTIVITYLI);
-
-            var label = resource.one(CSS.GROUPINGSPAN);
+    
+            var mod = e.target.ancestor(CSS.ACTIVITYLI);
+            
             var field = '';
-            var text = '';
-            var pix = '';
-
-            if(label) {
-                label.remove();
+            var public = mod.one('.activityinstance .groupinglabel');
+            
+            if (public) {
+                public.remove();
                 field = 'public';
-                text = PREFERENCES_UCLA.STRINGS.makeprivate;
-                pix = this.get('publicpix');
-            } else {
-                var newnode = Y.Node.create('<span></span>');
-                newnode.setHTML('(' + PREFERENCES_UCLA.STRINGS.privatematerial + ')')
-                        .setAttribute('class', 'groupinglabel');
-                resource.one(CSS.COMMANDSPAN).insert(newnode, 'before');
-                text = PREFERENCES_UCLA.STRINGS.makepublic;
-                field = 'private';
-                pix = this.get('privatepix');
-            }
 
-            if(PREFERENCES_UCLA.noeditingicon) {
-                button.set('text', text);
+                // Swap icon
+                mod.one('.publicprivate').setAttrs({
+                    'title' : M.util.get_string('publicprivatemakeprivate', 'local_publicprivate'),
+                }).one('img').setAttrs({
+                    'src' : M.util.image_url(this.get('publicpix'), this.get('component')),
+                    'alt' : M.util.get_string('publicprivatemakeprivate', 'local_publicprivate')
+                })
+                
             } else {
-                // Sometimes we get the event from the link, and sometimes 
-                // from the image.  We want to make sure we manipulate the image
-                if(button.get('src') == null) {
-                    button = button.one('img');
-                }
-
-                // swap button image
-                button.setAttrs({
-                    'src' : M.util.image_url(pix, this.get('component')),
-                    'alt' : text,
-                    'title' : text
+                // Add label
+                mod.one('.activityinstance').insert(
+                    Y.Node.create('<span class="groupinglabel">(' + M.util.get_string('publicprivategroupingname', 'local_publicprivate') + ')</span>')
+                );
+                
+                // Swap icon
+                mod.one('.publicprivate').setAttrs({
+                    'title' : M.util.get_string('publicprivatemakepublic', 'local_publicprivate'),
+                }).one('img').setAttrs({
+                    'src' : M.util.image_url(this.get('privatepix'), this.get('component')),
+                    'alt' : M.util.get_string('publicprivatemakepublic', 'local_publicprivate')
                 });
+                
+                field = 'private'; 
             }
-
+            
             // Prepare ajax data
             var data = {
                 'class' : 'resource',
                 'field' : field,
-                'id'    : element.get('id').replace(CSS.MODULEIDPREFIX, '')
+                'id'    : mod.get('id').replace(CSS.MODULEIDPREFIX, '')
             };
-
-            var spinner = M.util.add_spinner(Y, element.one(CSS.SPINNERCOMMANDSPAN));
-
-//            M.course.coursebase.invoke_function('send_request', data, spinner);
+            
+            // Get spinner
+            var spinner = M.util.add_spinner(Y, mod.one(CSS.SPINNERCOMMANDSPAN));
+            
             // Send request
             this.send_request(data, spinner);
         },
@@ -95,7 +83,7 @@ YUI.add('moodle-local_publicprivate-util', function(Y) {
             data.sesskey = M.cfg.sesskey;
             data.courseId = this.get('courseid');
 
-            var uri = M.cfg.wwwroot + this.get('ajaxurl');
+            var uri = M.cfg.wwwroot + '/local/publicprivate/rest.php';
 
             // Define the configuration to send with the request
             var responsetext = [];
@@ -136,16 +124,32 @@ YUI.add('moodle-local_publicprivate-util', function(Y) {
             return responsetext;
         },
         setup_for_resource : function(baseselector) {
-            //@todo: add public private icons to dropped files
+            // Insert the PP icon node after a file is dragged + dropped
+            var href = M.cfg.wwwroot + 
+                    '/local/publicprivate/mod.php?' + 
+                    M.cfg.sesskey + '&public=' + 
+                    baseselector.replace(CSS.MODULEIDPREFIX, '');
+            
+            // Generate pp icon node
+            // NOTE: because we delegate events, we don't need to attach a handler
+            Y.one(baseselector + ' ' + CSS.COMMANDSPAN).insert(
+                Y.Node.create(
+                    '<a class="editing_makepublic publicprivate" ' +
+                        'href="' + href + '"' +
+                        'title="' + M.util.get_string('publicprivatemakepublic', 'local_publicprivate') + '">' +
+                        '<img class="iconsmall" ' +
+                            'src="' + M.util.image_url(this.get('privatepix'), this.get('component')) + '"' +
+                            'alt="' + M.util.get_string('publicprivatemakepublic', 'local_publicprivate') + '"/>' +
+                    '</a>'
+                )
+            );
+
         }
     }, {
         NAME : 'course-publicprivate-toolbox',
         ATTRS : {
             courseid : {
                 'value' : 0
-            },
-            ajaxurl : {
-                'value' : ''
             },
             component : {
                 'value' : 'core'
@@ -162,12 +166,7 @@ YUI.add('moodle-local_publicprivate-util', function(Y) {
     M.local_publicprivate = M.local_publicprivate || {};
     
     M.local_publicprivate.init = function (params) {
-        
-        PREFERENCES_UCLA.STRINGS.makeprivate = params.makeprivate;
-        PREFERENCES_UCLA.STRINGS.makepublic = params.makepublic;
-        PREFERENCES_UCLA.STRINGS.privatematerial = params.privatematerial;
-        PREFERENCES_UCLA.noeditingicon = params.noeditingicon;
-        
+        // Load module
         return new PUBLICPRIVATE(params);
     }
     

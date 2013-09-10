@@ -20,12 +20,14 @@ $PAGE->set_url('/local/publicprivate/rest.php', array('courseId'=>$courseid,'cla
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 $coursecontext = context_course::instance($course->id);
 
-if ($class === 'resource') {
-    $cm = get_coursemodule_from_id(null, $id, $course->id, false, MUST_EXIST);
-    require_login($course, false, $cm);
-    require_sesskey();
+$cm = get_coursemodule_from_id(null, $id, $course->id, false, MUST_EXIST);
+$modcontext = context_module::instance($cm->id);
 
-//    $modcontext = context_module::instance($cm->id);
+require_login($course, false, $cm);
+require_sesskey();
+require_capability('moodle/course:manageactivities', $modcontext);
+
+if ($class === 'resource') {
 
     echo $OUTPUT->header(); // send headers
 

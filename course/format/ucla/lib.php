@@ -211,61 +211,32 @@ class format_ucla extends format_topics {
     }
     
     /**
-     * Format overrides for Moodle YUI.  This gets called at course footer.
+     * Course-specific information to be output immediately below content on any course page
      *
      * See {@link format_base::course_header()} for usage
      *
      * @return null|renderable null for no output or object with data for plugin renderer
      */
-    public function course_footer() {
+    public function course_content_footer() {
         global $PAGE;
         
         if (ajaxenabled() && $PAGE->user_is_editing()) {
-            $PAGE->requires->js('/course/format/ucla/module_override.js');
-
-            // Need these strings.. 
-            $strishidden = '(' . get_string('hidden', 'calendar') . ')';
-            $strmovealt = get_string('movealt', 'format_ucla');
-            $pp_make_private = get_string('publicprivatemakeprivate', 'local_publicprivate');
-            $pp_make_public = get_string('publicprivatemakepublic', 'local_publicprivate');
-            $pp_private_material = get_string('publicprivategroupingname','local_publicprivate');
-
-            $noeditingicons = get_user_preferences('noeditingicons', 1);
-
-            $noeditingicons = empty($noeditingicons) ? false : true;
-
-            $PAGE->requires->yui_module('moodle-local_publicprivate-util', 'M.local_publicprivate.init',
-                    array(array(
-                        'courseid' => $this->get_courseid(),
-                        'ajaxurl' => '/local/publicprivate/rest.php',
-                        'noeditingicon' => $noeditingicons,
-                        'makeprivate' => $pp_make_private,
-                        'makepublic' => $pp_make_public,
-                        'privatematerial' => $pp_private_material,
-                    )));
             
-            $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_resource_toolbox',
-                    array(array(
-                        'noeditingicon' => $noeditingicons,
-                        'makeprivate' => $pp_make_private,
-                        'makepublic' => $pp_make_public,
-                        'privatematerial' => $pp_private_material,
-                    )), null, true);
-
-            $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_toolbox',
-                    array(array(
-                        'noeditingicon' => $noeditingicons,
-                    )), null, true);
-
-            $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init',
-                    array(array(
-                        'noeditingicon' => $noeditingicons,
-                        'hidden' => $strishidden,
-                        'movealt' => $strmovealt,
-                    )), null, true);
+            // If user is editing, load public/private plugin
+            $PAGE->requires->yui_module('moodle-local_publicprivate-util', 'M.local_publicprivate.init',
+                    array(array('courseid' => $this->get_courseid())));
+                    
+            $PAGE->requires->strings_for_js(
+                array(
+                    'publicprivatemakeprivate', 
+                    'publicprivatemakepublic', 
+                    'publicprivategroupingname'
+                    ), 
+                'local_publicprivate'
+                );
         }
-
-    
+        
+        return parent::course_content_footer();
     }
     
     /**

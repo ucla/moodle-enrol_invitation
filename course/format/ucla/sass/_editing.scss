@@ -24,7 +24,9 @@ $editing-link-color: orangered;
             editing_section,
             editing_showhide,
             edit_course_summary,
-            editing_instr_info
+            editing_instr_info,
+            editing_makepublic,
+            editing_makeprivate
         );
 
         // Write down all the classes
@@ -67,13 +69,40 @@ $editing-link-color: orangered;
         }
 
         li.activity {
+            
+            /// Group icons
             .commands {
                 float: right;
 
-                a {margin-right: 8px;}
+                a, .editing_move {
+                    margin-right: 8px;
+                    float: left;
+                }
+                
+                // Move delete icon to right
+                a.editing_delete {
+                    float: right;
+                }
+                
+                // Set icon groupings
+                .editing_move,
+                .editing_duplicate,
+                .publicprivate {
+                    padding-right: 8px;
+                    margin-right: 12px;
+                    border-right: 1px solid #ddd;
+                }
+                .publicprivate {
+                    margin-right: 20px;
+                }
             }
         }
     }
+    
+/*    .commands a, .commands .editing_move {
+        float: left;
+    }*/
+    
 
     /// ucla edit links that appear below section names.
     .jit-links {

@@ -72,6 +72,7 @@
 .groupinglabel {
     @extend .label-bstp;
     @extend .label-pp;
+    display: inline-block;
 
     // Whenever label next to a link, add some space
     a + & {
