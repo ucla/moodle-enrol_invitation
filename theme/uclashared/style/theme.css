@@ -8861,12 +8861,11 @@ td.visible-print {
 }
 /* line 12, ../sass/ccle/_blocks.scss */
 .block .header {
-  border: 1px solid #ddd;
-  border-top-width: 4px;
+  border-bottom: 4px solid #ddd;
   padding: 2px 2px 4px;
   color: #666;
 }
-/* line 18, ../sass/ccle/_blocks.scss */
+/* line 17, ../sass/ccle/_blocks.scss */
 .block .header h2 {
   font-size: 1.8rem;
   font-weight: 500;
@@ -8875,21 +8874,21 @@ td.visible-print {
   font-weight: bold;
 }
 
-/* line 28, ../sass/ccle/_blocks.scss */
+/* line 27, ../sass/ccle/_blocks.scss */
 .block_adminblock .select {
   width: 100%;
 }
 
-/* line 39, ../sass/ccle/_blocks.scss */
+/* line 38, ../sass/ccle/_blocks.scss */
 .block_settings .adminsearchform {
   text-align: center;
 }
-/* line 42, ../sass/ccle/_blocks.scss */
+/* line 41, ../sass/ccle/_blocks.scss */
 .block_settings #adminsearchquery {
   width: 100%;
   margin-bottom: 8px;
 }
-/* line 46, ../sass/ccle/_blocks.scss */
+/* line 45, ../sass/ccle/_blocks.scss */
 .block_settings #settingsnav hr {
   margin: 10px 0;
   border: 1px solid #ddd;

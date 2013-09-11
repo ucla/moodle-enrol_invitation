@@ -1,41 +1,33 @@
-/*
-    Required include for modules
-*/
-/* 360px is iPhone vertical */
-/* 480px is iPhone horizontal */
-/* 768px is iPad horizontal */
-/* 1024px is iPad vertical */
-/* line 10, sass/styles.scss */
-.block_tree .type_structure, .block .list .type_structure {
+/* line 9, sass/styles.scss */
+.block_tree .type_structure, .block .list .type_structure, .block_tree .type_custom, .block .list .type_custom, .block_tree .type_activity, .block .list .type_activity {
   border: 0;
-  border-bottom: 1px solid #eeeeee;
+  border-bottom: 1px solid #eee;
   padding: 0 0;
-  border-left: 4px solid #f9f9f9;
-  background-color: #F9F9F9;
+  border-left: 4px solid #F9F9F9;
   display: block;
 }
-/* line 18, sass/styles.scss */
-.block_tree .type_structure .tree_item, .block .list .type_structure .tree_item {
+/* line 17, sass/styles.scss */
+.block_tree .type_structure .tree_item, .block .list .type_structure .tree_item, .block_tree .type_custom .tree_item, .block .list .type_custom .tree_item, .block_tree .type_activity .tree_item, .block .list .type_activity .tree_item {
   padding: 8px 8px;
   /*margin: 2px 0;*/
   margin: 0;
 }
-/* line 23, sass/styles.scss */
-.block_tree .type_structure .tree_item img, .block .list .type_structure .tree_item img {
+/* line 22, sass/styles.scss */
+.block_tree .type_structure .tree_item img, .block .list .type_structure .tree_item img, .block_tree .type_custom .tree_item img, .block .list .type_custom .tree_item img, .block_tree .type_activity .tree_item img, .block .list .type_activity .tree_item img {
   display: none;
 }
-/* line 28, sass/styles.scss */
-.block_tree .type_structure .tree_item.block_ucla_course_menu_hidden a, .block .list .type_structure .tree_item.block_ucla_course_menu_hidden a {
+/* line 27, sass/styles.scss */
+.block_tree .type_structure .tree_item.block_ucla_course_menu_hidden a, .block .list .type_structure .tree_item.block_ucla_course_menu_hidden a, .block_tree .type_custom .tree_item.block_ucla_course_menu_hidden a, .block .list .type_custom .tree_item.block_ucla_course_menu_hidden a, .block_tree .type_activity .tree_item.block_ucla_course_menu_hidden a, .block .list .type_activity .tree_item.block_ucla_course_menu_hidden a {
   color: #aaa;
 }
-/* line 29, sass/styles.scss */
-.block_tree .type_structure .tree_item.block_ucla_course_menu_hidden a:after, .block .list .type_structure .tree_item.block_ucla_course_menu_hidden a:after {
+/* line 28, sass/styles.scss */
+.block_tree .type_structure .tree_item.block_ucla_course_menu_hidden a:after, .block .list .type_structure .tree_item.block_ucla_course_menu_hidden a:after, .block_tree .type_custom .tree_item.block_ucla_course_menu_hidden a:after, .block .list .type_custom .tree_item.block_ucla_course_menu_hidden a:after, .block_tree .type_activity .tree_item.block_ucla_course_menu_hidden a:after, .block .list .type_activity .tree_item.block_ucla_course_menu_hidden a:after {
   content: "hidden";
   margin-left: 8px;
   color: #aaa;
   padding: 0 4px;
   display: inline-block;
-  border: 1px solid #cccccc;
+  border: 1px solid #ccc;
   font-weight: normal;
   vertical-align: middle;
   font-size: 1.2rem;
@@ -47,45 +39,45 @@
   -o-border-radius: 4px;
   border-radius: 4px;
 }
-/* line 36, sass/styles.scss */
-.block_tree .type_structure.current_branch, .block .list .type_structure.current_branch {
+/* line 35, sass/styles.scss */
+.block_tree .type_structure.current_branch, .block .list .type_structure.current_branch, .block_tree .type_custom.current_branch, .block .list .type_custom.current_branch, .block_tree .type_activity.current_branch, .block .list .type_activity.current_branch {
   border-left-color: #4168a1;
   background-color: white;
 }
-/* line 40, sass/styles.scss */
-.block_tree .type_structure.current_branch a, .block .list .type_structure.current_branch a {
+/* line 39, sass/styles.scss */
+.block_tree .type_structure.current_branch a, .block .list .type_structure.current_branch a, .block_tree .type_custom.current_branch a, .block .list .type_custom.current_branch a, .block_tree .type_activity.current_branch a, .block .list .type_activity.current_branch a {
   color: #4168a1;
 }
-/* line 42, sass/styles.scss */
-.block_tree .type_structure.current_branch .tree_item, .block .list .type_structure.current_branch .tree_item {
-  border-bottom: 1px solid #dddddd;
+/* line 41, sass/styles.scss */
+.block_tree .type_structure.current_branch .tree_item, .block .list .type_structure.current_branch .tree_item, .block_tree .type_custom.current_branch .tree_item, .block .list .type_custom.current_branch .tree_item, .block_tree .type_activity.current_branch .tree_item, .block .list .type_activity.current_branch .tree_item {
+  border-bottom: 1px solid #ddd;
 }
-/* line 47, sass/styles.scss */
-.block_tree .type_structure:hover, .block .list .type_structure:hover {
+/* line 46, sass/styles.scss */
+.block_tree .type_structure:hover, .block .list .type_structure:hover, .block_tree .type_custom:hover, .block .list .type_custom:hover, .block_tree .type_activity:hover, .block .list .type_activity:hover {
   border-left-color: #4168a1;
 }
 
-/* line 58, sass/styles.scss */
+/* line 57, sass/styles.scss */
 .block.block_ucla_course_menu {
   text-align: center;
 }
-/* line 61, sass/styles.scss */
+/* line 60, sass/styles.scss */
 .block.block_ucla_course_menu .content {
   padding: 0;
 }
-/* line 65, sass/styles.scss */
+/* line 64, sass/styles.scss */
 .block.block_ucla_course_menu .header {
   display: none;
 }
-/* line 69, sass/styles.scss */
+/* line 68, sass/styles.scss */
 .block.block_ucla_course_menu .block_tree, .block.block_ucla_course_menu .list {
   text-align: left;
 }
-/* line 71, sass/styles.scss */
+/* line 70, sass/styles.scss */
 .block.block_ucla_course_menu .block_tree .active_tree_node, .block.block_ucla_course_menu .list .active_tree_node {
   font-weight: bold;
 }
-/* line 74, sass/styles.scss */
+/* line 73, sass/styles.scss */
 .block.block_ucla_course_menu .block_tree a, .block.block_ucla_course_menu .list a, .block.block_ucla_course_menu .block_tree a:link, .block.block_ucla_course_menu .list a:link, .block.block_ucla_course_menu .block_tree a:visited, .block.block_ucla_course_menu .list a:visited {
   color: #0072b1;
   line-height: 3.5rem;
@@ -93,17 +85,17 @@
   display: inline-block;
   width: 90%;
 }
-/* line 82, sass/styles.scss */
+/* line 81, sass/styles.scss */
 .block.block_ucla_course_menu .block_tree a:hover, .block.block_ucla_course_menu .list a:hover {
   text-decoration: none;
 }
-/* line 90, sass/styles.scss */
+/* line 89, sass/styles.scss */
 .block.block_ucla_course_menu .item_with_icon .tree_item.leaf {
   display: inline-block;
   width: 100%;
   padding: 0 8px;
 }
-/* line 95, sass/styles.scss */
+/* line 94, sass/styles.scss */
 .block.block_ucla_course_menu .item_with_icon .leaf:after {
   position: relative;
   top: 1px;
@@ -119,7 +111,7 @@
   line-height: 3.2rem;
   vertical-align: middle;
 }
-/* line 103, sass/styles.scss */
+/* line 102, sass/styles.scss */
 .block.block_ucla_course_menu .item_with_icon.current_branch .leaf:after {
   position: relative;
   top: 1px;
@@ -135,9 +127,13 @@
   line-height: 3.2rem;
   vertical-align: middle;
 }
-/* line 114, sass/styles.scss */
+/* line 113, sass/styles.scss */
 .block.block_ucla_course_menu li.type_structure:hover {
   background-color: #fcfcfc;
+}
+/* line 117, sass/styles.scss */
+.block.block_ucla_course_menu li.type_structure {
+  background-color: #F9F9F9;
 }
 
 /* line 4, sass/_editing.scss */

@@ -6,13 +6,12 @@
 
 // Tree styles
 .block_tree {
-    
-    .type_structure {
+    .type_structure, .type_custom, .type_activity {
         border: 0;
         border-bottom: 1px solid #eee;
         padding: 0 0;
         border-left: 4px solid #F9F9F9;
-        background-color: #F9F9F9;
+
         display: block;
         
         .tree_item {
@@ -112,6 +111,11 @@
     
     li.type_structure {
         &:hover {background-color: #fcfcfc;}
+    }
+
+    // Give sections a darker color.
+    li.type_structure {
+        background-color: #F9F9F9;
     }
 }
 
