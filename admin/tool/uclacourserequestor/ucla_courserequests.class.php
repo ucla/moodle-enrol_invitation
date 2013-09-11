@@ -585,6 +585,11 @@ class ucla_courserequests {
                     $request[$i] = '';
                 }
 
+                // Don't go over character limit for instructors (CCLE-4189).
+                if (textlib::strlen($request[$i]) > 255) {
+                    $request[$i] = trim(textlib::substr($request[$i], 0, 254));
+                }
+
                 try {
                     if (isset($request['id'])) {
                         $DB->update_record($urc, $request);
