@@ -1,0 +1,58 @@
+//
+// NAVS (tabs)
+// --------------------------------------------------
+
+@import "bootstrap/lib/navs";
+
+// Tabtree adjustments 
+.tabtree {
+    // This fixes the clearer to actually clear content
+    & + .clearer {
+        display: inline-block;
+        padding-bottom: 20px;
+    }
+    // For aesthetics, so that width stays within tabrow0 boundary
+    .tabrow1, .tabrow2 {
+        margin-right: 0;
+        margin-left: 0;
+        padding: 0 12px;
+        @include box-sizing(border-box);
+    }
+    .tabrow2 {
+        padding: 0 24px;
+    }
+    // Fixes strange bug with "a.nolink" class
+    .tabrow2 > li a {
+        display: inline-block;
+    }
+}
+
+// Override moodle navtabs
+.tabrow0,
+.tabrow1,
+.tabrow2 {
+  @extend .nav;
+  @extend .nav-tabs;
+    
+    > .selected {
+        font-weight: bold;
+    }
+    // Keep everything left aligned
+    left: 0;
+}
+
+.tabrow0 > .selected > a,
+.tabrow0 > .selected > a:hover,
+.tabrow0 > .selected > a:focus,
+.tabrow1 > .selected > a,
+.tabrow1 > .selected > a:hover,
+.tabrow1 > .selected > a:focus,
+.tabrow2 > .selected > a,
+.tabrow2 > .selected > a:hover,
+.tabrow2 > .selected > a:focus {
+  color: #444;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-bottom-color: transparent;
+  cursor: default;
+}

@@ -1,0 +1,15 @@
+//
+//
+//
+
+// Give some styling consideration to wiki form buttons
+.wiki_clear ~ .mform {
+    #save {
+        @extend .btn;
+        @extend .btn-primary;
+    }
+    #cancel {
+        @extend .btn;
+        @extend .btn-link;
+    }
+}

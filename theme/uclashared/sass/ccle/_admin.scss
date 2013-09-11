@@ -1,0 +1,65 @@
+//
+// CCLE / site admin
+// --------------------------------------------------
+
+// Normalize all admin page headers 
+h2.headingblock {
+    @include ccle-admin-header;
+}
+
+#addadmisform > h3.main {
+    @include ccle-admin-header;
+    margin-bottom: 8px;
+}
+
+
+// Modifies the course admin menu to be a little more clickable...
+// @todo: this could be better...
+@media only screen and (max-width: $breakpoint-xsmall),
+only screen and (min-width: $breakpoint-xsmall) and (max-width: $breakpoint-medium-small) {
+    .block_tree li ul li.type_setting {
+        border-bottom: 1px solid $ccle-light-blue;
+        height: 34px;
+        padding-top: 5px;
+        display: inline-block;
+        width: 100%;
+    }
+    
+    .block_tree li ul li.type_setting > p > a {
+        width: 100%;
+        display: inline-block;
+    }
+}
+
+
+.external-link {
+    padding-right: 15px;
+    padding-bottom: -2px;
+    background: transparent url([[pix:theme|external]]) no-repeat center right;
+}
+
+
+
+// This is a pontentially bogus component.  
+// Keeping only for compatibility.  Eventually remove these styles
+
+/** Admin **/
+/*.box.adminwarning {text-align:center;border:1px solid #C8C9C7;background-color:#E3E3E3;margin-bottom:1em;padding:10px 10%;}
+.box.copyright {text-align:center;font-size:90%;padding:10px 10%;}
+#adminsettings fieldset {border:1px solid #C8C9C7;background-color:#E3E3E3;}
+#adminsettings fieldset .generalbox {margin:1em 0.5em;border-color:#C8C9C7;}
+#adminsettings .form-buttons {margin-left:13em;}
+
+ give 'Defined in config.php' message a little more visual weight 
+#adminsettings .form-overridden {
+    background-color: red;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+.adminsearchform {
+    text-align: center;
+}*/

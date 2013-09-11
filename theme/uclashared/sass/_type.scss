@@ -1,0 +1,97 @@
+// TYPE
+
+
+// We're going to use rem units, so all type will 
+// be relative to this size
+// http://snook.ca/archives/html_and_css/font-size-with-rem
+html {
+    font-size: 62.5%;
+    height: 100%;
+}
+
+// Make overall color slightly lighter than black
+body {
+    color: $type-font-color;
+    font-family: $type-font-family;
+    height: 100%;
+}
+
+// Fix font size for tables
+body,
+table {
+    font-size: $type-font-size;
+}
+
+img.icon {
+    width: 24px;
+    height: 24px;
+}
+
+#intro.generalbox {
+    /*@extend .well;*/
+    /*@extend .well-small;*/
+    
+    margin-top: 0;
+}
+
+a {
+    &:link {
+        text-decoration: none;
+        color: #536895;
+    }
+    &:visited {
+        text-decoration: none;
+        color: #536895;
+    }
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+// This is preferred boostrap way, but Moodle insists on generating
+// elements with px height for no good reason, so we must also have
+// exceptions to the rule.
+* {
+    @include box-sizing(border-box);
+}
+// Exceptions to box sixing:
+//
+// In Manage site administrators, the 'Search options' dropdown
+#userselector_options {
+    @include box-sizing(content-box);
+}
+// Moodle file manager inside an mform
+.mform .ffilemanager * {
+    @include box-sizing(content-box);
+}
+
+
+/// Fix YUI typography
+h1 {
+    @include ccle-typography-h1;
+}
+
+h2 {
+    @include ccle-typography-h2;
+    
+    &.main {
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 8px;
+    }
+}
+
+h3 {
+    @include ccle-typography-h3;
+}
+
+h4 {
+    @include ccle-typography-h4;
+}
+
+h5 {
+    @include ccle-typography-h5;
+}
+
+h6 {
+    @include ccle-typography-h6;
+}

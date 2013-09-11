@@ -1,0 +1,49 @@
+
+@import "uclatheme";
+
+
+.ucla-search:not(.frontpage-search):not(.course-search):not(.collab-search) {
+    margin-bottom: 8px;
+    .yui3-aclist {
+        position: relative !important;
+    }
+    .yui3-aclist-content {
+        box-shadow: 0 0 0;
+        border: 0;
+    }
+    .yui3-aclist-item-active {
+        background-color: darken($brand-primary, 10%);
+    }
+    .yui3-aclist-item-hover {
+        background-color: lighten($brand-primary, 30%);
+    }
+    #ucla-search-block.yui3-aclist-input {
+        @include border-radius(4px);
+    }
+    .input-group {
+        margin-top: 4px;
+    }
+}
+
+.ucla-search {
+    .btn {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+    }
+}
+
+.search-result {
+    .shortname {
+        font-weight: bold;
+        .yui3-aclist-item-active.yui3-aclist-item-hover & {
+            color: #444;
+        }
+    }
+    .fullname {
+        color: #666;
+        
+        .yui3-aclist-item-active:not(.yui3-aclist-item-hover) & {
+            color: #eee;
+        }
+    }
+}

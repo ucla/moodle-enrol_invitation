@@ -1,178 +1,535 @@
-.course-content ul.topics {margin:0;}
-.course-content ul.topics li.section {list-style: none;margin:5px 0 0 0;padding:0;}
-.course-content ul.topics li.section .content {margin:0 40px;}
-.course-content ul.topics li.section .right {width:40px;float:right;text-align:center;}
-.jumpmenu {text-align:center;}
-
-.sectionname {
-    display: inline-block;
+/* line 6, sass/_course.scss */
+.ccle-generic-box, .course-content .registrar-collapsed {
+  display: block;
+  border: 1px solid #dddddd;
+  background-color: #fff;
+  padding: 4px 8px;
+  width: 100%;
+  margin-bottom: 8px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-box-shadow: #dddddd 1px 1px 1px;
+  box-shadow: #dddddd 1px 1px 1px;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  -ms-border-radius: 6px;
+  -o-border-radius: 6px;
+  border-radius: 6px;
 }
 
-.sectionheader .right br {
-    display: none;
+/* line 20, sass/_course.scss */
+.course-content {
+  font-size: 1.4rem;
+  line-height: 1.5;
+}
+/* line 25, sass/_course.scss */
+.course-content .registrar-collapsed {
+  overflow: hidden;
+}
+/* line 29, sass/_course.scss */
+.course-content .collapse-toggle {
+  width: 100%;
+  display: inline-block;
+  padding: 2px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  -ms-border-radius: 6px;
+  -o-border-radius: 6px;
+  border-radius: 6px;
+}
+/* line 39, sass/_course.scss */
+.course-content > .headingblock {
+  font-size: 26px;
+  font-size: 2.6rem;
+  background-color: #d1dbef;
+  border: 1px solid #afc5f0;
+  color: #394a6e;
+  padding: 4px 2px;
+}
+/* line 51, sass/_course.scss */
+.course-content > .headingblock > .course-meta {
+  color: #6c83b3;
+  font-weight: normal;
+  font-size: 14px;
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+}
+@media only screen and (max-width: 480px) {
+  /* line 51, sass/_course.scss */
+  .course-content > .headingblock > .course-meta {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    height: 1.5;
+  }
+}
+/* line 69, sass/_course.scss */
+.course-content > .headingblock > .course-meta > .reg-term {
+  text-transform: uppercase;
+  font-weight: bold;
+  color: #394a6e;
+}
+/* line 74, sass/_course.scss */
+.course-content > .headingblock > .course-meta > .reg-courses > .reg-hostcourse {
+  font-weight: bold;
+  color: #394a6e;
+}
+/* line 82, sass/_course.scss */
+.course-content .instr-info {
+  margin-top: 10px;
+}
+/* line 87, sass/_course.scss */
+.course-content .hidden .content {
+  border: 4px dotted #cccccc;
 }
 
-.course-content .section.main {
-    border: none !important;
+/* line 94, sass/_course.scss */
+.summary .highlight {
+  border: 1px solid #ebd742;
+  background-color: yellow;
+  padding: 0 1px;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ffff00), color-stop(100%, #ebd742));
+  background-image: -webkit-linear-gradient(top, #ffff00, #ebd742);
+  background-image: -moz-linear-gradient(top, #ffff00, #ebd742);
+  background-image: -o-linear-gradient(top, #ffff00, #ebd742);
+  background-image: linear-gradient(top, #ffff00, #ebd742);
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  -ms-border-radius: 4px;
+  -o-border-radius: 4px;
+  border-radius: 4px;
+  -webkit-box-shadow: #aaaaaa 1px 2px 2px;
+  box-shadow: #aaaaaa 1px 2px 2px;
 }
 
-.course-content ul.topics {
-    margin: 0;
+/* line 8, sass/_editing.scss */
+.ucla-format {
+  /*    .commands a, .commands .editing_move {
+          float: left;
+      }*/
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_title {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_title:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_moveright {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_moveright:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_moveleft {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_moveleft:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_move {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_move:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_duplicate {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_duplicate:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_delete {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_delete:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_update {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_update:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_hide {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_hide:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_show {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_show:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_section {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_section:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_showhide {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_showhide:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .edit_course_summary {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .edit_course_summary:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_instr_info {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_instr_info:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_makepublic {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_makepublic:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 34, sass/_editing.scss */
+.ucla-format.text-icons .editing_makeprivate {
+  color: orangered;
+}
+/* line 36, sass/_editing.scss */
+.ucla-format.text-icons .editing_makeprivate:after {
+  content: attr(title);
+  margin-left: 2px;
+  margin-right: 12px;
+}
+/* line 45, sass/_editing.scss */
+.ucla-format.text-icons .activityinstance,
+.ucla-format.text-icons .commands {
+  float: left;
+  width: 100%;
+}
+/* line 50, sass/_editing.scss */
+.ucla-format.text-icons .editing_move:after {
+  cursor: move;
+}
+/* line 55, sass/_editing.scss */
+.ucla-format.text-icons li.activity img.iconsmall {
+  height: 16px;
+  width: 16px;
+  vertical-align: middle !important;
+}
+/* line 65, sass/_editing.scss */
+.ucla-format:not(.text-icons) img.iconsmall {
+  height: 20px;
+  width: 20px;
+  vertical-align: middle !important;
+}
+/* line 74, sass/_editing.scss */
+.ucla-format:not(.text-icons) li.activity .commands {
+  float: right;
+}
+/* line 77, sass/_editing.scss */
+.ucla-format:not(.text-icons) li.activity .commands a, .ucla-format:not(.text-icons) li.activity .commands .editing_move {
+  margin-right: 8px;
+  float: left;
+}
+/* line 83, sass/_editing.scss */
+.ucla-format:not(.text-icons) li.activity .commands a.editing_delete {
+  float: right;
+}
+/* line 90, sass/_editing.scss */
+.ucla-format:not(.text-icons) li.activity .commands .editing_move,
+.ucla-format:not(.text-icons) li.activity .commands .editing_duplicate,
+.ucla-format:not(.text-icons) li.activity .commands .publicprivate {
+  padding-right: 8px;
+  margin-right: 12px;
+  border-right: 1px solid #dddddd;
+}
+/* line 95, sass/_editing.scss */
+.ucla-format:not(.text-icons) li.activity .commands .publicprivate {
+  margin-right: 20px;
+}
+/* line 108, sass/_editing.scss */
+.ucla-format .jit-links {
+  margin-top: 2px;
+  padding-left: 42px;
+  background: url([[pix:theme|jit_links]]) 8px 1px no-repeat;
+  display: inline;
+  position: relative;
+}
+/* line 116, sass/_editing.scss */
+.ucla-format .jit-links > a:link,
+.ucla-format .jit-links > a {
+  color: orangered;
+  margin-right: 12px;
 }
 
-.course-content ul.topics li.section {
-    list-style: none;
-    margin: 5px 0 0 0;
-    padding: 0;
-    border: 0;
+/* line 126, sass/_editing.scss */
+.section-modchooser,
+.section_add_menus {
+  border-top: 4px solid #cccccc;
+  margin-bottom: 10px;
+  padding: 10px;
+}
+/* line 131, sass/_editing.scss */
+.section-modchooser .section-modchooser-link,
+.section_add_menus .section-modchooser-link {
+  display: inline-block;
+}
+/* line 135, sass/_editing.scss */
+.section-modchooser .section-modchooser-link .smallicon,
+.section_add_menus .section-modchooser-link .smallicon {
+  display: none;
+}
+/* line 136, sass/_editing.scss */
+.section-modchooser .section-modchooser-link a:before,
+.section_add_menus .section-modchooser-link a:before {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  content: "\2b";
+  margin-right: 4px;
 }
 
-.course-content ul.topics li.section.hidden {
-    /*background-color: #C0C0C0;*/
+/* line 145, sass/_editing.scss */
+li.activity {
+  padding: 5px 10px;
+  border-top: 1px solid whitesmoke;
+  border-right: 1px solid white;
+  clear: right;
+  display: inline-block;
+  width: 100%;
+}
+/* line 157, sass/_editing.scss */
+li.activity:not(.label):nth-child(2n) {
+  background-color: #F9F9F9;
+}
+/* line 160, sass/_editing.scss */
+li.activity:not(.label):hover {
+  background-color: #F5F5F5;
+}
+/* line 164, sass/_editing.scss */
+li.activity.label:hover {
+  background-color: white !important;
+}
+/* line 169, sass/_editing.scss */
+li.activity.yui3-dd-draggable + li.activity.yui3-dd-drop-active-valid {
+  border-top: 2px dashed orangered;
 }
 
-.course-content ul.topics li.section .content {
-    margin: 0;
-    padding: 5px 8px 5px 8px;
+/* line 176, sass/_editing.scss */
+.path-course-view li.activity span.autocompletion,
+.path-course-view li.activity form.togglecompletion {
+  float: right;
+  padding: 0 4px;
+  right: 0;
 }
 
-.course-content ul.topics li.section .content .editbutton a {
-    margin: 0;
+/* line 186, sass/_editing.scss */
+.alloptions > .option > label {
+  float: left;
+}
+/* line 188, sass/_editing.scss */
+.alloptions > .option > label > .typename {
+  float: right;
+  display: inline-block;
+  width: 145px;
 }
 
-/* red editing link styling (try to keep colors consistent */
-/*a.editing-link:link,
-a.editing-link:visited,
-.course-content .editbutton a,
-.sectionheader .right.side a,
-.sectionheader .right.side span,
-.jit_links a:link, .jit_links a:visited,
-span.commands a {
-    color: #F66;
+/* line 10, sass/styles.scss */
+.section .sectionheader {
+  border-bottom: 1px solid #cccccc;
 }
-a.editing-link:hover,
-.course-content .editbutton a:hover,
-.sectionheader .right.side a:hover,
-.sectionheader .right.side span:hover,
-.jit_links a:hover,
-span.commands a:hover {
-    color: red;
-    text-decoration: underline;
-}*/
-
-.course-content .content.editing {
-    margin: 0 0 0 20px;
+/* line 12, sass/styles.scss */
+.section .sectionheader .sectionname {
+  color: #0072b1;
+}
+/* line 16, sass/styles.scss */
+.section .sectionheader .hidden {
+  padding-left: 10px;
+  color: #ddd;
+  display: block !important;
 }
 
-/*.course-content .registrar-info {
-    color: gray;
-    font-weight: bold;
-}*/
-
-.course-content ul.topics li.section .content .sectionname {
-    margin: 0;
+/* line 26, sass/styles.scss */
+.ucla-format {
+  margin: auto 0px;
+}
+/* line 30, sass/styles.scss */
+.ucla-format a,
+.ucla-format a:link {
+  color: #0072b1;
+}
+/* line 41, sass/styles.scss */
+.ucla-format .section {
+  list-style: none;
+}
+/* line 46, sass/styles.scss */
+.ucla-format .section.hidden .content {
+  padding: 4px;
+  border: 2px dashed #dddddd;
+}
+/* line 50, sass/styles.scss */
+.ucla-format .section.hidden .sectionname:after {
+  content: "hidden";
+  margin-left: 8px;
+  color: #aaa;
+  padding: 0 4px;
+  display: inline-block;
+  border: 1px solid #cccccc;
+  font-weight: normal;
+  vertical-align: middle;
+  font-size: 1.8rem;
+  background-color: #f9f9f9;
+  line-height: 2.1rem;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  -ms-border-radius: 4px;
+  -o-border-radius: 4px;
+  border-radius: 4px;
+}
+/* line 55, sass/styles.scss */
+.ucla-format .section .largeicon {
+  width: 20px;
+  height: 20px;
+}
+/* line 59, sass/styles.scss */
+.ucla-format .section .activityicon {
+  vertical-align: text-top !important;
+}
+/* line 65, sass/styles.scss */
+.ucla-format .section .left {
+  margin-top: 8px;
+  margin-bottom: 4px;
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAFUlEQVQImWNgQAPPnj37T3UBBgYGAMjZEnZyZfyLAAAAAElFTkSuQmCC);
+  /*border: 1px dashed #ccc;*/
+}
+/* line 71, sass/styles.scss */
+.ucla-format .section .left .spacer {
+  display: none;
+}
+/* line 72, sass/styles.scss */
+.ucla-format .section .left .section-handle {
+  padding: 2px;
+}
+/* line 74, sass/styles.scss */
+.ucla-format .section .left .section-handle:after {
+  content: "Move section";
+  margin-left: 8px;
+  font-size: 1.2rem;
+  padding-top: 4px;
+  color: #888;
+}
+/* line 83, sass/styles.scss */
+.ucla-format .section .sectionname {
+  display: inline;
+}
+/* line 87, sass/styles.scss */
+.ucla-format .section .right {
+  float: right;
+}
+/* line 90, sass/styles.scss */
+.ucla-format .section .right > br {
+  display: none;
+}
+/* line 93, sass/styles.scss */
+.ucla-format .section .content {
+  margin: 0;
 }
 
-.course-content ul.topics li.section .content .section_add_menus {
-    padding-right: 2px;
+/* line 99, sass/styles.scss */
+.site-title {
+  color: #4168a1;
 }
 
-.course-content ul.topics li.section .right {
-    float: none;
-    text-align: left;
-    display: inline;
-    padding-left: 18px;
+/* line 102, sass/styles.scss */
+.site-meta {
+  font-size: 1.2rem;
+  color: #444;
 }
 
-.course-content ul.topics li.section .right div {
-    display: inline;
-    padding: 0 2px 0 8px;
+/* line 106, sass/styles.scss */
+.site-title-divider {
+  width: 100%;
+  display: inline-block;
+  height: 4px;
+  background-color: #4168a1;
+  float: left;
+  margin-top: 4px;
+  margin-bottom: 4px;
 }
 
-.course-content ul.topics li.section .content p {
-    margin: 1em 0;
+/* line 117, sass/styles.scss */
+.registrar-info {
+  color: #878787;
+  line-height: 1.2;
+  border-bottom: 1px solid #cccccc;
+  padding: 4px 0;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
 }
-
-.course-content ul.topics li.section .sectionheader {
-    border-bottom: 1px solid #ABBAD1;
-}
-
-.course-content ul.topics li.section .sectionheader h2 {
-    display: inline;
-}
-
-.course-content ul.topics li.section .sectionheader div span {
-    margin-right: 2px;
-}
-
-.course-content ul.topics li.section .sectionheader div span a,
-.course-content ul.topics li.section .sectionheader div a,
-.course-content ul.topics li.section .sectionheader div div {
-    padding-left: 8px;
-}
-
-.course-content ul.topics li.section .sectionheader div div img.no-editing-icons {
-    display:none;
-}
-
-.section .groupinglabel {
-    color: #666666;
-}
-
-.section .content h3 .hidden {
-    color: #666666;
-    padding-left: 4px;
-}
-
-.jumpmenu {
-    text-align: center;
-}
-
-.coursecancelled {
-    text-align: center;
-}
-
-.course_text_cancelled {
-    text-decoration: line-through;
-}
-
-/* START feature/CCLE-2800 JIT controls */
-.jit_links {
-    margin-top: 2px;
-    padding-left: 42px;
-    background: url([[pix:theme|jit_links]]) 8px 1px no-repeat;
-    display: inline;
-    position: relative;
-    clear: both;
-}
-.jit_links a {
-    margin-right: 10px;
-}
-/* END feature/CCLE-2800 JIT controls */
-
-/* CCLE-3458 - move icon styling */
-.editing_move_totext {
-    margin-left: 0;
-    margin-right: 19px;
-    padding: 0;
-    color: #FF6666;
-}
-
-/* CCLE-3069 - Convert icons for "Turn editing on" into text */
-.mod-indent span.commands { display: block;float: right; }
-span.commands a {margin-right: 10px;}
-span.commands a img.no-editing-icons {
-    display: none;
-}
-
-/** 
- * Make secton move icon off to the left side, without shifting section header 
- * and JIT links */
-.course-content ul.topics li.section .left {
-    margin-left: -0.7em;
-    margin-top: -1.0em;
-    width: auto;
-}
-
-.path-course-view .single-section .completionprogress {margin-right: 0 !important;}
-

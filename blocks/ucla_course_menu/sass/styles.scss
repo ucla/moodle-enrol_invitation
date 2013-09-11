@@ -1,0 +1,125 @@
+//
+//
+//
+
+@import "uclatheme";
+
+// Tree styles
+.block_tree {
+    .type_structure, .type_custom, .type_activity {
+        border: 0;
+        border-bottom: 1px solid #eee;
+        padding: 0 0;
+        border-left: 4px solid #F9F9F9;
+
+        display: block;
+        
+        .tree_item {
+            padding: 8px 8px;
+            /*margin: 2px 0;*/
+            margin: 0;
+            
+            img {
+                display: none;
+            }
+            
+            &.block_ucla_course_menu_hidden {
+                a {color: #aaa;}
+                a:after {
+                    @include hidden-label(1.2rem)
+                }
+            }
+        }
+        
+        // Selected item
+        &.current_branch {
+            border-left-color: $ccle-blue;
+            background-color: white;
+            
+            a {color: $ccle-blue}
+            
+            .tree_item {
+                border-bottom: 1px solid #ddd;
+            }
+        }
+        
+        &:hover {
+            border-left-color: $ccle-blue;
+        }
+    }
+}
+
+.block .list {
+    @extend .block_tree;
+}
+
+// UCLA course menu specific styles
+.block.block_ucla_course_menu {
+    text-align: center;
+    
+    .content {
+        padding: 0;   
+    }
+    
+    .header {
+        display:none;
+    }
+
+    .block_tree {
+        text-align: left;
+        .active_tree_node {font-weight: bold}
+        
+        // Style links
+        a, a:link, a:visited {
+            color: $ucla-blue;
+            line-height: 3.5rem;
+            vertical-align: middle;
+            display: inline-block;
+            width: 90%;
+        }
+
+        a:hover {
+            text-decoration: none;
+        }
+    }
+    
+    
+    // Add right facing chevrons to the menu items
+    .item_with_icon {
+        .tree_item.leaf {
+            display: inline-block;
+            width: 100%;
+            padding: 0 8px;
+        }
+        .leaf:after {
+            @include glyphicon("\e080");
+            float: right;
+            color: #ddd;
+            line-height: 3.2rem;
+            vertical-align: middle;
+        }
+        &.current_branch  {
+            .leaf:after {
+                @include glyphicon("\e080");
+                float: right;
+                color: $ccle-blue;
+                line-height: 3.2rem;
+                vertical-align: middle;
+            }
+        }
+    }
+    
+    li.type_structure {
+        &:hover {background-color: #fcfcfc;}
+    }
+
+    // Give sections a darker color.
+    li.type_structure {
+        background-color: #F9F9F9;
+    }
+}
+
+
+//
+// Local imports
+@import "editing";

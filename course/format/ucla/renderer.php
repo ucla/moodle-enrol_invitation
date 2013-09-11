@@ -98,6 +98,10 @@ class format_ucla_renderer extends format_topics_renderer {
                                  'subheading' => get_string('subheading', 'format_ucla'));     
         
         $this->noeditingicons = get_user_preferences('noeditingicons', 1);
+        
+        // Use the public/private renderer.  This will permit us to override the
+        // way we render course modules
+        $this->courserenderer = $this->page->get_renderer('local_publicprivate');
     }
     
     /**
@@ -223,13 +227,14 @@ class format_ucla_renderer extends format_topics_renderer {
         $heading_text = '';
         if (!empty($termtext)) {
             $heading_text = $termtext . ' - ' . $regcoursetext . ' - ' . $inst_text;
-            $heading_text = html_writer::tag('div', $heading_text, array('class' => 'course-meta'));
-        }        
+            $heading_text = html_writer::tag('div', $heading_text, array('class' => 'site-meta'));
+        }
+        
+        echo $OUTPUT->heading($this->course->fullname, 1, 'site-title');
+        echo $heading_text;
+        echo html_writer::tag('span', '', array('class' => 'site-title-divider'));
         
         // display page header
-        echo $OUTPUT->heading($heading_text . $this->course->fullname, 2, 'headingblock');
-
-        // display notices
 
         // Handle cancelled classes
         if (is_course_cancelled($this->courseinfo)) {
@@ -281,13 +286,13 @@ class format_ucla_renderer extends format_topics_renderer {
         echo $this->section_header($thissection, $course, false);
 
 //        print_section($course, $thissection, $mods, $modnamesused, true);
-        $courserenderer = $PAGE->get_renderer('core', 'course'); 
-        echo $courserenderer->course_section_cm_list($course, $thissection);
+//        $courserenderer = $PAGE->get_renderer('core', 'course'); 
+        echo $this->courserenderer->course_section_cm_list($course, $thissection);
         
         if ($PAGE->user_is_editing()) {
 //            print_section_add_menus($course, 0, $modnames);
-            $courserenderer = $PAGE->get_renderer('core', 'course'); 
-            $output = $courserenderer->course_section_add_cm_control($course, 0); 
+//            $courserenderer = $PAGE->get_renderer('core', 'course'); 
+            $output = $this->courserenderer->course_section_add_cm_control($course, 0); 
             echo $output; // if $return argument in print_section_add_menus() set to false
         }
         echo $this->section_footer();
@@ -327,13 +332,13 @@ class format_ucla_renderer extends format_topics_renderer {
             echo $this->section_header($thissection, $course, false);
             if ($thissection->uservisible) {
 //                print_section($course, $thissection, $mods, $modnamesused);
-                $courserenderer = $PAGE->get_renderer('core', 'course'); 
-                echo $courserenderer->course_section_cm_list($course, $thissection);
+//                $courserenderer = $PAGE->get_renderer('core', 'course'); 
+                echo $this->courserenderer->course_section_cm_list($course, $thissection);
        
                 if ($PAGE->user_is_editing()) {
 //                    print_section_add_menus($course, $section, $modnames);
-                    $courserenderer = $PAGE->get_renderer('core', 'course'); 
-                    $output = $courserenderer->course_section_add_cm_control($course, $section); 
+//                    $courserenderer = $PAGE->get_renderer('core', 'course'); 
+                    $output = $this->courserenderer->course_section_add_cm_control($course, $section); 
                     echo $output;
                 }
             }
@@ -469,7 +474,7 @@ class format_ucla_renderer extends format_topics_renderer {
                 'id' => $this->course->id,
             );
 
-            $link_options = array('title' => $streditsummary);
+            $link_options = array('title' => $streditsummary, 'class' => 'edit_course_summary');
 
             $moodle_url = new moodle_url('edit.php', $url_options);
 
@@ -521,7 +526,7 @@ class format_ucla_renderer extends format_topics_renderer {
         global $PAGE;
 
         $modinfo = get_fast_modinfo($course);
-        $course = course_get_format($course)->get_course();
+//        $course = course_get_format($course)->get_course();
 
         // Can we view the section in question?
         if (!($sectioninfo = $modinfo->get_section_info($displaysection))) {
@@ -704,6 +709,17 @@ class format_ucla_renderer extends format_topics_renderer {
     }
     
     /**
+     * Creates the UCLA format classes, sets up editing icons pref.
+     * 
+     * @return html
+     */
+    protected function start_section_list() {
+        $noeditingicons = get_user_preferences('noeditingicons', 1);
+        $classes = $noeditingicons ? 'ucla-format text-icons' : 'ucla-format';
+        return html_writer::start_tag('ul', array('class' => $classes));
+    } 
+
+    /**
      * Generates JIT links for given section.
      * 
      * @param int $section  Section we are on
@@ -712,20 +728,32 @@ class format_ucla_renderer extends format_topics_renderer {
      */
     private function get_jit_links($section) {
         $ret_val = html_writer::start_tag('div',
-                array('class' => 'jit_links'));
+                array('class' => 'jit-links '));
 
         foreach ($this->jit_links as $jit_type => $jit_string) {
             $link = new moodle_url('/blocks/ucla_easyupload/upload.php',
                     array('course_id' => $this->course->id,
                           'type' => $jit_type,
                           'section' => $section));
-            $ret_val .= html_writer::link($link, $jit_string);
+            $ret_val .= html_writer::link($link, $jit_string, array('class' => ''));
         }
 
         $ret_val .= html_writer::end_tag('div');        
         return $ret_val;
     }
 
+    /**
+     * Generate the section title with permament section link
+     *
+     * @param stdClass $section The course_section entry from DB
+     * @param stdClass $course The course entry from DB
+     * @return string HTML to output.
+     */
+    public function section_title($section, $course) {
+        $title = get_section_name($course, $section);
+        $url = new moodle_url('/course/view.php', array('id' => $course->id, 'sectionid' => $section->id));
+        return html_writer::link($url, $title);;
+    }
     
     /**
      * If courseinfo is not empty, then will parse its contents into user 

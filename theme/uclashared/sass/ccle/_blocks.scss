@@ -1,0 +1,72 @@
+//
+// CCLE / moodle blocks
+// --------------------------------------------------
+
+// Add light shadows to blocks (looks good on mobile!) 
+.block {
+    border: 0;
+    border-bottom: 1px solid #ddd;
+    
+    line-height: 2rem;
+    
+    .header {
+        border-bottom: 4px solid #ddd;
+        padding: 2px 2px 4px;
+        color: #666;
+        
+        h2 {
+            @include ccle-typography-h4;
+            font-weight: bold;
+        }
+    }
+}
+
+/// 
+// Add a block select looks funky
+.block_adminblock {
+    .select {
+        width: 100%;
+    }
+}
+
+///
+// Settings block
+//
+// Fixes the search input + button
+// Fixes <hr> style
+.block_settings {
+    .adminsearchform {
+        text-align: center;
+    }
+    #adminsearchquery {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+    #settingsnav hr {
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        border-bottom: 1px solid #fff;
+    }
+}
+
+/*#theme_switch_link a {
+    color: #FFB300;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+#theme_switch_link {
+    border-top: 1px solid white;
+    padding-top: 4px;
+}*/
+
+
+// Target alert block
+// --------------------------------------------------
+
+// Keep alert font the same
+/*.block.block-ucla-alert {
+    font-family: 'Arial';
+    font-size: 1.3rem;
+}*/
+

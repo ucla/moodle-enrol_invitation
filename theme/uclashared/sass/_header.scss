@@ -1,0 +1,198 @@
+//
+// HEADER
+// --------------------------------------------------
+
+#page-header {
+    /*border-top: 1px solid #93d3eb;*/ 
+    background-color: #4168A1;
+    padding: 8px 12px;
+    
+    .header-login {
+        display: none;
+        
+        margin-top: 8px;
+        float: right;
+        
+        a {
+            color: white;
+            font-size: 1.6rem;
+        }
+        
+        // Big login button
+        .login {
+            margin-left: 20px;
+            border: 1px solid white;
+            padding: 8px 16px;
+            color: white;
+            background: none;
+            font-size: 1.6rem;
+            text-decoration: none;
+            display: inline-block;
+            
+            @include border-radius(6px);
+            transition-property: background-color, color;
+            transition-duration: 0.25s;
+            transition-timing-function: ease-out;
+
+            
+            &:hover {
+                color: #4168A1;
+                background-color: white;
+                
+                transition-property: background-color, color;
+                transition-duration: 0.25s;
+                transition-timing-function: ease-out;
+
+
+            }
+            
+            @include respond-to(wide-handhelds) {
+                float: left;
+                width: 100%;
+                clear: left;
+                margin: 0;
+                margin-top: 20px;
+            }
+        }
+        
+        @include respond-to(wide-handhelds) {
+            width: 100%;
+            float: left;
+            text-align: center;
+        }
+    }
+    
+    // Front page overrides
+    .front-page & {
+        background-color: #3764AA;
+        
+        position: absolute;
+        z-index: 9999;
+        opacity: 0.85;
+        
+        .header-login {
+            display: block;
+        }
+        .header-links {
+            display: none;
+        }
+    }
+            
+    // DEV environment banner
+    &.env-dev {
+        
+        .header-logo:after {
+            content: "} DEV";
+            color: #A1B6D6;
+            font-size: 3.6rem;
+            font-weight: 900;
+            
+            
+            
+            @include respond-to(tablets) {
+                content: "} DEV";
+            }
+            @include respond-to(wide-handhelds) {
+                display: none;
+            }
+        }
+    }
+    &.env-test {
+        background-color: #d07919;
+        .header-logo .ccle-logo-text,
+        .weeks-display {
+            color: #f3dcc1;
+        }
+    }
+    
+    .header-logo {
+        display: inline;
+
+        .ucla-logo {
+            float: left;
+            margin-right: 8px;
+            display: inline-block;
+            padding: 8px 0;
+            a {display: inline-block; }
+        }
+        .ccle-logo {
+            color: #FFBC00;
+            float: left;
+            font-weight: bold;
+            font-size: 4.1rem;
+            margin-right: 8px;
+            display: inline-block;
+            &:hover {text-decoration: none;}
+        }
+        .ccle-logo-text {
+            color: #A1B6D6;
+            margin-right: 8px;
+            float: left;
+            display: inline-block;
+            font-size: 1.4rem;
+            padding-top: 8px;
+            
+            @include respond-to(tablets) {
+                display: none;
+            }
+        }
+        
+        @include respond-to(wide-handhelds) {
+            width: 100%;
+            text-align: center;
+            float: left;
+            
+            .ccle-logo,
+            .ucla-logo {
+                float: none;
+            }
+        }
+    }
+    .header-links {
+        color: white;
+        float: right;
+        a {color: white;}
+    }
+}
+
+.navbar {
+    border-bottom: 1px solid #eee;
+    background-color: #fefefe;
+    
+    .breadcrumb {
+        background-color: white;
+        /*font-size: 1.4rem;*/
+        margin-bottom: 0;
+        line-height: 1.4;
+        
+        .divider {
+            display: none;
+        }
+        
+        @include respond-to(wide-handhelds) {
+            margin-bottom: 0;
+        }
+    }
+    .navbutton {
+        padding: 4px 0;
+        
+        .singlebutton {
+            margin: 0;
+        }
+        
+        @include respond-to(handhelds) {
+            width: 100%;
+            .singlebutton {
+                width: 100%;
+                float: left;
+                
+                input {width: 100%;}
+            }
+        }
+    }
+    .control-panel {
+        padding: 4px;
+        float: right;
+        padding-right: 15px;
+    }
+}

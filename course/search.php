@@ -121,8 +121,10 @@ $ucla_search = $CFG->dirroot . '/blocks/ucla_search/block_ucla_search.php';
 if (file_exists($ucla_search)) {
     // Load and display the advanced search bar.
     require_once($ucla_search);
-    block_ucla_search::load_search_js(false);
-    echo block_ucla_search::print_course_search($search, $collab, $course);
+    $PAGE->requires->yui_module('moodle-block_ucla_search-search', 'M.ucla_search.init', 
+                        array(array('name' => 'frontpage-search')));
+                       
+    echo block_ucla_search::search_form('frontpage-search');
 
     // Get course/collab IDs which meet search criteria.
     $courses = get_courses_search($searchcriteria, "fullname ASC",
