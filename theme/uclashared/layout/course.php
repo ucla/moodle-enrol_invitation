@@ -96,7 +96,7 @@ echo $OUTPUT->doctype() ?>
             </div>
             <a class ="ccle-logo" href="<?php echo $CFG->wwwroot ?>">CCLE</a>
             <div class="ccle-logo-text">
-                common collaboration <br/>& learning environment
+                Common Collaboration <br/>&amp; Learning Environment
             </div>
         </div>
         

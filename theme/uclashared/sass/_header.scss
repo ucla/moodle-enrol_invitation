@@ -131,7 +131,6 @@
             display: inline-block;
             font-size: 1.4rem;
             padding-top: 8px;
-            text-transform: capitalize;
             
             @include respond-to(tablets) {
                 display: none;

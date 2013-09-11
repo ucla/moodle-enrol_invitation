@@ -5,6 +5,7 @@ global $CFG, $PAGE;
 // We need alert & search blocks
 require_once($CFG->dirroot . '/blocks/ucla_search/block_ucla_search.php');
 require_once($CFG->dirroot . '/blocks/ucla_alert/locallib.php');
+require_once($CFG->dirroot . '/blocks/ucla_browseby/browseby_handler_factory.class.php');
 
 // Load advanced search module
 $PAGE->requires->yui_module('moodle-block_ucla_search-search', 'M.ucla_search.init', 
@@ -57,20 +58,20 @@ $PAGE->requires->yui_module('moodle-block_ucla_search-search', 'M.ucla_search.in
                                 </h3>
                                 <div>
                                     <div class="btn-group">
-                                        <button type="button" class="btn btn-link" >
-                                            <span class="glyphicon glyphicon-chevron-right"></span>
-                                            Subject areas
-                                        </button>
-                                        <button type="button" class="btn btn-link" >
-                                            <span class="glyphicon glyphicon-chevron-right"></span>
-                                            Division
-                                        </button>
-                                        <button type="button" class="btn btn-link" >
-                                            <span class="glyphicon glyphicon-chevron-right"></span>
-                                            Instructor</button>
-                                        <button type="button" class="btn btn-link" >
-                                            <span class="glyphicon glyphicon-chevron-right"></span>
-                                            Collaboration sites</button>
+                                        <?php
+                                            $types = browseby_handler_factory::get_available_types();
+                                            foreach ($types as $type) {
+                                                $chevron = html_writer::tag('span', '', 
+                                                        array('class' => 'glyphicon glyphicon-chevron-right'));
+                                                $innercontent = $chevron .
+                                                        get_string('link_'.$type, 'block_ucla_browseby');
+                                                $link = html_writer::link(
+                                                        new moodle_url('blocks/ucla_browseby/view.php', array('type' => $type)),
+                                                        $innercontent);
+                                                echo html_writer::tag('button',
+                                                        $link, array('class' => 'btn btn-link', 'type' => 'button'));
+                                            }
+                                        ?>
                                     </div>
                                 </div>
                             </div>
@@ -84,12 +85,18 @@ $PAGE->requires->yui_module('moodle-block_ucla_search-search', 'M.ucla_search.in
                                 </h3>
                                 <div>
                                     <div class="btn-group">
+                                        <button type="button" class="btn btn-link">
+                                            <a target="_blank" href="https://archive.ccle.ucla.edu/">
+                                                <span class="glyphicon glyphicon-chevron-right"></span>
+                                                View sites created prior to Summer 2012
+                                            </a>
+                                        </button>
                                         <button type="button" class="btn btn-link" >
-                                            <span class="glyphicon glyphicon-chevron-right"></span>
-                                            View sites created prior to Summer 2012</button>
-                                        <button type="button" class="btn btn-link" >
-                                            <span class="glyphicon glyphicon-chevron-right"></span>
-                                            Request a collaboration site</button>
+                                            <a target="_blank" href="<?php echo new moodle_url('/course/request.php');?>">
+                                                <span class="glyphicon glyphicon-chevron-right"></span>
+                                                Request a collaboration site
+                                            </a>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -102,12 +109,18 @@ $PAGE->requires->yui_module('moodle-block_ucla_search-search', 'M.ucla_search.in
                             </h3>
                             <div>
                                 <div class="btn-group">
-                                    <button type="button" class="btn btn-link" >
-                                        <span class="glyphicon glyphicon-chevron-right"></span>
-                                        Submit a help request</button>
-                                    <button type="button" class="btn btn-link" >
-                                        <span class="glyphicon glyphicon-chevron-right"></span>
-                                        View self-help articles</button>
+                                    <button type="button" class="btn btn-link">
+                                        <a href="<?php echo new moodle_url('/blocks/ucla_help/index.php');?>">
+                                            <span class="glyphicon glyphicon-chevron-right"></span>
+                                            Submit a help request
+                                        </a>
+                                    </button>
+                                    <button type="button" class="btn btn-link">
+                                        <a target="_blank" href="https://docs.ccle.ucla.edu">
+                                            <span class="glyphicon glyphicon-chevron-right"></span>
+                                            View self-help articles
+                                        </a>
+                                    </button>
                                 </div>
                             </div>
                         </div>
