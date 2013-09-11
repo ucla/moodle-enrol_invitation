@@ -37,7 +37,7 @@ class block_ucla_bruincast extends block_base {
         // get global variable
         global $DB;
         
-        $courseid = $course->id; // course id from the hook function
+        $courseid = $course['course']->id; // course id from the hook function
 
         $nodes = array(); // initialize $nodes with an empty array for a good fallback; the empty array has no effect in coursemenu block hook.
         $previouslinks = array();
