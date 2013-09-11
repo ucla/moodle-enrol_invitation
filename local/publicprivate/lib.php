@@ -21,10 +21,13 @@
 function handle_course_created($course) {
     global $CFG;
 
-    require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
-    $pubprivcourse = new PublicPrivate_Course($course);
-    if (!$pubprivcourse->is_activated()) {
-        $pubprivcourse->activate();
+    require_once($CFG->dirroot . '/local/publicprivate/lib/site.class.php');
+    if (PublicPrivate_Site::is_enabled()) {
+        require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
+        $pubprivcourse = new PublicPrivate_Course($course);
+        if (!$pubprivcourse->is_activated()) {
+            $pubprivcourse->activate();
+        }
     }
 }
 
@@ -41,6 +44,11 @@ function handle_course_created($course) {
 function handle_course_updated($course) {
     global $CFG;
 
+    require_once($CFG->dirroot . '/local/publicprivate/lib/site.class.php');
+    if (!PublicPrivate_Site::is_enabled()) {
+        return;
+    }
+
     require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
     $pubpriv_course = new PublicPrivate_Course($course);
     $changehappened = false;
@@ -53,7 +61,7 @@ function handle_course_updated($course) {
 
     } else if ($course->enablepublicprivate == 0 && $pubpriv_course->is_activated()) {
         $pubpriv_course->deactivate();
-        $changehappened - true;
+        $changehappened = true;
     }
 
     // If we enabled or disabled public/private, then guest enrollment plugin
@@ -93,6 +101,11 @@ function handle_course_updated($course) {
  */
 function handle_mod($mod) {
     global $CFG;
+
+    require_once($CFG->dirroot . '/local/publicprivate/lib/site.class.php');
+    if (!PublicPrivate_Site::is_enabled()) {
+        return;
+    }
 
     require_once($CFG->dirroot . '/local/publicprivate/lib/module.class.php');
     $changes_made = false;  // if true, then need to clear course cache
