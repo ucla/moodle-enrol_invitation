@@ -243,6 +243,12 @@ class grade_grade extends grade_object {
             return false;
         }
 
+        // START UCLA MOD: CCLE-3970 - Install and evaluate LSU's Gradebook Improvements
+        if ($grade_item->is_course_item() or $grade_item->is_category_item()) {
+            return (bool)get_config('moodle', 'grade_overridecat');
+        }
+        // END UCLA MOD: CCLE-3970
+
         return true;
     }
 

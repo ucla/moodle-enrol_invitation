@@ -114,3 +114,8 @@ $string['logincheck_success'] = 'You\'re logged in.  You can now submit this for
 // CCLE-3652 - Students unable to see "Submission Grading" link on Assignment module
 $string['submissionsgrading'] = 'Grading criteria';
 
+// CCLE-3970 - Install and evaluate LSU's Gradebook Improvements
+$string['overridecat'] = 'Allow Grade Override';
+$string['overridecat_help'] = 'This option allows users to override the final grade in for category totals. Unchecking this option will make category totals uneditable.';
+$string['repeatheaders'] = 'Repeat Headers';
+$string['repeatheaders_help'] = 'Repeat gradebook headers after this many rows.';

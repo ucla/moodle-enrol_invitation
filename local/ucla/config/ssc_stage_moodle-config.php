@@ -194,6 +194,9 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 // Site administration > Courses > Course request
 $CFG->enablecourserequests = 0;
 
+// Site administration > Grades > Grade category settings
+$CFG->grade_overridecat = 0;
+
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
 
