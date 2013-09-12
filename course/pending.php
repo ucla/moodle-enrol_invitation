@@ -134,14 +134,16 @@ if (empty($pending)) {
         $row = array();
         $row[] = format_string($course->shortname);
         $row[] = format_string($course->fullname);
-        // Set site type and requested category
-        $row[] = siteindicator_manager::get_types_list($request->request->type);
-        $row[] = siteindicator_manager::get_categories_list($request->request->categoryid);
-        // END UCLA MOD CCLE-2389
         $row[] = fullname($course->get_requester());
         $row[] = $course->summary;
-        $row[] = $category->get_formatted_name();
-        $row[] = format_string($course->reason);
+        // Set site type and requested category
+//        $row[] = $category->get_formatted_name();
+//        $row[] = format_string($course->reason);
+        $row[] = siteindicator_manager::get_categories_list($request->request->categoryid);
+        $row[] = siteindicator_manager::get_types_list($request->request->type) .
+                html_writer::empty_tag('br') .
+                format_string($course->reason);
+        // END UCLA MOD CCLE-2389
         $row[] = $OUTPUT->single_button(new moodle_url($baseurl, array('approve' => $course->id, 'sesskey' => sesskey())), get_string('approve'), 'get') .
                  $OUTPUT->single_button(new moodle_url($baseurl, array('reject' => $course->id)), get_string('rejectdots'), 'get');
 
