@@ -104,6 +104,13 @@
             color: #f3dcc1;
         }
     }
+    &.env-stage {
+        background-color: #911687;
+        .header-logo .ccle-logo-text,
+        .weeks-display {
+            color: #f3dcc1;
+        }
+    }
     
     .header-logo {
         display: inline;

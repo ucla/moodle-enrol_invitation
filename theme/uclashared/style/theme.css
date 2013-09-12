@@ -193,9 +193,9 @@ input.disabled[type="submit"], .mform .disabled.collapseexpand, .mform input.dis
 input[disabled][type="submit"], #tool_uclacourserequestor input[disabled][type="button"], #tool_uclacourserequestor
 input[disabled][type="submit"], .mform [disabled].collapseexpand, .mform input[disabled][name="submitbutton"], .navbutton .wikisearch input[disabled][type="submit"],
 .navbutton .forumsearch input[disabled][type="submit"], .navbutton .singlebutton input[disabled][type="submit"], .pagelayout-redirect [disabled].continuebutton, [disabled].section-modchooser-link, .ucla-format-notice-box .mform input[disabled][name="yesbutton"], .ucla-format-notice-box .mform input[disabled][name="laterbutton"], .ucla-format-notice-box .mform input[disabled][name="nobutton"], h2.headingblock > a[disabled], #addadmisform > h3.main > a[disabled], .region-content > h2.main > a[disabled], .wiki_clear ~ .mform [disabled]#save, .wiki_clear ~ .mform [disabled]#cancel, fieldset[disabled] .btn, fieldset[disabled] input[type="button"],
-fieldset[disabled] input[type="submit"], fieldset[disabled] #tool_uclacourserequestor input[type="button"], #tool_uclacourserequestor fieldset[disabled] input[type="button"], fieldset[disabled] #tool_uclacourserequestor input[type="submit"], #tool_uclacourserequestor fieldset[disabled] input[type="submit"], fieldset[disabled] .mform .collapseexpand, .mform fieldset[disabled] .collapseexpand, fieldset[disabled] .mform input[name="submitbutton"], .mform fieldset[disabled] input[name="submitbutton"], fieldset[disabled] .navbutton .wikisearch input[type="submit"], .navbutton .wikisearch fieldset[disabled] input[type="submit"],
+fieldset[disabled] input[type="submit"], fieldset[disabled] #tool_uclacourserequestor input[type="button"], #tool_uclacourserequestor fieldset[disabled] input[type="button"], fieldset[disabled] #tool_uclacourserequestor input[type="submit"], #tool_uclacourserequestor fieldset[disabled] input[type="submit"], fieldset[disabled] .mform .collapseexpand, fieldset[disabled] .mform input[name="submitbutton"], fieldset[disabled] .navbutton .wikisearch input[type="submit"], .navbutton .wikisearch fieldset[disabled] input[type="submit"],
 fieldset[disabled] .navbutton .forumsearch input[type="submit"],
-.navbutton .forumsearch fieldset[disabled] input[type="submit"], fieldset[disabled] .navbutton .singlebutton input[type="submit"], .navbutton .singlebutton fieldset[disabled] input[type="submit"], fieldset[disabled] .pagelayout-redirect .continuebutton, .pagelayout-redirect fieldset[disabled] .continuebutton, fieldset[disabled] .section-modchooser-link, fieldset[disabled] .ucla-format-notice-box .mform input[name="yesbutton"], .ucla-format-notice-box .mform fieldset[disabled] input[name="yesbutton"], fieldset[disabled] .ucla-format-notice-box .mform input[name="laterbutton"], .ucla-format-notice-box .mform fieldset[disabled] input[name="laterbutton"], fieldset[disabled] .ucla-format-notice-box .mform input[name="nobutton"], .ucla-format-notice-box .mform fieldset[disabled] input[name="nobutton"], fieldset[disabled] h2.headingblock > a, fieldset[disabled] #addadmisform > h3.main > a, fieldset[disabled] .region-content > h2.main > a, fieldset[disabled] .wiki_clear ~ .mform #save, .wiki_clear ~ .mform fieldset[disabled] #save, fieldset[disabled] .wiki_clear ~ .mform #cancel, .wiki_clear ~ .mform fieldset[disabled] #cancel {
+.navbutton .forumsearch fieldset[disabled] input[type="submit"], fieldset[disabled] .navbutton .singlebutton input[type="submit"], .navbutton .singlebutton fieldset[disabled] input[type="submit"], fieldset[disabled] .pagelayout-redirect .continuebutton, .pagelayout-redirect fieldset[disabled] .continuebutton, fieldset[disabled] .section-modchooser-link, fieldset[disabled] .ucla-format-notice-box .mform input[name="yesbutton"], fieldset[disabled] .ucla-format-notice-box .mform input[name="laterbutton"], fieldset[disabled] .ucla-format-notice-box .mform input[name="nobutton"], fieldset[disabled] h2.headingblock > a, fieldset[disabled] #addadmisform > h3.main > a, fieldset[disabled] .region-content > h2.main > a, fieldset[disabled] .wiki_clear ~ .mform #save, fieldset[disabled] .wiki_clear ~ .mform #cancel {
   cursor: not-allowed;
   pointer-events: none;
   opacity: 0.65;
@@ -266,12 +266,12 @@ input[disabled].active[type="submit"],
 input[disabled][type="submit"].dndupload-progress-outer, .ucla-format-notice-box .mform input[disabled].active[name="laterbutton"], .ucla-format-notice-box .mform input[disabled][name="laterbutton"].dndupload-progress-outer, .ucla-format-notice-box .mform input[disabled].active[name="nobutton"], .ucla-format-notice-box .mform input[disabled][name="nobutton"].dndupload-progress-outer, .btn-default[disabled].dndupload-progress-outer, fieldset[disabled] .btn-default, fieldset[disabled] input[type="button"],
 fieldset[disabled] input[type="submit"], fieldset[disabled] .navbutton .wikisearch input[type="submit"], .navbutton .wikisearch fieldset[disabled] input[type="submit"],
 fieldset[disabled] .navbutton .forumsearch input[type="submit"],
-.navbutton .forumsearch fieldset[disabled] input[type="submit"], fieldset[disabled] .ucla-format-notice-box .mform input[name="laterbutton"], .ucla-format-notice-box .mform fieldset[disabled] input[name="laterbutton"], fieldset[disabled] .ucla-format-notice-box .mform input[name="nobutton"], .ucla-format-notice-box .mform fieldset[disabled] input[name="nobutton"], fieldset[disabled] .btn-default:hover, fieldset[disabled] input[type="button"]:hover,
-fieldset[disabled] input[type="submit"]:hover, fieldset[disabled] .ucla-format-notice-box .mform input[name="laterbutton"]:hover, .ucla-format-notice-box .mform fieldset[disabled] input[name="laterbutton"]:hover, fieldset[disabled] .ucla-format-notice-box .mform input[name="nobutton"]:hover, .ucla-format-notice-box .mform fieldset[disabled] input[name="nobutton"]:hover, fieldset[disabled] .btn-default:focus, fieldset[disabled] input[type="button"]:focus,
-fieldset[disabled] input[type="submit"]:focus, fieldset[disabled] .ucla-format-notice-box .mform input[name="laterbutton"]:focus, .ucla-format-notice-box .mform fieldset[disabled] input[name="laterbutton"]:focus, fieldset[disabled] .ucla-format-notice-box .mform input[name="nobutton"]:focus, .ucla-format-notice-box .mform fieldset[disabled] input[name="nobutton"]:focus, fieldset[disabled] .btn-default:active, fieldset[disabled] input[type="button"]:active,
-fieldset[disabled] input[type="submit"]:active, fieldset[disabled] .ucla-format-notice-box .mform input[name="laterbutton"]:active, .ucla-format-notice-box .mform fieldset[disabled] input[name="laterbutton"]:active, fieldset[disabled] .ucla-format-notice-box .mform input[name="nobutton"]:active, .ucla-format-notice-box .mform fieldset[disabled] input[name="nobutton"]:active, fieldset[disabled] .btn-default.active, fieldset[disabled] input.active[type="button"], fieldset[disabled] input[type="button"].dndupload-progress-outer,
+.navbutton .forumsearch fieldset[disabled] input[type="submit"], fieldset[disabled] .ucla-format-notice-box .mform input[name="laterbutton"], fieldset[disabled] .ucla-format-notice-box .mform input[name="nobutton"], fieldset[disabled] .btn-default:hover, fieldset[disabled] input[type="button"]:hover,
+fieldset[disabled] input[type="submit"]:hover, fieldset[disabled] .ucla-format-notice-box .mform input[name="laterbutton"]:hover, fieldset[disabled] .ucla-format-notice-box .mform input[name="nobutton"]:hover, fieldset[disabled] .btn-default:focus, fieldset[disabled] input[type="button"]:focus,
+fieldset[disabled] input[type="submit"]:focus, fieldset[disabled] .ucla-format-notice-box .mform input[name="laterbutton"]:focus, fieldset[disabled] .ucla-format-notice-box .mform input[name="nobutton"]:focus, fieldset[disabled] .btn-default:active, fieldset[disabled] input[type="button"]:active,
+fieldset[disabled] input[type="submit"]:active, fieldset[disabled] .ucla-format-notice-box .mform input[name="laterbutton"]:active, fieldset[disabled] .ucla-format-notice-box .mform input[name="nobutton"]:active, fieldset[disabled] .btn-default.active, fieldset[disabled] input.active[type="button"], fieldset[disabled] input[type="button"].dndupload-progress-outer,
 fieldset[disabled] input.active[type="submit"],
-fieldset[disabled] input[type="submit"].dndupload-progress-outer, fieldset[disabled] .ucla-format-notice-box .mform input.active[name="laterbutton"], .ucla-format-notice-box .mform fieldset[disabled] input.active[name="laterbutton"], fieldset[disabled] .ucla-format-notice-box .mform input[name="laterbutton"].dndupload-progress-outer, .ucla-format-notice-box .mform fieldset[disabled] input[name="laterbutton"].dndupload-progress-outer, fieldset[disabled] .ucla-format-notice-box .mform input.active[name="nobutton"], .ucla-format-notice-box .mform fieldset[disabled] input.active[name="nobutton"], fieldset[disabled] .ucla-format-notice-box .mform input[name="nobutton"].dndupload-progress-outer, .ucla-format-notice-box .mform fieldset[disabled] input[name="nobutton"].dndupload-progress-outer, fieldset[disabled] .btn-default.dndupload-progress-outer {
+fieldset[disabled] input[type="submit"].dndupload-progress-outer, fieldset[disabled] .ucla-format-notice-box .mform input.active[name="laterbutton"], fieldset[disabled] .ucla-format-notice-box .mform input[name="laterbutton"].dndupload-progress-outer, fieldset[disabled] .ucla-format-notice-box .mform input.active[name="nobutton"], fieldset[disabled] .ucla-format-notice-box .mform input[name="nobutton"].dndupload-progress-outer, fieldset[disabled] .btn-default.dndupload-progress-outer {
   background-color: white;
   border-color: #cccccc;
 }
@@ -366,7 +366,7 @@ input[disabled][type="submit"].dndupload-progress-outer, .uclaconsole
 input[disabled].active[type="submit"], .uclaconsole
 input[disabled][type="submit"].dndupload-progress-outer, .ucla-search
 input[disabled].active[type="submit"], .ucla-search
-input[disabled][type="submit"].dndupload-progress-outer, .mform input[disabled].active[name="submitbutton"], .mform input[disabled][name="submitbutton"].dndupload-progress-outer, .btn-primary[disabled].dndupload-progress-outer, .wiki_clear ~ .mform [disabled].dndupload-progress-outer#save, .wiki_clear ~ .mform [disabled].active#save, fieldset[disabled] .btn-primary, fieldset[disabled] #tool_uclacourserequestor input[type="button"], #tool_uclacourserequestor fieldset[disabled] input[type="button"], fieldset[disabled] .uclaconsole input[type="button"], .uclaconsole fieldset[disabled] input[type="button"], fieldset[disabled] .ucla-search input[type="button"], .ucla-search fieldset[disabled] input[type="button"], fieldset[disabled] #tool_uclacourserequestor input[type="submit"], #tool_uclacourserequestor fieldset[disabled] input[type="submit"], fieldset[disabled] .uclaconsole input[type="submit"], .uclaconsole fieldset[disabled] input[type="submit"], fieldset[disabled] .ucla-search input[type="submit"], .ucla-search fieldset[disabled] input[type="submit"], fieldset[disabled] .mform input[name="submitbutton"], .mform fieldset[disabled] input[name="submitbutton"], fieldset[disabled] .wiki_clear ~ .mform #save, .wiki_clear ~ .mform fieldset[disabled] #save, fieldset[disabled] .btn-primary:hover, fieldset[disabled] #tool_uclacourserequestor input[type="button"]:hover, #tool_uclacourserequestor fieldset[disabled] input[type="button"]:hover, fieldset[disabled] .uclaconsole input[type="button"]:hover, .uclaconsole fieldset[disabled] input[type="button"]:hover, fieldset[disabled] .ucla-search input[type="button"]:hover, .ucla-search fieldset[disabled] input[type="button"]:hover, fieldset[disabled] #tool_uclacourserequestor input[type="submit"]:hover, #tool_uclacourserequestor fieldset[disabled] input[type="submit"]:hover, fieldset[disabled] .uclaconsole input[type="submit"]:hover, .uclaconsole fieldset[disabled] input[type="submit"]:hover, fieldset[disabled] .ucla-search input[type="submit"]:hover, .ucla-search fieldset[disabled] input[type="submit"]:hover, fieldset[disabled] .mform input[name="submitbutton"]:hover, .mform fieldset[disabled] input[name="submitbutton"]:hover, fieldset[disabled] .wiki_clear ~ .mform #save:hover, .wiki_clear ~ .mform fieldset[disabled] #save:hover, fieldset[disabled] .btn-primary:focus, fieldset[disabled] #tool_uclacourserequestor input[type="button"]:focus, #tool_uclacourserequestor fieldset[disabled] input[type="button"]:focus, fieldset[disabled] .uclaconsole input[type="button"]:focus, .uclaconsole fieldset[disabled] input[type="button"]:focus, fieldset[disabled] .ucla-search input[type="button"]:focus, .ucla-search fieldset[disabled] input[type="button"]:focus, fieldset[disabled] #tool_uclacourserequestor input[type="submit"]:focus, #tool_uclacourserequestor fieldset[disabled] input[type="submit"]:focus, fieldset[disabled] .uclaconsole input[type="submit"]:focus, .uclaconsole fieldset[disabled] input[type="submit"]:focus, fieldset[disabled] .ucla-search input[type="submit"]:focus, .ucla-search fieldset[disabled] input[type="submit"]:focus, fieldset[disabled] .mform input[name="submitbutton"]:focus, .mform fieldset[disabled] input[name="submitbutton"]:focus, fieldset[disabled] .wiki_clear ~ .mform #save:focus, .wiki_clear ~ .mform fieldset[disabled] #save:focus, fieldset[disabled] .btn-primary:active, fieldset[disabled] #tool_uclacourserequestor input[type="button"]:active, #tool_uclacourserequestor fieldset[disabled] input[type="button"]:active, fieldset[disabled] .uclaconsole input[type="button"]:active, .uclaconsole fieldset[disabled] input[type="button"]:active, fieldset[disabled] .ucla-search input[type="button"]:active, .ucla-search fieldset[disabled] input[type="button"]:active, fieldset[disabled] #tool_uclacourserequestor input[type="submit"]:active, #tool_uclacourserequestor fieldset[disabled] input[type="submit"]:active, fieldset[disabled] .uclaconsole input[type="submit"]:active, .uclaconsole fieldset[disabled] input[type="submit"]:active, fieldset[disabled] .ucla-search input[type="submit"]:active, .ucla-search fieldset[disabled] input[type="submit"]:active, fieldset[disabled] .mform input[name="submitbutton"]:active, .mform fieldset[disabled] input[name="submitbutton"]:active, fieldset[disabled] .wiki_clear ~ .mform #save:active, .wiki_clear ~ .mform fieldset[disabled] #save:active, fieldset[disabled] .btn-primary.active, fieldset[disabled] #tool_uclacourserequestor input.active[type="button"], #tool_uclacourserequestor fieldset[disabled] input.active[type="button"], fieldset[disabled] #tool_uclacourserequestor input[type="button"].dndupload-progress-outer, #tool_uclacourserequestor fieldset[disabled] input[type="button"].dndupload-progress-outer, fieldset[disabled] .uclaconsole input.active[type="button"], .uclaconsole fieldset[disabled] input.active[type="button"], fieldset[disabled] .uclaconsole input[type="button"].dndupload-progress-outer, .uclaconsole fieldset[disabled] input[type="button"].dndupload-progress-outer, fieldset[disabled] .ucla-search input.active[type="button"], .ucla-search fieldset[disabled] input.active[type="button"], fieldset[disabled] .ucla-search input[type="button"].dndupload-progress-outer, .ucla-search fieldset[disabled] input[type="button"].dndupload-progress-outer, fieldset[disabled] #tool_uclacourserequestor input.active[type="submit"], #tool_uclacourserequestor fieldset[disabled] input.active[type="submit"], fieldset[disabled] #tool_uclacourserequestor input[type="submit"].dndupload-progress-outer, #tool_uclacourserequestor fieldset[disabled] input[type="submit"].dndupload-progress-outer, fieldset[disabled] .uclaconsole input.active[type="submit"], .uclaconsole fieldset[disabled] input.active[type="submit"], fieldset[disabled] .uclaconsole input[type="submit"].dndupload-progress-outer, .uclaconsole fieldset[disabled] input[type="submit"].dndupload-progress-outer, fieldset[disabled] .ucla-search input.active[type="submit"], .ucla-search fieldset[disabled] input.active[type="submit"], fieldset[disabled] .ucla-search input[type="submit"].dndupload-progress-outer, .ucla-search fieldset[disabled] input[type="submit"].dndupload-progress-outer, fieldset[disabled] .mform input.active[name="submitbutton"], .mform fieldset[disabled] input.active[name="submitbutton"], fieldset[disabled] .mform input[name="submitbutton"].dndupload-progress-outer, .mform fieldset[disabled] input[name="submitbutton"].dndupload-progress-outer, fieldset[disabled] .btn-primary.dndupload-progress-outer, fieldset[disabled] .wiki_clear ~ .mform .dndupload-progress-outer#save, .wiki_clear ~ .mform fieldset[disabled] .dndupload-progress-outer#save, fieldset[disabled] .wiki_clear ~ .mform .active#save, .wiki_clear ~ .mform fieldset[disabled] .active#save {
+input[disabled][type="submit"].dndupload-progress-outer, .mform input[disabled].active[name="submitbutton"], .mform input[disabled][name="submitbutton"].dndupload-progress-outer, .btn-primary[disabled].dndupload-progress-outer, .wiki_clear ~ .mform [disabled].dndupload-progress-outer#save, .wiki_clear ~ .mform [disabled].active#save, fieldset[disabled] .btn-primary, fieldset[disabled] #tool_uclacourserequestor input[type="button"], #tool_uclacourserequestor fieldset[disabled] input[type="button"], fieldset[disabled] .uclaconsole input[type="button"], .uclaconsole fieldset[disabled] input[type="button"], fieldset[disabled] .ucla-search input[type="button"], .ucla-search fieldset[disabled] input[type="button"], fieldset[disabled] #tool_uclacourserequestor input[type="submit"], #tool_uclacourserequestor fieldset[disabled] input[type="submit"], fieldset[disabled] .uclaconsole input[type="submit"], .uclaconsole fieldset[disabled] input[type="submit"], fieldset[disabled] .ucla-search input[type="submit"], .ucla-search fieldset[disabled] input[type="submit"], fieldset[disabled] .mform input[name="submitbutton"], fieldset[disabled] .wiki_clear ~ .mform #save, fieldset[disabled] .btn-primary:hover, fieldset[disabled] #tool_uclacourserequestor input[type="button"]:hover, #tool_uclacourserequestor fieldset[disabled] input[type="button"]:hover, fieldset[disabled] .uclaconsole input[type="button"]:hover, .uclaconsole fieldset[disabled] input[type="button"]:hover, fieldset[disabled] .ucla-search input[type="button"]:hover, .ucla-search fieldset[disabled] input[type="button"]:hover, fieldset[disabled] #tool_uclacourserequestor input[type="submit"]:hover, #tool_uclacourserequestor fieldset[disabled] input[type="submit"]:hover, fieldset[disabled] .uclaconsole input[type="submit"]:hover, .uclaconsole fieldset[disabled] input[type="submit"]:hover, fieldset[disabled] .ucla-search input[type="submit"]:hover, .ucla-search fieldset[disabled] input[type="submit"]:hover, fieldset[disabled] .mform input[name="submitbutton"]:hover, fieldset[disabled] .wiki_clear ~ .mform #save:hover, fieldset[disabled] .btn-primary:focus, fieldset[disabled] #tool_uclacourserequestor input[type="button"]:focus, #tool_uclacourserequestor fieldset[disabled] input[type="button"]:focus, fieldset[disabled] .uclaconsole input[type="button"]:focus, .uclaconsole fieldset[disabled] input[type="button"]:focus, fieldset[disabled] .ucla-search input[type="button"]:focus, .ucla-search fieldset[disabled] input[type="button"]:focus, fieldset[disabled] #tool_uclacourserequestor input[type="submit"]:focus, #tool_uclacourserequestor fieldset[disabled] input[type="submit"]:focus, fieldset[disabled] .uclaconsole input[type="submit"]:focus, .uclaconsole fieldset[disabled] input[type="submit"]:focus, fieldset[disabled] .ucla-search input[type="submit"]:focus, .ucla-search fieldset[disabled] input[type="submit"]:focus, fieldset[disabled] .mform input[name="submitbutton"]:focus, fieldset[disabled] .wiki_clear ~ .mform #save:focus, fieldset[disabled] .btn-primary:active, fieldset[disabled] #tool_uclacourserequestor input[type="button"]:active, #tool_uclacourserequestor fieldset[disabled] input[type="button"]:active, fieldset[disabled] .uclaconsole input[type="button"]:active, .uclaconsole fieldset[disabled] input[type="button"]:active, fieldset[disabled] .ucla-search input[type="button"]:active, .ucla-search fieldset[disabled] input[type="button"]:active, fieldset[disabled] #tool_uclacourserequestor input[type="submit"]:active, #tool_uclacourserequestor fieldset[disabled] input[type="submit"]:active, fieldset[disabled] .uclaconsole input[type="submit"]:active, .uclaconsole fieldset[disabled] input[type="submit"]:active, fieldset[disabled] .ucla-search input[type="submit"]:active, .ucla-search fieldset[disabled] input[type="submit"]:active, fieldset[disabled] .mform input[name="submitbutton"]:active, fieldset[disabled] .wiki_clear ~ .mform #save:active, fieldset[disabled] .btn-primary.active, fieldset[disabled] #tool_uclacourserequestor input.active[type="button"], #tool_uclacourserequestor fieldset[disabled] input.active[type="button"], fieldset[disabled] #tool_uclacourserequestor input[type="button"].dndupload-progress-outer, #tool_uclacourserequestor fieldset[disabled] input[type="button"].dndupload-progress-outer, fieldset[disabled] .uclaconsole input.active[type="button"], .uclaconsole fieldset[disabled] input.active[type="button"], fieldset[disabled] .uclaconsole input[type="button"].dndupload-progress-outer, .uclaconsole fieldset[disabled] input[type="button"].dndupload-progress-outer, fieldset[disabled] .ucla-search input.active[type="button"], .ucla-search fieldset[disabled] input.active[type="button"], fieldset[disabled] .ucla-search input[type="button"].dndupload-progress-outer, .ucla-search fieldset[disabled] input[type="button"].dndupload-progress-outer, fieldset[disabled] #tool_uclacourserequestor input.active[type="submit"], #tool_uclacourserequestor fieldset[disabled] input.active[type="submit"], fieldset[disabled] #tool_uclacourserequestor input[type="submit"].dndupload-progress-outer, #tool_uclacourserequestor fieldset[disabled] input[type="submit"].dndupload-progress-outer, fieldset[disabled] .uclaconsole input.active[type="submit"], .uclaconsole fieldset[disabled] input.active[type="submit"], fieldset[disabled] .uclaconsole input[type="submit"].dndupload-progress-outer, .uclaconsole fieldset[disabled] input[type="submit"].dndupload-progress-outer, fieldset[disabled] .ucla-search input.active[type="submit"], .ucla-search fieldset[disabled] input.active[type="submit"], fieldset[disabled] .ucla-search input[type="submit"].dndupload-progress-outer, .ucla-search fieldset[disabled] input[type="submit"].dndupload-progress-outer, fieldset[disabled] .mform input.active[name="submitbutton"], fieldset[disabled] .mform input[name="submitbutton"].dndupload-progress-outer, fieldset[disabled] .btn-primary.dndupload-progress-outer, fieldset[disabled] .wiki_clear ~ .mform .dndupload-progress-outer#save, fieldset[disabled] .wiki_clear ~ .mform .active#save {
   background-color: #428bca;
   border-color: #357ebd;
 }
@@ -487,15 +487,15 @@ input[disabled][type="submit"].dndupload-progress-outer, .mform input[disabled].
 .forumnodiscuss input[disabled][type="submit"]:focus, .btn-success[disabled]:active, .pagelayout-redirect [disabled].continuebutton:active, .ucla-format-notice-box .mform input[disabled][name="yesbutton"]:active, .forumaddnew input[disabled][type="submit"]:active,
 .forumnodiscuss input[disabled][type="submit"]:active, .btn-success[disabled].active, .pagelayout-redirect [disabled].active.continuebutton, .pagelayout-redirect [disabled].continuebutton.dndupload-progress-outer, .ucla-format-notice-box .mform input[disabled].active[name="yesbutton"], .ucla-format-notice-box .mform input[disabled][name="yesbutton"].dndupload-progress-outer, .btn-success[disabled].dndupload-progress-outer, .forumaddnew input[disabled].dndupload-progress-outer[type="submit"],
 .forumnodiscuss input[disabled].dndupload-progress-outer[type="submit"], .forumaddnew input[disabled].active[type="submit"],
-.forumnodiscuss input[disabled].active[type="submit"], fieldset[disabled] .btn-success, fieldset[disabled] .pagelayout-redirect .continuebutton, .pagelayout-redirect fieldset[disabled] .continuebutton, fieldset[disabled] .ucla-format-notice-box .mform input[name="yesbutton"], .ucla-format-notice-box .mform fieldset[disabled] input[name="yesbutton"], fieldset[disabled] .forumaddnew input[type="submit"], .forumaddnew fieldset[disabled] input[type="submit"],
+.forumnodiscuss input[disabled].active[type="submit"], fieldset[disabled] .btn-success, fieldset[disabled] .pagelayout-redirect .continuebutton, .pagelayout-redirect fieldset[disabled] .continuebutton, fieldset[disabled] .ucla-format-notice-box .mform input[name="yesbutton"], fieldset[disabled] .forumaddnew input[type="submit"], .forumaddnew fieldset[disabled] input[type="submit"],
 fieldset[disabled] .forumnodiscuss input[type="submit"],
-.forumnodiscuss fieldset[disabled] input[type="submit"], fieldset[disabled] .btn-success:hover, fieldset[disabled] .pagelayout-redirect .continuebutton:hover, .pagelayout-redirect fieldset[disabled] .continuebutton:hover, fieldset[disabled] .ucla-format-notice-box .mform input[name="yesbutton"]:hover, .ucla-format-notice-box .mform fieldset[disabled] input[name="yesbutton"]:hover, fieldset[disabled] .forumaddnew input[type="submit"]:hover, .forumaddnew fieldset[disabled] input[type="submit"]:hover,
+.forumnodiscuss fieldset[disabled] input[type="submit"], fieldset[disabled] .btn-success:hover, fieldset[disabled] .pagelayout-redirect .continuebutton:hover, .pagelayout-redirect fieldset[disabled] .continuebutton:hover, fieldset[disabled] .ucla-format-notice-box .mform input[name="yesbutton"]:hover, fieldset[disabled] .forumaddnew input[type="submit"]:hover, .forumaddnew fieldset[disabled] input[type="submit"]:hover,
 fieldset[disabled] .forumnodiscuss input[type="submit"]:hover,
-.forumnodiscuss fieldset[disabled] input[type="submit"]:hover, fieldset[disabled] .btn-success:focus, fieldset[disabled] .pagelayout-redirect .continuebutton:focus, .pagelayout-redirect fieldset[disabled] .continuebutton:focus, fieldset[disabled] .ucla-format-notice-box .mform input[name="yesbutton"]:focus, .ucla-format-notice-box .mform fieldset[disabled] input[name="yesbutton"]:focus, fieldset[disabled] .forumaddnew input[type="submit"]:focus, .forumaddnew fieldset[disabled] input[type="submit"]:focus,
+.forumnodiscuss fieldset[disabled] input[type="submit"]:hover, fieldset[disabled] .btn-success:focus, fieldset[disabled] .pagelayout-redirect .continuebutton:focus, .pagelayout-redirect fieldset[disabled] .continuebutton:focus, fieldset[disabled] .ucla-format-notice-box .mform input[name="yesbutton"]:focus, fieldset[disabled] .forumaddnew input[type="submit"]:focus, .forumaddnew fieldset[disabled] input[type="submit"]:focus,
 fieldset[disabled] .forumnodiscuss input[type="submit"]:focus,
-.forumnodiscuss fieldset[disabled] input[type="submit"]:focus, fieldset[disabled] .btn-success:active, fieldset[disabled] .pagelayout-redirect .continuebutton:active, .pagelayout-redirect fieldset[disabled] .continuebutton:active, fieldset[disabled] .ucla-format-notice-box .mform input[name="yesbutton"]:active, .ucla-format-notice-box .mform fieldset[disabled] input[name="yesbutton"]:active, fieldset[disabled] .forumaddnew input[type="submit"]:active, .forumaddnew fieldset[disabled] input[type="submit"]:active,
+.forumnodiscuss fieldset[disabled] input[type="submit"]:focus, fieldset[disabled] .btn-success:active, fieldset[disabled] .pagelayout-redirect .continuebutton:active, .pagelayout-redirect fieldset[disabled] .continuebutton:active, fieldset[disabled] .ucla-format-notice-box .mform input[name="yesbutton"]:active, fieldset[disabled] .forumaddnew input[type="submit"]:active, .forumaddnew fieldset[disabled] input[type="submit"]:active,
 fieldset[disabled] .forumnodiscuss input[type="submit"]:active,
-.forumnodiscuss fieldset[disabled] input[type="submit"]:active, fieldset[disabled] .btn-success.active, fieldset[disabled] .pagelayout-redirect .active.continuebutton, .pagelayout-redirect fieldset[disabled] .active.continuebutton, fieldset[disabled] .pagelayout-redirect .continuebutton.dndupload-progress-outer, .pagelayout-redirect fieldset[disabled] .continuebutton.dndupload-progress-outer, fieldset[disabled] .ucla-format-notice-box .mform input.active[name="yesbutton"], .ucla-format-notice-box .mform fieldset[disabled] input.active[name="yesbutton"], fieldset[disabled] .ucla-format-notice-box .mform input[name="yesbutton"].dndupload-progress-outer, .ucla-format-notice-box .mform fieldset[disabled] input[name="yesbutton"].dndupload-progress-outer, fieldset[disabled] .btn-success.dndupload-progress-outer, fieldset[disabled] .forumaddnew input.dndupload-progress-outer[type="submit"], .forumaddnew fieldset[disabled] input.dndupload-progress-outer[type="submit"],
+.forumnodiscuss fieldset[disabled] input[type="submit"]:active, fieldset[disabled] .btn-success.active, fieldset[disabled] .pagelayout-redirect .active.continuebutton, .pagelayout-redirect fieldset[disabled] .active.continuebutton, fieldset[disabled] .pagelayout-redirect .continuebutton.dndupload-progress-outer, .pagelayout-redirect fieldset[disabled] .continuebutton.dndupload-progress-outer, fieldset[disabled] .ucla-format-notice-box .mform input.active[name="yesbutton"], fieldset[disabled] .ucla-format-notice-box .mform input[name="yesbutton"].dndupload-progress-outer, fieldset[disabled] .btn-success.dndupload-progress-outer, fieldset[disabled] .forumaddnew input.dndupload-progress-outer[type="submit"], .forumaddnew fieldset[disabled] input.dndupload-progress-outer[type="submit"],
 fieldset[disabled] .forumnodiscuss input.dndupload-progress-outer[type="submit"],
 .forumnodiscuss fieldset[disabled] input.dndupload-progress-outer[type="submit"], fieldset[disabled] .forumaddnew input.active[type="submit"], .forumaddnew fieldset[disabled] input.active[type="submit"],
 fieldset[disabled] .forumnodiscuss input.active[type="submit"],
@@ -544,7 +544,7 @@ fieldset[disabled] .forumnodiscuss input.active[type="submit"],
   border-radius: 0;
 }
 /* line 94, ../package/bootstrap/lib/_buttons.scss */
-.btn-link, .mform .collapseexpand, .wiki_clear ~ .mform #cancel, .btn-link:active, .mform .collapseexpand:active, .wiki_clear ~ .mform #cancel:active, .btn-link[disabled], .mform [disabled].collapseexpand, .wiki_clear ~ .mform [disabled]#cancel, fieldset[disabled] .btn-link, fieldset[disabled] .mform .collapseexpand, .mform fieldset[disabled] .collapseexpand, fieldset[disabled] .wiki_clear ~ .mform #cancel, .wiki_clear ~ .mform fieldset[disabled] #cancel {
+.btn-link, .mform .collapseexpand, .wiki_clear ~ .mform #cancel, .btn-link:active, .mform .collapseexpand:active, .wiki_clear ~ .mform #cancel:active, .btn-link[disabled], .mform [disabled].collapseexpand, .wiki_clear ~ .mform [disabled]#cancel, fieldset[disabled] .btn-link, fieldset[disabled] .mform .collapseexpand, fieldset[disabled] .wiki_clear ~ .mform #cancel {
   background-color: transparent;
   -webkit-box-shadow: none;
   box-shadow: none;
@@ -560,7 +560,7 @@ fieldset[disabled] .forumnodiscuss input.active[type="submit"],
   background-color: transparent;
 }
 /* line 113, ../package/bootstrap/lib/_buttons.scss */
-.btn-link[disabled]:hover, .mform [disabled].collapseexpand:hover, .wiki_clear ~ .mform [disabled]#cancel:hover, .btn-link[disabled]:focus, .mform [disabled].collapseexpand:focus, .wiki_clear ~ .mform [disabled]#cancel:focus, fieldset[disabled] .btn-link:hover, fieldset[disabled] .mform .collapseexpand:hover, .mform fieldset[disabled] .collapseexpand:hover, fieldset[disabled] .wiki_clear ~ .mform #cancel:hover, .wiki_clear ~ .mform fieldset[disabled] #cancel:hover, fieldset[disabled] .btn-link:focus, fieldset[disabled] .mform .collapseexpand:focus, .mform fieldset[disabled] .collapseexpand:focus, fieldset[disabled] .wiki_clear ~ .mform #cancel:focus, .wiki_clear ~ .mform fieldset[disabled] #cancel:focus {
+.btn-link[disabled]:hover, .mform [disabled].collapseexpand:hover, .wiki_clear ~ .mform [disabled]#cancel:hover, .btn-link[disabled]:focus, .mform [disabled].collapseexpand:focus, .wiki_clear ~ .mform [disabled]#cancel:focus, fieldset[disabled] .btn-link:hover, fieldset[disabled] .mform .collapseexpand:hover, fieldset[disabled] .wiki_clear ~ .mform #cancel:hover, fieldset[disabled] .btn-link:focus, fieldset[disabled] .mform .collapseexpand:focus, fieldset[disabled] .wiki_clear ~ .mform #cancel:focus {
   color: #999999;
   text-decoration: none;
 }
@@ -3571,22 +3571,31 @@ input {
 #page-header.env-test .weeks-display {
   color: #f3dcc1;
 }
-/* line 108, ../sass/_header.scss */
+/* line 107, ../sass/_header.scss */
+#page-header.env-stage {
+  background-color: #911687;
+}
+/* line 110, ../sass/_header.scss */
+#page-header.env-stage .header-logo .ccle-logo-text,
+#page-header.env-stage .weeks-display {
+  color: #f3dcc1;
+}
+/* line 115, ../sass/_header.scss */
 #page-header .header-logo {
   display: inline;
 }
-/* line 111, ../sass/_header.scss */
+/* line 118, ../sass/_header.scss */
 #page-header .header-logo .ucla-logo {
   float: left;
   margin-right: 8px;
   display: inline-block;
   padding: 8px 0;
 }
-/* line 116, ../sass/_header.scss */
+/* line 123, ../sass/_header.scss */
 #page-header .header-logo .ucla-logo a {
   display: inline-block;
 }
-/* line 118, ../sass/_header.scss */
+/* line 125, ../sass/_header.scss */
 #page-header .header-logo .ccle-logo {
   color: #FFBC00;
   float: left;
@@ -3595,11 +3604,11 @@ input {
   margin-right: 8px;
   display: inline-block;
 }
-/* line 125, ../sass/_header.scss */
+/* line 132, ../sass/_header.scss */
 #page-header .header-logo .ccle-logo:hover {
   text-decoration: none;
 }
-/* line 127, ../sass/_header.scss */
+/* line 134, ../sass/_header.scss */
 #page-header .header-logo .ccle-logo-text {
   color: #A1B6D6;
   margin-right: 8px;
@@ -3609,111 +3618,111 @@ input {
   padding-top: 8px;
 }
 @media only screen and (max-width: 480px) {
-  /* line 127, ../sass/_header.scss */
+  /* line 134, ../sass/_header.scss */
   #page-header .header-logo .ccle-logo-text {
     display: none;
   }
 }
 @media only screen and (min-width: 480px) and (max-width: 768px) {
-  /* line 127, ../sass/_header.scss */
+  /* line 134, ../sass/_header.scss */
   #page-header .header-logo .ccle-logo-text {
     display: none;
   }
 }
 @media only screen and (min-width: 768px) and (max-width: 959px) {
-  /* line 127, ../sass/_header.scss */
+  /* line 134, ../sass/_header.scss */
   #page-header .header-logo .ccle-logo-text {
     display: none;
   }
 }
 @media only screen and (max-width: 480px) {
-  /* line 108, ../sass/_header.scss */
+  /* line 115, ../sass/_header.scss */
   #page-header .header-logo {
     width: 100%;
     text-align: center;
     float: left;
   }
-  /* line 146, ../sass/_header.scss */
+  /* line 153, ../sass/_header.scss */
   #page-header .header-logo .ccle-logo,
   #page-header .header-logo .ucla-logo {
     float: none;
   }
 }
 @media only screen and (min-width: 480px) and (max-width: 768px) {
-  /* line 108, ../sass/_header.scss */
+  /* line 115, ../sass/_header.scss */
   #page-header .header-logo {
     width: 100%;
     text-align: center;
     float: left;
   }
-  /* line 146, ../sass/_header.scss */
+  /* line 153, ../sass/_header.scss */
   #page-header .header-logo .ccle-logo,
   #page-header .header-logo .ucla-logo {
     float: none;
   }
 }
-/* line 151, ../sass/_header.scss */
+/* line 158, ../sass/_header.scss */
 #page-header .header-links {
   color: white;
   float: right;
 }
-/* line 154, ../sass/_header.scss */
+/* line 161, ../sass/_header.scss */
 #page-header .header-links a {
   color: white;
 }
 
-/* line 158, ../sass/_header.scss */
+/* line 165, ../sass/_header.scss */
 .navbar {
   border-bottom: 1px solid #eee;
   background-color: #fefefe;
 }
-/* line 162, ../sass/_header.scss */
+/* line 169, ../sass/_header.scss */
 .navbar .breadcrumb {
   background-color: white;
   /*font-size: 1.4rem;*/
   margin-bottom: 0;
   line-height: 1.4;
 }
-/* line 168, ../sass/_header.scss */
+/* line 175, ../sass/_header.scss */
 .navbar .breadcrumb .divider {
   display: none;
 }
 @media only screen and (max-width: 480px) {
-  /* line 162, ../sass/_header.scss */
+  /* line 169, ../sass/_header.scss */
   .navbar .breadcrumb {
     margin-bottom: 0;
   }
 }
 @media only screen and (min-width: 480px) and (max-width: 768px) {
-  /* line 162, ../sass/_header.scss */
+  /* line 169, ../sass/_header.scss */
   .navbar .breadcrumb {
     margin-bottom: 0;
   }
 }
-/* line 176, ../sass/_header.scss */
+/* line 183, ../sass/_header.scss */
 .navbar .navbutton {
   padding: 4px 0;
 }
-/* line 179, ../sass/_header.scss */
+/* line 186, ../sass/_header.scss */
 .navbar .navbutton .singlebutton {
   margin: 0;
 }
 @media only screen and (max-width: 480px) {
-  /* line 176, ../sass/_header.scss */
+  /* line 183, ../sass/_header.scss */
   .navbar .navbutton {
     width: 100%;
   }
-  /* line 185, ../sass/_header.scss */
+  /* line 192, ../sass/_header.scss */
   .navbar .navbutton .singlebutton {
     width: 100%;
     float: left;
   }
-  /* line 189, ../sass/_header.scss */
+  /* line 196, ../sass/_header.scss */
   .navbar .navbutton .singlebutton input {
     width: 100%;
   }
 }
-/* line 193, ../sass/_header.scss */
+/* line 200, ../sass/_header.scss */
 .navbar .control-panel {
   padding: 4px;
   float: right;
@@ -8607,9 +8616,10 @@ td.visible-print {
     display: none !important;
   }
 }
-/* line 10, ../sass/_responsive-utilities.scss */
+/* line 11, ../sass/_responsive-utilities.scss */
 .course-content .hidden,
-.mform .hidden {
+.mform .hidden,
+.block.hidden {
   display: block !important;
   visibility: visible !important;
 }
