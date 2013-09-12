@@ -209,6 +209,9 @@ $CFG->enablecourserequests = 1;
 // Site administration > Courses > Backups > General backup defaults
 $CFG->forced_plugin_settings['backup']['backup_general_users'] = 0;
 
+// Site administration > Grades > Grade category settings
+$CFG->grade_overridecat = 0;
+
 // Site administration > Language > Language settings
 $CFG->langstringcache = false;
 
