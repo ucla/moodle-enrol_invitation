@@ -359,8 +359,7 @@ class block_ucla_rearrange extends block_base {
     /**
      * Adding link to site menu block header.
      *
-     * @param object $course
-     * @param int $displaysection
+     * @param array $params
      *
      * @return array   Returns link to tool.
      */

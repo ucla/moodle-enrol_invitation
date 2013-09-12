@@ -62,6 +62,10 @@ class syllabus_form extends moodleform {
         global $CFG, $DB, $OUTPUT, $USER;
 
         $mform = $this->_form;
+
+        // Get rid of "Collapse all".
+        $mform->setDisableShortforms(true);
+
         $this->courseid = $this->_customdata['courseid'];
         $this->action = $this->_customdata['action'];
         if (isset($this->_customdata['type'])) {
@@ -92,7 +96,8 @@ class syllabus_form extends moodleform {
             if (empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]) &&
                     empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE])) {
                 $mform->addElement('html', $OUTPUT->notification(
-                        get_string('no_syllabus', 'local_ucla_syllabus')));
+                        get_string('no_syllabus', 'local_ucla_syllabus'),
+                        'notifymessage'));
             }
             $this->display_public_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]);
             $this->display_private_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]);
@@ -384,6 +389,7 @@ class syllabus_form extends moodleform {
 
             // Indicate that we are editing an existing syllabus.
             $mform->addElement('hidden', 'entryid', $existingsyllabus->id);
+            $mform->setType('entryid', PARAM_INT);
         }
 
         $this->add_action_buttons();
@@ -482,6 +488,7 @@ class syllabus_form extends moodleform {
 
             // Indicate that we are editing an existing syllabus.
             $mform->addElement('hidden', 'entryid', $existingsyllabus->id);
+            $mform->setType('entryid', PARAM_INT);
         }
 
         $this->add_action_buttons();

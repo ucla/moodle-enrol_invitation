@@ -31,8 +31,7 @@ class block_ucla_copyright_status extends block_base {
     /**
      * Adding link to site menu block header.
      *
-     * @param object $course
-     * @param int $displaysection
+     * @param array $params
      *
      * @return array   Returns link to tool. 
      */
@@ -56,7 +55,7 @@ class block_ucla_copyright_status extends block_base {
         
         $link = html_writer::link(
                 new moodle_url('/blocks/ucla_copyright_status/view.php',
-                    array('courseid' => $course->id,
+                    array('courseid' => $params['course']->id,
                           'section' => $params['section'])),
                 get_string('pluginname', 'block_ucla_copyright_status'),
                 array('id' => 'id-copyright-status'));
