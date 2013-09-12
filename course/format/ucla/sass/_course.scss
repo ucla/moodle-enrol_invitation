@@ -101,3 +101,16 @@
         @include box-shadow(#aaa 1px 2px 2px);
     }
 }
+
+// Clear labels -- this occurs because the .groupinglabel rule is set to 'inline-block'
+// inside labels.
+//
+// ref: TESTINGCCLE-725
+li.activity {
+    &.label, 
+    .contentafterlink {
+        & .no-overflow {
+            clear: left;
+        }
+    }
+}
