@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: iclicker_service.php 164 2012-08-22 20:11:41Z azeckoski@gmail.com $ */
+/* $Id: iclicker_service.php 186 2013-05-15 02:00:25Z azeckoski@gmail.com $ */
 
 require_once (dirname(__FILE__).'/../../config.php');
 global $CFG,$USER,$COURSE;
@@ -118,8 +118,11 @@ class ClickerWebservicesException extends Exception {
 class iclicker_service {
 
     // CONSTANTS
-    const VERSION = '1.1';
-    const BLOCK_VERSION = 2012082200; // MUST match version.php
+    const VERSION = '1.4'; // MUST match version.php
+    const BLOCK_VERSION = 2013051400; // MUST match version.php
+
+    // Moodle version - 2.0 = 2010112400; 2.1 = 2011070100; 2.2 = 2011120100; 2.3 = 2012062500; 2.4 = 2012120300
+
     const BLOCK_NAME = 'block_iclicker';
     const BLOCK_PATH = '/blocks/iclicker';
     const REG_TABLENAME = 'iclicker_registration';
@@ -154,6 +157,7 @@ class iclicker_service {
     // CONFIG
     public static $server_URL = self::DEFAULT_SERVER_URL;
     public static $domain_URL = self::DEFAULT_SERVER_URL;
+    public static $allow_remote_sharing = true; // FORCE this to true
     public static $disable_alternateid = false;
     public static $use_national_webservices = false;
     public static $webservices_URL = self::NATIONAL_WS_URL;
@@ -162,7 +166,9 @@ class iclicker_service {
     public static $disable_sync_with_national = false;
     public static $block_iclicker_sso_enabled = false;
     public static $block_iclicker_sso_shared_key = null;
+    public static $enable_course_shortname = false;
     public static $test_mode = false;
+
 
     // STATIC METHODS
 
@@ -333,8 +339,10 @@ class iclicker_service {
      */
     public static function require_user() {
         global $USER;
-        if (!isset($USER->id) || !$USER->id || isguestuser($USER)) {
+        if (!isset($USER->id) || !$USER->id) {
             throw new ClickerSecurityException('User must be logged in');
+        } else if (isguestuser($USER->id)) {
+            throw new ClickerSecurityException('Guest users ('.$USER->id.') are not allowed to access the clicker tool');
         }
         return $USER->id;
     }
@@ -532,17 +540,31 @@ class iclicker_service {
             }
         }
 
-        //$results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false, 'c.sortorder', array(), 1);
-        //$result = count($results) > 0;
+
         $result = false;
-        $courses = enrol_get_users_courses($user_id, true, null, null);
-        foreach ($courses as $id=>$course) {
-            $context = context_course::instance($id);
-            if (has_capability('moodle/course:update', $context, $user_id)) {
-                //unset($courses[$id]);
-                $result = true;
-                break;
+        if (class_exists('context_course')) {
+            // for Moodle 2.2+
+            $courses = enrol_get_users_courses($user_id, true, null, null);
+            foreach ($courses as $id=>$course) {
+                $context = context_course::instance($id);
+                if (has_capability('moodle/course:update', $context, $user_id)) {
+                    //unset($courses[$id]);
+                    $result = true;
+                    break;
+                }
             }
+        } else {
+            // for Moodle before 2.2
+            global $USER;
+            // sadly this is the only way to do this check: http://moodle.org/mod/forum/discuss.php?d=140383
+            $accessinfo = null;
+            if ($user_id === $USER->id && isset($USER->access)) {
+                $accessinfo = $USER->access;
+            } else {
+                $accessinfo = get_user_access_sitewide($user_id);
+            }
+            $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false, 'c.sortorder', array(), 1);
+            $result = count($results) > 0;
         }
         return $result;
     }
@@ -698,6 +720,7 @@ class iclicker_service {
      *
      * @param string $userId [OPTIONAL] the internal user id (if null, use the current user id)
      * @return string the user key for the given user OR null if there is no key
+     * @throws InvalidArgumentException
      */
     public static function getUserKey($userId) {
         global $DB;
@@ -721,6 +744,7 @@ class iclicker_service {
      * @param string $userId [OPTIONAL] the internal user id (if null, use the current user id)
      * @param string $userKey the passed in SSO key to check for this user
      * @return bool true if the key is valid OR false if the user has no key or the key is otherwise invalid
+     * @throws InvalidArgumentException
      */
     public static function checkUserKey($userId, $userKey) {
         global $DB;
@@ -753,7 +777,9 @@ class iclicker_service {
             } else {
                 self::$block_iclicker_sso_enabled = true;
                 self::$block_iclicker_sso_shared_key = $sharedKey;
-                error_log("i>clicker plugin SSO handling enabled by shared key, note that this will disable normal username/password handling");
+                if (!self::$test_mode) {
+                    error_log("i>clicker plugin SSO handling enabled by shared key, note that this will disable normal username/password handling");
+                }
             }
         }
     }
@@ -878,10 +904,6 @@ class iclicker_service {
         if (!$clicker_id) {
             throw new InvalidArgumentException("clicker_id must be set");
         }
-        $current_user_id = self::require_user();
-        if (!isset($user_id)) {
-            $user_id = $current_user_id;
-        }
         try {
             $clicker_id = self::validate_clicker_id($clicker_id);
         }
@@ -889,8 +911,13 @@ class iclicker_service {
             return false;
         }
         // NOTE: also returns disabled registrations
-        $result = $DB->get_record(self::REG_TABLENAME, array('clicker_id' => $clicker_id, 'owner_id' => $user_id));
-        if ($result) {
+        $params = array('clicker_id' => $clicker_id);
+        if (!empty($user_id)) {
+            $params['owner_id'] = $user_id;
+        }
+        $result = $DB->get_record(self::REG_TABLENAME, $params, $fields='*', $strictness=IGNORE_MULTIPLE); // only get the first one
+        if ($result && !empty($user_id)) {
+            $current_user_id = self::require_user();
             if (!self::can_read_registration($result, $current_user_id)) {
                 throw new ClickerSecurityException("User ($current_user_id) not allowed to access registration ($result->id)");
             }
@@ -944,20 +971,36 @@ class iclicker_service {
      */
     public static function get_registrations_by_user($user_id = null, $activated = null) {
         global $DB;
+        $results = array();
         $current_user_id = self::require_user();
-        if (!isset($user_id)) {
+        if (!isset($user_id) && $current_user_id) {
             $user_id = $current_user_id;
         }
-        $sql = 'owner_id = ?'; //'".$user_id."'";
-        if (isset($activated)) {
-            $sql .= ' and activated = '.($activated ? 1 : 0);
-        }
-        $results = $DB->get_records_select(self::REG_TABLENAME, $sql, array($user_id), self::REG_ORDER);
-        if (!$results) {
-            $results = array(
-            );
+        if (isset($user_id)) {
+            $sql = 'owner_id = ?'; //'".$user_id."'";
+            if (isset($activated)) {
+                $sql .= ' and activated = '.($activated ? 1 : 0);
+            }
+            $results = $DB->get_records_select(self::REG_TABLENAME, $sql, array($user_id), self::REG_ORDER);
+            if (!$results) {
+                $results = array();
+            }
         }
         return $results;
+    }
+
+    /**
+     * Convert an array of row data (one entry per field) into a CSV compatible string representing the row
+     * @param array $row array of row data (one entry per field)
+     * @return string CSV compatible row (includes the line breaks)
+     */
+    public static function make_CSV_row($row) {
+        $escapedRow = array();
+        foreach ($row as $value) {
+            $escapedRow[] = '"'.str_replace('"', '""', $value).'"';
+        }
+        $rowString = implode(',', $escapedRow)."\r\n";
+        return $rowString;
     }
 
     /**
@@ -967,9 +1010,12 @@ class iclicker_service {
      * @param int $max [optional] max value for paging
      * @param string $order [optional] the order by string
      * @param string $search [optional] search string for clickers
+     * @param int $startDate [optional] starting registration date in unix seconds
+     * @param int $endDate [optional] ending registration date in unix seconds
      * @return array the list of clicker registrations
+     * @throws ClickerSecurityException if the current user is not allowed
      */
-    public static function get_all_registrations($start = 0, $max = 0, $order = 'clicker_id', $search = '') {
+    public static function get_all_registrations($start = 0, $max = 0, $order = 'clicker_id', $search = '', $startDate=null, $endDate=null) {
         global $DB;
         if (!self::is_admin()) {
             throw new ClickerSecurityException("Only admins can use this function");
@@ -977,13 +1023,7 @@ class iclicker_service {
         if ($max <= 0) {
             $max = 10;
         }
-        $query = '';
-        $params = null;
-        if ($search) {
-            // build a search query
-            $query = $DB->sql_like('clicker_id', '?%', false, false, false); // clicker_id like {search}%
-            $params = array($search);
-        }
+        list($query, $params) = self::makeRegFilterQuery($search, $startDate, $endDate);
         $results = $DB->get_records_select(self::REG_TABLENAME, $query, $params, $order, '*', $start, $max);
         if (!$results) {
             $results = array();
@@ -997,21 +1037,81 @@ class iclicker_service {
             $users = self::get_users($user_ids);
             foreach ($results as $reg) {
                 $name = 'UNKNOWN-'.$reg->owner_id;
+                $email = 'UNKNOWN@unknown.com';
                 if (array_key_exists($reg->owner_id, $users)) {
                     $name = $users[$reg->owner_id]->name;
+                    $email = $users[$reg->owner_id]->email;
                 }
                 $reg->user_display_name = $name;
+                $reg->user_email = $email;
             }
         }
         return $results;
     }
 
     /**
+     * ADMIN ONLY
+     * This is a method to get all the clickers for the clicker admin view
+     * @param string $search [optional] search string for clickers
+     * @param int $startDate [optional] starting registration date in unix seconds
+     * @param int $endDate [optional] ending registration date in unix seconds
+     * @return int the count of clicker registrations which were removed
+     * @throws ClickerSecurityException if the current user is not allowed
+     */
+    public static function purge_registrations($search = '', $startDate=null, $endDate=null) {
+        global $DB;
+        if (!self::is_admin()) {
+            throw new ClickerSecurityException("Only admins can use this function");
+        }
+        list($query, $params) = self::makeRegFilterQuery($search, $startDate, $endDate);
+        $count = $DB->count_records_select(self::REG_TABLENAME, $query, $params);
+        // delete_records_select will throw an exception if the deletion fails
+        $DB->delete_records_select(self::REG_TABLENAME, $query, $params);
+        return $count;
+    }
+
+    /**
+     * @param string $search [optional] search string for clickers
+     * @param int $startDate [optional] starting registration date in unix seconds
+     * @param int $endDate [optional] ending registration date in unix seconds
      * @return int the count of the total number of registered clickers
      */
-    public static function count_all_registrations() {
+    public static function count_all_registrations($search = '', $startDate=null, $endDate=null) {
         global $DB;
-        return $DB->count_records(self::REG_TABLENAME);
+        list($query, $params) = self::makeRegFilterQuery($search, $startDate, $endDate);
+        return $DB->count_records_select(self::REG_TABLENAME, $query, $params);
+    }
+
+    /**
+     * @param string $search [optional] search string for clickers
+     * @param int $startDate [optional] starting registration date in unix seconds
+     * @param int $endDate [optional] ending registration date in unix seconds
+     * @return array of $query, $params
+     */
+    protected static function makeRegFilterQuery($search, $startDate, $endDate) {
+        global $DB;
+        $query = '';
+        $params = array();
+        if (!empty($search)) {
+            // build a search query
+            $query .= $DB->sql_like('clicker_id', '?', false, false, false); // clicker_id like {search}%
+            $params[] = $search . '%';
+        }
+        if (is_numeric($startDate) && is_numeric($endDate)) {
+            $query .= (empty($query) ? '' : ' AND ') . '(timecreated >= ? AND timecreated <= ?)';
+            $params[] = $startDate;
+            $params[] = $endDate;
+
+        } else if (is_numeric($startDate)) {
+            $query .= (empty($query) ? '' : ' AND ') . 'timecreated >= ?';
+            $params[] = $startDate;
+
+        } else if (is_numeric($endDate)) {
+            $query .= (empty($query) ? '' : ' AND ') . 'timecreated <= ?';
+            $params[] = $endDate;
+
+        }
+        return array($query, $params);
     }
 
     /**
@@ -1020,6 +1120,7 @@ class iclicker_service {
      *
      * @param int $reg_id id of the clicker registration
      * @return bool true if removed OR false if not found or not removed
+     * @throws ClickerSecurityException
      */
     public static function remove_registration($reg_id) {
         global $DB;
@@ -1041,13 +1142,20 @@ class iclicker_service {
      * @param string $owner_id [optional] the user_id OR current user if not set
      * @param boolean $local_only [optional] create this clicker in the local system only if true, otherwise sync to national system as well
      * @return stdClass the clicker_registration object
+     * @throws ClickerRegisteredException
      */
     public static function create_clicker_registration($clicker_id, $owner_id = null, $local_only = false) {
         $clicker_id = self::validate_clicker_id($clicker_id);
         $current_user_id = self::require_user();
-        $user_id = $owner_id;
-        if (!isset($owner_id)) {
-            $user_id = $current_user_id;
+        if (iclicker_service::$allow_remote_sharing) {
+            // when remote sharing is enabled we only look to see if this user has registered the remote
+            $user_id = $owner_id;
+            if (!isset($owner_id)) {
+                $user_id = $current_user_id;
+            }
+        } else {
+            // when remote sharing is disabled we fetch any that exist
+            $user_id = null;
         }
         $registration = self::get_registration_by_clicker_id($clicker_id, $user_id);
         // NOTE: we probably want to check the national system here to see if this is already registered
@@ -1059,7 +1167,7 @@ class iclicker_service {
                     self::save_registration($registration);
                 }
             } else {
-                throw new ClickerRegisteredException('Clicker '.$registration->clicker_id.' already registered', $user_id, $registration->clicker_id, $registration->owner_id);
+                throw new ClickerRegisteredException('Clicker '.$registration->clicker_id.' already registered to '.$registration->owner_id, $user_id, $registration->clicker_id, $registration->owner_id);
             }
         } else {
             $clicker_registration = new stdClass ;
@@ -1081,6 +1189,7 @@ class iclicker_service {
      * @param int $reg_id id of the clicker registration
      * @param boolean $activated true to enable, false to disable
      * @return stdClass the clicker_registration object
+     * @throws InvalidArgumentException
      */
     public static function set_registration_active($reg_id, $activated) {
         if (!isset($reg_id)) {
@@ -1102,8 +1211,9 @@ class iclicker_service {
     /**
      * Saves the clicker registration data (create or update)
      * @param object $clicker_registration the registration data as an object
-     * @return int id of the saved registration
-     * @throw InvalidArgumentException if the registration is invalid (missing data or invalid data)
+     * @return bool|int id of the saved registration
+     * @throws ClickerSecurityException
+     * @throws InvalidArgumentException if the registration is invalid (missing data or invalid data)
      */
     public static function save_registration(&$clicker_registration) {
         global $DB;
@@ -1157,7 +1267,12 @@ class iclicker_service {
         global $DB;
         // get_users_by_capability - accesslib - moodle/grade:view
         // search_users - datalib
-        $context = context_course::instance($course_id); //get_context_instance(CONTEXT_COURSE, $course_id); // deprecated
+        if (class_exists('context_course')) {
+            // for Moodle 2.2+
+            $context = context_course::instance($course_id);
+        } else {
+            $context = get_context_instance(CONTEXT_COURSE, $course_id); // deprecated
+        }
         $results = get_users_by_capability($context, 'moodle/grade:view', 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname', '', '', '', '', false);
         if (isset($results) && !empty($results)) {
             // get the registrations related to these students
@@ -1175,7 +1290,7 @@ class iclicker_service {
                         } else {
                             $query .= ',';
                         }
-                        $query .= $student->id;
+                        $query .= '\''.$student->id.'\'';
                     }
                     $query .= ')';
                 }
@@ -1221,27 +1336,37 @@ class iclicker_service {
         if (! isset($user_id)) {
             $user_id = self::get_current_user_id();
         }
-        //$results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false, 'c.sortorder', array('fullname','summary','timecreated','visible'), 50);
-        // START UCLA MOD: CCLE-3769 - Add shortname to course title for iclicker integration
-        //$results = enrol_get_users_courses($user_id, true, array('fullname','summary','timecreated','visible'), null);
-        $results = enrol_get_users_courses($user_id, true, array('shortname', 'fullname','summary','timecreated','visible'), null);
-        // END UCLA MOD: CCLE-3769
-        foreach ($results as $id=>$course) {
-            $context = context_course::instance($id);
-            if (!has_capability('moodle/course:update', $context, $user_id)) {
-                unset($results[$id]);
+        if (class_exists('context_course')) {
+            // for Moodle 2.2+
+            $results = enrol_get_users_courses($user_id, true, array('fullname','summary','timecreated','visible'), null);
+            foreach ($results as $id=>$course) {
+                $context = context_course::instance($id);
+                if (!has_capability('moodle/course:update', $context, $user_id)) {
+                    unset($results[$id]);
+                }
             }
+        } else {
+            // Moodle pre 2.2
+            global $USER;
+            if ($user_id === $USER->id && isset($USER->access)) {
+                $accessinfo = $USER->access;
+            } else {
+                $accessinfo = get_user_access_sitewide($user_id);
+            }
+            $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false,
+                'c.sortorder', array('fullname','summary','timecreated','visible'), 50);
         }
         if (!$results) {
             $results = array();
-        }
-        // START UCLA MOD: CCLE-3769 - Add shortname to course title for iclicker integration
-        else {
-            foreach ($results as $index => $result) {
-                $results[$index]->fullname = $result->shortname . ': ' . $result->fullname;
+        } else {
+            // update the course titles
+            foreach ($results as $course) {
+                $course->title = $course->fullname;
+                if (iclicker_service::$enable_course_shortname && !empty($course->shortname)) {
+                    $course->title = $course->fullname.' ('.$course->shortname.')';
+                }
             }
         }
-        // END UCLA MOD: CCLE-3769
         return $results;
     }
 
@@ -1263,6 +1388,10 @@ class iclicker_service {
         }
         if (!$course) {
             $course = false;
+        }
+        $course->title = $course->fullname;
+        if (iclicker_service::$enable_course_shortname && !empty($course->shortname)) {
+            $course->title = $course->fullname.' ('.$course->shortname.')';
         }
         return $course;
     }
@@ -1483,9 +1612,14 @@ class iclicker_service {
 
         // extra permissions check on gradebook manage/update
         $user_id = self::require_user();
-        $context = context_course::instance($course->id);
-        if (!has_capability('moodle/grade:manage', $context, $user_id)) {
-            throw new InvalidArgumentException("User ($user_id) cannot manage the gradebook in course $course->name (id: $course->id), content=$context");
+        if (class_exists('context_course')) {
+            // for Moodle 2.2+
+            $context = context_course::instance($course->id);
+        } else {
+            $context = get_context_instance(CONTEXT_COURSE, $course->id); // deprecated
+        }
+        if (!$context || !has_capability('moodle/grade:manage', $context, $user_id)) {
+            throw new InvalidArgumentException("User ($user_id) cannot manage the gradebook in course id=$course->id (".var_export($course, true)."), context: ".var_export($context, true));
         }
 
         // attempt to get the default iclicker category first
@@ -1638,6 +1772,7 @@ format.
      * @param int $instructor_id unique user id
      * @return string the XML
      * @throws InvalidArgumentException if the id is invalid
+     * @throws ClickerSecurityException
      */
     public static function encode_courses($instructor_id) {
         if (! isset($instructor_id)) {
@@ -1656,7 +1791,11 @@ format.
         $encoded .= '">'.PHP_EOL;
         // loop through courses
         foreach ($courses as $course) {
-            $encoded .= '  <course id="'.$course->id.'" name="'.self::encode_for_xml($course->fullname)
+            $courseName = $course->fullname;
+            if (iclicker_service::$enable_course_shortname && !empty($course->shortname)) {
+                $courseName .= '-'.$course->shortname;
+            }
+            $encoded .= '  <course id="'.$course->id.'" name="'.self::encode_for_xml($courseName)
                     .'" created="'.$course->timecreated
                     .'" published="'.($course->visible  ? 'True' : 'False')
                     .'" usertype="I" />'.PHP_EOL;
@@ -2456,6 +2595,7 @@ format.
 
 // load the config into the static vars from the global plugin config settings
 $block_name = iclicker_service::BLOCK_NAME;
+//$block_iclicker_allow_sharing = get_config($block_name, 'block_iclicker_allow_sharing');
 $block_iclicker_disable_alternateid = get_config($block_name, 'block_iclicker_disable_alternateid');
 $block_iclicker_use_national_ws = get_config($block_name, 'block_iclicker_use_national_ws');
 $block_iclicker_domain_url = get_config($block_name, 'block_iclicker_domain_url');
@@ -2464,6 +2604,7 @@ $block_iclicker_webservices_username = get_config($block_name, 'block_iclicker_w
 $block_iclicker_webservices_password = get_config($block_name, 'block_iclicker_webservices_password');
 $block_iclicker_disable_sync = get_config($block_name, 'block_iclicker_disable_sync');
 $block_iclicker_sso_shared_key = get_config($block_name, 'block_iclicker_sso_shared_key');
+$block_iclicker_enable_shortname = get_config($block_name, 'block_iclicker_enable_shortname');
 
 iclicker_service::$server_URL = $CFG->wwwroot;
 if (!empty($block_iclicker_domain_url)) {
@@ -2474,6 +2615,10 @@ if (!empty($block_iclicker_domain_url)) {
 if (!empty($block_iclicker_disable_alternateid)) {
     iclicker_service::$disable_alternateid = true;
 }
+/* cannot change this for now
+if (!empty($block_iclicker_allow_sharing)) {
+    iclicker_service::$allow_remote_sharing = true;
+}*/
 if (!empty($block_iclicker_use_national_ws)) {
     iclicker_service::$use_national_webservices = true;
 }
@@ -2492,4 +2637,7 @@ if (!empty($block_iclicker_disable_sync)) {
 if (!empty($block_iclicker_sso_shared_key)) {
     iclicker_service::$block_iclicker_sso_enabled = true;
     iclicker_service::$block_iclicker_sso_shared_key = $block_iclicker_sso_shared_key;
+}
+if (!empty($block_iclicker_enable_shortname)) {
+    iclicker_service::$enable_course_shortname = true;
 }
