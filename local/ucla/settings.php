@@ -56,12 +56,15 @@ if ($hassiteconfig) {
 // Inject new gradebook settings for repeat headers and non-override category totals.
 if ($ADMIN->fulltree) {
     $grade = $ADMIN->locate('gradecategorysettings');
-    $grade->add(new admin_setting_configcheckbox('grade_overridecat',
-            get_string('overridecat', 'local_ucla'),
-            get_string('overridecat_help', 'local_ucla'), 1));
-
+    if (!empty($grade)) {
+        $grade->add(new admin_setting_configcheckbox('grade_overridecat',
+                get_string('overridecat', 'local_ucla'),
+                get_string('overridecat_help', 'local_ucla'), 1));
+    }
     $grader = $ADMIN->locate('gradereportgrader');
-    $grader->add(new admin_setting_configtext('grade_report_repeatheaders',
-            get_string('repeatheaders', 'local_ucla'),
-            get_string('repeatheaders_help', 'local_ucla'), 10));
+    if (!empty($grader)) {
+        $grader->add(new admin_setting_configtext('grade_report_repeatheaders',
+                get_string('repeatheaders', 'local_ucla'),
+                get_string('repeatheaders_help', 'local_ucla'), 10));
+    }
 }
