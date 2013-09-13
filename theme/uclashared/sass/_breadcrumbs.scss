@@ -1,0 +1,13 @@
+@import "bootstrap/lib/breadcrumbs";
+
+///
+// Modify default breadcrumb
+.breadcrumb {
+    background-color: white;
+    margin-bottom: 0;
+    
+    .divider {
+        display: none;
+    }
+
+}

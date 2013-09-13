@@ -26,6 +26,11 @@
     }
 }
 
+// A slightly smaller input form.
+.input-xs {
+    height: 29px;
+}
+
 // Moodle overrides
 // --------------------------------------------------
 
@@ -56,8 +61,7 @@ input[type="email"],
 input[type="url"],
 input[type="search"],
 input[type="tel"],
-input[type="color"]
-{
+input[type="color"] {
     @extend .form-control;
 }
 
@@ -81,10 +85,6 @@ input[type="color"]
         &.fdate_selector {
             > select {display: inline;}
         }
-    }
-    
-    input[type="checkbox"] {
-        /*@extend .checkbox;*/
     }
     
     // Cancel buttons display as links

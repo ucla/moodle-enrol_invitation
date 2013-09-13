@@ -89,45 +89,44 @@ echo $OUTPUT->doctype() ?>
 <?php echo $OUTPUT->standard_top_of_body_html() ?>
 <div id="page">
 <?php if ($hasheading || $hasnavbar) { ?>
-    <div id="page-header" class="env-<?php echo $envflag ?>">
-        <div class="header-logo" >
-            <div class="ucla-logo" >
-                 <?php echo $OUTPUT->logo('ucla-logo', 'theme') ?>
+    <header id="page-header" class="env-<?php echo $envflag ?>">
+        <div class="">
+            <div class="col-sm-6 header-logo">
+                <?php echo $OUTPUT->logo('ucla-logo', 'theme') ?>
             </div>
-            <a class ="ccle-logo" href="<?php echo $CFG->wwwroot ?>">CCLE</a>
-            <div class="ccle-logo-text">
-                Common Collaboration <br/>&amp; Learning Environment
+            <div class="col-sm-6 header-login">
+                <div class="header-links" >
+                <?php
+                    if ($haslogininfo) {
+                        echo $OUTPUT->login_info();
+                    }
+                ?>
+                </div>
+                <div class="weeks-display" >
+                    <?php echo $OUTPUT->weeks_display() ?>
+                </div>
+            </div>
+            <div class="header-login-frontpage col-sm-6" >
+                <?php echo $OUTPUT->help_feedback_link() ?>
+                <a class="login" href="<?php echo get_login_url() ?>">Login</a>
             </div>
         </div>
         
-        <div class="header-login" >
-            <?php echo $OUTPUT->help_feedback_link() ?>
-            <a class="login" href="<?php echo get_login_url() ?>">Login</a>
-        </div>
-        <div class="header-links" >
-        <?php
-            if ($haslogininfo) {
-                echo $OUTPUT->login_info();
-            }
-        ?>
-        </div>
-        <div class="weeks-display" >
-            <?php echo $OUTPUT->weeks_display() ?>
-        </div>
-    </div>
+    </header>
  
 <?php } ?>
 
 <?php if ($hasnavbar && !$hasintrobanner) { ?>
 <div class="navbar clearfix">
     <div class="breadcrumb"><?php echo $OUTPUT->navbar(); ?></div>
-    <?php if ($showcontrolpanel) { ?>
-        <div class="control-panel">
-            <?php echo $OUTPUT->control_panel_button() ?>
-        </div>
-    <?php } ?>
-    <div class="navbutton"> <?php echo $PAGE->button; ?></div>
-    
+    <div class="controls" >
+        <div class="navbutton navbar-control"> <?php echo $PAGE->button; ?></div>
+        <?php if ($showcontrolpanel) { ?>
+            <div class="control-panel navbar-control">
+                <?php echo $OUTPUT->control_panel_button() ?>
+            </div>
+        <?php } ?>
+    </div>
 </div>
 <?php } ?>
 <!-- END OF HEADER -->

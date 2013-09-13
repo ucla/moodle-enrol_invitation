@@ -287,7 +287,7 @@ function notice_nonenrolled_users($course) {
         } else {
             $display_string = get_string('publicprivatenotice_notenrolled','local_publicprivate');
         }
-        return $OUTPUT->box($display_string, 'noticebox notice_nonenrolled_users');
+        return $OUTPUT->box($display_string, 'alert alert-warning alert-login');
     }
 
     return;

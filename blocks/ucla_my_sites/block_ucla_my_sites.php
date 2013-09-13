@@ -62,7 +62,7 @@ class block_ucla_my_sites extends block_base {
         // NOTE: guest have access to "My moodle" for some strange reason, so 
         // display a login notice for them
         if (isguestuser($USER)) {            
-            $content[] =  $OUTPUT->box_start('noticebox');
+            $content[] =  $OUTPUT->box_start('alert alert-warning alert-login');
 
             $content[] = get_string('loginrequired', 'block_ucla_my_sites');
             $loginbutton = new single_button(new moodle_url($CFG->wwwroot

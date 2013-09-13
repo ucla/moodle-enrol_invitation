@@ -33,7 +33,7 @@ html, body {background-color:#FFF; height:100%;}
     color:#494949
 }*/
 
-
+/*
 .coursebox {width:100%;margin:10px 0px;border-bottom:1px solid #E3E3E3;overflow:hidden;padding-bottom:10px;}
 .coursebox .info {width:35%;float:left;}
 .coursebox .summary {width:60%;float:right;}
@@ -42,7 +42,7 @@ html, body {background-color:#FFF; height:100%;}
 
 #course-user .section h2,
 #course-user .section .content {margin:5px 1em;}
-#course-user .section table td {border:0;}
+#course-user .section table td {border:0;}*/
 
 /** Error **/
 .box.errorbox {
@@ -124,7 +124,7 @@ html, body {background-color:#FFF; height:100%;}
 #authmenu table td {border-width:0px;}
 
 #categoryquestions {margin-left:auto;margin-right:auto;width:100%;}
-
+/*
 #categoryquestions th,
 .user th,
 .user th.header,
@@ -161,7 +161,7 @@ html, body {background-color:#FFF; height:100%;}
 .admin table .r1 .cell,
 .path-report-rolescapabilitiestable table .r1 .cell {background-color:#EEE;}
 
-.admin .plugincompattable .r1 .cell {background-color:#FFF;}
+.admin .plugincompattable .r1 .cell {background-color:#FFF;}*/
 
 /*.singlebutton,
 .buttons {text-align:center;margin:20px;}

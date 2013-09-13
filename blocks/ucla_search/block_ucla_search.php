@@ -75,7 +75,7 @@ class block_ucla_search extends block_base {
                         array(
                             'id' => 'ucla-search', 
                             'type' => 'text', 
-                            'class' => 'form-control', 
+                            'class' => 'form-control ucla-search-input', 
                             'name' => 'search',
                             'placeholder' => get_string('placeholder', 'block_ucla_search')
                             )) .
