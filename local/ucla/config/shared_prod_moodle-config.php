@@ -279,6 +279,35 @@ $CFG->sitedefaultlicense = 'tbd';
 // Site administration > Plugins > Repositories > Common repository settings
 $CFG->legacyfilesinnewcourses = 1;  // enable new course to enable legacy course files
 
+// Site administration > Plugins > Local plugins > Kaltura package libraries
+$CFG->forced_plugin_settings['local_kaltura']['conn_server'] = 'ce';
+$CFG->forced_plugin_settings['local_kaltura']['uri'] = 'https://www.kaltura.com';
+$CFG->forced_plugin_settings['local_kaltura']['enable_reports'] = 1;
+$CFG->forced_plugin_settings['local_kaltura']['player'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['player_custom'] = 15205332;
+$CFG->forced_plugin_settings['local_kaltura']['assign_uploader'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['assign_uploader_custom'] = 15205342;
+$CFG->forced_plugin_settings['local_kaltura']['player_resource'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['player_resource_custom'] = 15205332;
+$CFG->forced_plugin_settings['local_kaltura']['assign_uploader_custom'] = 15205332;
+$CFG->forced_plugin_settings['local_kaltura']['player_resource_override'] = 1;
+$CFG->forced_plugin_settings['local_kaltura']['res_uploader'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['res_uploader_custom'] = 15205342;
+$CFG->forced_plugin_settings['local_kaltura']['presentation'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['presentation_custom'] = 15205352;
+$CFG->forced_plugin_settings['local_kaltura']['pres_uploader'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['pres_uploader_custom'] = 15205342;
+$CFG->forced_plugin_settings['local_kaltura']['simple_uploader'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['simple_uploader_custom'] = 15205362;
+$CFG->forced_plugin_settings['local_kaltura']['mymedia_uploader'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['mymedia_uploader_custom'] = 15205372;
+$CFG->forced_plugin_settings['local_kaltura']['mymedia_screen_recorder'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['mymedia_screen_recorder_custom'] = 15205382;
+$CFG->forced_plugin_settings['local_kaltura']['player_filter'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['player_filter_custom'] = 15205332;
+$CFG->forced_plugin_settings['local_kaltura']['enable_html5'] = 1;
+$CFG->forced_plugin_settings['local_kaltura']['mymedia_application_name'] = 'ccle-shared-prod';
+
 // Site administration > Plugins > Local plugins > UCLA configurations
 $CFG->forced_plugin_settings['local_ucla']['registrar_cache_ttl'] = 3600;   // 1 hour
 
