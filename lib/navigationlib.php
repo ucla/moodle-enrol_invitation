@@ -1201,6 +1201,11 @@ class global_navigation extends navigation_node {
                 // Load the course sections into the page
                 $this->load_course_sections($course, $coursenode, null, $cm);
                 $activity = $coursenode->find($cm->id, navigation_node::TYPE_ACTIVITY);
+                // START UCLA MOD: CCLE-4204 - Hard crash when viewing modules and not logged in
+                if (empty($activity)) {
+                    break;
+                }
+                // END UCLA MOD: CCLE-4204
                 // Finally load the cm specific navigaton information
                 $this->load_activity($cm, $course, $activity);
                 // Check if we have an active ndoe
