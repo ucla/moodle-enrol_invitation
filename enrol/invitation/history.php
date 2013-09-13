@@ -78,9 +78,8 @@ $invite_instance = $invitationmanager->get_invitation_instance($courseid, true);
 $invites = $invitationmanager->get_invites();
 
 if (empty($invites)) {
-    echo html_writer::tag('div', 
-            get_string('noinvitehistory', 'enrol_invitation'), 
-            array('class' => 'noinvitehistory'));
+    echo $OUTPUT->notification(
+            get_string('noinvitehistory', 'enrol_invitation'), 'notifymessage');
 } else {
     
     // BEGIN UCLA MOD: CCLE-2960-Viewing-history-of-invites-and-status
