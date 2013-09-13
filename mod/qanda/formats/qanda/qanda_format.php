@@ -5,7 +5,7 @@
  * @copyright 2013 UC Regents
  */
 
-function qanda_show_entry_qanda($course, $cm, $qanda, $entry, $mode = "", $hook = "", $printicons = 1, $aliases = true) {
+function qanda_show_entry_qanda($course, $cm, $qanda, $entry, $mode = "", $hook = "", $printicons = 1, $aliases = true, $permalink = true) {
     global $USER;
     if ($entry) {
 
@@ -79,8 +79,10 @@ function qanda_show_entry_qanda($course, $cm, $qanda, $entry, $mode = "", $hook 
 
         echo html_writer::end_tag('div');
         echo html_writer::start_tag('div', array('class' => 'qanda-permalink'));
-        $link = "view.php?id=$cm->id&mode=entry&hook=" . urlencode($entry->id);
-        echo html_writer::link($link, get_string("qanda_permalink", "qanda"), array('class' => 'qanda-permalink', 'title' => get_string("view")));
+        if ($permalink) {
+            $link = "view.php?id=$cm->id&mode=entry&hook=" . urlencode($entry->id);
+            echo html_writer::link($link, get_string("qanda_permalink", "qanda"), array('class' => 'qanda-permalink', 'title' => get_string("view")));
+        }
         echo html_writer::end_tag('div');
         echo html_writer::end_tag('div');
 
@@ -98,13 +100,13 @@ function qanda_show_entry_qanda($course, $cm, $qanda, $entry, $mode = "", $hook 
     }
 }
 
-function qanda_print_entry_faq($course, $cm, $qanda, $entry, $mode = '', $hook = '', $printicons = 1) {
+function qanda_print_entry_qanda($course, $cm, $qanda, $entry, $mode = '', $hook = '', $printicons = 1) {
 
     //The print view for this format is exactly the normal view, so we use it
     //Take out autolinking in answers un print view
     $entry->answer = '<span class="nolink">' . $entry->answer . '</span>';
 
     //Call to view function (without icons, ratings and aliases) and return its result
-    return qanda_show_entry_faq($course, $cm, $qanda, $entry, $mode, $hook, false, false, false);
+    return qanda_show_entry_qanda($course, $cm, $qanda, $entry, $mode, $hook, false, false, false);
 }
 

@@ -4,8 +4,6 @@
     margin: 0px auto;
     text-align: left; }
 
-/*.path-mod-qanda .qanda-post.entrylist { border-width: 0px; }*/
-
 .path-mod-qanda .qanda-post.continuous .question { display: inline; }
 
 .path-mod-qanda .qanda-post .commands {
@@ -74,8 +72,6 @@
 
 #page-mod-qanda-showentry #page-content { min-width: 600px; }
 
-/*#page-mod-qanda-print .mod-qanda-entrylist .mod-qanda-entry { vertical-align: top; }*/
-
 .path-mod-qanda.dir-rtl .qanda-post { text-align: right; }
 
 /* Hide answer editor from students */
@@ -96,9 +92,8 @@
 #page-mod-qanda-edit div.editor-admin div#fitem_id_answer_editor div.feditor{
     float:none;
     text-align:left;
-    padding-left:1em;
     margin-left:0;
-    padding:1em;
+    padding: 1em 1.5em 1em 1.5em;
     width:auto ;
 }
 
@@ -122,16 +117,22 @@
     margin-right: 20px;
 }
 .path-mod-qanda div.add-and-search-box table.box-align-center {
-    margin-bottom:0;
+
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .path-mod-qanda div.qanda-entry div.qanda-entry-count {
     float:left;
 }
 
+#page-mod-qanda-edit div.question fieldset.hidden {
+    margin:0;
+}
+
 /* Style the entry number box  */
 .path-mod-qanda div.qanda-entry-count{
-    text-align:left;
+    text-align: right;    
     font-size:1.25em;
     width:3ex;
     color: black; 
@@ -144,21 +145,6 @@
 .path-mod-qanda table.qanda-post,
 #page-mod-qanda-edit div.question-editor{
     text-align:left;
-    -moz-border-radius: 4px;
-    -webkit-border-radius: 4px;
-    border-radius: 4px;
-    margin-bottom:.5em;
-    color: #7e7975;
-    border-radius: 5px;
-    box-shadow: 
-        0 0 1px rgba(0, 0, 0, 0.3), 
-        0 1px 7px rgba(0, 0, 0, 0.3), 
-        inset 0 1px rgba(255,255,255,1),
-        inset 0 0px 2px rgba(0,0,0,0.25);
-    background: -webkit-linear-gradient(#eeefef, #ffffff 10%);
-    background: -moz-radial-gradient(#eeefef, #ffffff 10%);
-    background: linear-gradient(#eeefef, #ffffff 10%);
-    padding:.5em;
     margin-left:0;
 }
 
@@ -174,6 +160,12 @@
 
 .path-mod-qanda .qanda-post th.entry-header {
     text-align:left;
+    border-bottom: 1px solid #DDDDDD;
+    padding-top: 0;
+}
+
+.path-mod-qanda .qanda-post th.entry {
+    padding-top: 0;
 }
 
 .path-mod-qanda table.qanda-post tr.answer-row div.answer,
@@ -185,6 +177,10 @@
 #page-mod-qanda-edit div.question,
 #page-mod-qanda-edit div.answer {
     margin-bottom:1em;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    border: 1px solid #DDDDDD;
 }
 
 
@@ -207,16 +203,13 @@
     -webkit-border-radius:  5px 5px 0px 0px;
     border-radius:  5px 5px 0px 0px;
     float:left;
-    padding-left:1em;
+    padding-left:.5em;
     padding-right:1em;
     padding-top:.25em;
     margin-bottom: -5px;
     border: none; 
-    box-shadow: 
-        inset 0 3px 5px rgba(0,0,0,0.1),
-        inset 0 3px 2px rgba(0,0,0,0.1);
     background: #ffffff;
-    color: #777;
+    color: #394A6E;
     transition: color 0.3s ease-out;
     z-index:2;
     width:auto;
@@ -240,13 +233,7 @@
     -webkit-border-radius: 4px 10px 10px 10px;
     border-radius: 4px 10px 10px 10px;
     clear: both;
-    border: none; 
-    box-shadow: 
-        inset 0 3px 5px rgba(0,0,0,0.1),
-        inset 0 3px 2px rgba(0,0,0,0.1);
-    background: -webkit-linear-gradient(#ffffff, rgb(247, 245, 245) 150%);
-    background: -moz-radial-gradient(#ffffff, rgb(247, 245, 245) 150%);
-    background: linear-gradient(#ffffff, rgb(247, 245, 245) 150%);
+    border: none;
     color: #777;
     transition: color 0.3s ease-out;
 }
@@ -283,12 +270,6 @@
     border-radius: 4px 10px 10px 10px;
     clear: both;
     border: none; 
-    box-shadow: 
-        inset 0 3px 5px rgba(0,0,0,0.1),
-        inset 0 3px 2px rgba(0,0,0,0.1);
-    background: -webkit-linear-gradient(#ffffff, rgb(247, 245, 245) 150%);
-    background: -moz-radial-gradient(#ffffff, rgb(247, 245, 245) 150%);
-    background: linear-gradient(#ffffff, rgb(247, 245, 245) 150%);
     color: #777;
     transition: color 0.3s ease-out;
 }
@@ -374,15 +355,12 @@
     -webkit-border-radius: 4px 10px 10px 10px;
     border-radius: 4px 10px 10px 10px;
     border: none;
-    box-shadow: 
-        inset 0 3px 5px rgba(0,0,0,0.1),
-        inset 0 3px 2px rgba(0,0,0,0.1);
     margin-left: 25px;
 }
 
 .path-mod-qanda div.qanda-entry-table table.qanda-post {
     text-align:left;
-
+    border: 1px solid #DDDDDD;
     -moz-border-radius: 4px;
     -webkit-border-radius: 4px;
     border-radius: 4px ;
@@ -390,12 +368,6 @@
 
     color: #7e7975;
     border-radius: 5px;
-    box-shadow: 
-        0 0 1px rgba(0, 0, 0, 0.3), 
-        0 1px 7px rgba(0, 0, 0, 0.3), 
-        inset 0 1px rgba(255,255,255,1),
-        inset 0 0px 2px rgba(0,0,0,0.25);
-
     background: white;
     padding:.5em;
     margin-left:0;
@@ -443,9 +415,6 @@
 
 .path-mod-qanda div.qanda-control span.help-link a.approve-link,
 .path-mod-qanda div.qanda-add-entry input[type=submit] {
-    -moz-box-shadow:inset 0px 1px 0px 0px #bbdaf7;
-    -webkit-box-shadow:inset 0px 1px 0px 0px #bbdaf7;
-    box-shadow:inset 0px 1px 0px 0px #bbdaf7;
     background-color:#79bbff;
     background-image: none;
     -moz-border-radius:6px;

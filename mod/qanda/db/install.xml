@@ -67,7 +67,7 @@
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="qandaid"/>
-        <KEY NAME="qandaid" TYPE="foreign" FIELDS="qandaid" REFTABLE="mod_qanda" REFFIELDS="id" PREVIOUS="primary"/>
+        <KEY NAME="qandaid" TYPE="foreign" FIELDS="qandaid" REFTABLE="qanda" REFFIELDS="id" PREVIOUS="primary"/>
       </KEYS>
       <INDEXES>
         <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
