@@ -192,7 +192,9 @@ UpdatableMembersCombo.prototype.refreshMembers = function () {
     }
 };
 
-
+// START UCLA MOD: CCLE-2566 - PROTECTING GROUP AND GROUPING
+// Create an alternate refreshMembers function,  
+// which checks if a group is Public/Private before displaying members.
 UpdatableMembersCombo.prototype.refreshMembersPublicPrivate = function (groupPublicPrivate) {
 
     // Get group selector and check selection type
@@ -241,10 +243,16 @@ UpdatableMembersCombo.prototype.refreshMembersPublicPrivate = function (groupPub
 
     if(singleSelection && !includesPublicPrivate) {
         var sUrl = this.wwwRoot+"/group/index.php?id="+this.courseId+"&group="+groupId+"&act_ajax_getmembersingroup";
-        YAHOO.util.Connect.asyncRequest("GET", sUrl, this.connectCallback, null);
+        // CCLE-3534 - Prevent changing users in public/private groups.
+        // Updated to work with Moodle 2.5.
+        var callback = this.connectCallback;
+        YUI().use('yui2-connection', function (Y) {
+            Y.YUI2.util.Connect.asyncRequest("GET", sUrl, callback, null);
+        });
     }
     
 }
+// END UCLA MOD: CCLE-2566
 
 
 var createLoaderImg = function (elClass, parentId, wwwRoot) {
