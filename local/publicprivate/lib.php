@@ -304,7 +304,12 @@ function get_private_public($mod, $sr = null) {
     global $CFG;
     require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
     $publicprivate_course = new PublicPrivate_Course($mod->course);
-    $pubpriv = '';
+    $actions = array();
+
+    // If public/private is not enabled, we cannot return anything.
+    if (!$publicprivate_course->is_activated()) {
+        return $actions;
+    }
 
     $baseurl = new moodle_url('/local/publicprivate/mod.php', array('sesskey' => sesskey()));
 
