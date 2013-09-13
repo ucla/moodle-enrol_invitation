@@ -108,4 +108,20 @@ class ucla_format_name_test extends basic_testcase {
             $this->assertEquals($expected, $actual);
         }
     }
+
+    /**
+     * Handle people with initials in their names. Should left capital if an
+     * initial is preceeded by exactly 1 letter only and ends in a period.
+     */
+    function test_initials() {
+        $testcases = array('P.J.' => 'P.J.',
+                           'p.j.' => 'P.J.',
+                           ' p. j. ' => 'P. J.',
+                           ' j.r. ewing' => 'J.R. Ewing',
+                           'Sentance string.' => 'Sentance String.');
+        foreach ($testcases as $testcase => $expected) {
+            $actual = ucla_format_name($testcase);
+            $this->assertEquals($expected, $actual);
+        }
+    }
 }

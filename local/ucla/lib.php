@@ -466,6 +466,7 @@ function ucla_format_name($name=null, $handleconjunctions=false) {
      *  - If name has an aprostrophe.
      *  - If name starts with "MC".
      *  - If name has conjunctions, e.g. "and", "of", "the", "as", "a".
+     *  - If name has initials.
      */    
 
     // Has space?
@@ -537,6 +538,18 @@ function ucla_format_name($name=null, $handleconjunctions=false) {
     if ($handleconjunctions &&
             in_array(textlib::strtolower($name), array('and', 'of', 'the', 'as', 'a'))) {
         $name = textlib::strtolower($name);
+    }
+
+    // If name has initials. Should be capital if exactly 1 letter is followed
+    // by a period.
+    $namearray = explode(".", $name);
+    if (count($namearray) > 1) {
+        foreach ($namearray as $key => $element) {
+            if (textlib::strlen($element) == 1) {
+                $namearray[$key] = textlib::strtoupper($element);
+            }
+        }
+        $name = implode(".", $namearray);  // Combine elements back.
     }
 
     return $name;
