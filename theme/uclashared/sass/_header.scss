@@ -5,7 +5,7 @@
 $prod-header-color:     #4168A1 !default;
 $test-header-color:     #d07919 !default;
 $stage-header-color:    #911687 !default;
-/*$dev-header-color*/
+$dev-header-color:      #3EA639 !default;
 
 #page-header {
     /*border-top: 1px solid #93d3eb;*/ 
@@ -41,7 +41,11 @@ $stage-header-color:    #911687 !default;
             
     // DEV environment banner
     &.env-dev {
-
+        background-color: $dev-header-color;
+        .header-logo .ccle-logo-text,
+        .weeks-display {
+            color: #f3dcc1;
+        }
     }
     // TEST banner
     &.env-test {
