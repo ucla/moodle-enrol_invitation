@@ -1,5 +1,7 @@
 <?php
 $string['pluginname'] = 'My sites';
+$string['ucla_my_sites:addinstance'] = 'Add My sites block';
+$string['ucla_my_sites:myaddinstance'] = 'Add My sites to My home';
 
 $string['classsites'] = 'Class sites';
 $string['noclasssites'] = 'No classes found for {$a}.';
