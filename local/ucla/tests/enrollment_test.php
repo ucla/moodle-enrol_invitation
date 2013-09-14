@@ -37,10 +37,10 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
      * Stores mocked version of local_ucla_enrollment_helper.
      * @var local_ucla_enrollment_helper
      */
-    private $mockenrollmenthelper = null;    
+    private $mockenrollmenthelper = null;
 
     /**
-     * Used by mocked_query_registrar to return data for a given stored 
+     * Used by mocked_query_registrar to return data for a given stored
      * procedure, term, and srs.
      * @var array
      */
@@ -53,9 +53,9 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
     private $trace = null;
 
     /**
-     * Helper method to create an entry for the mocked registrar call to 
+     * Helper method to create an entry for the mocked registrar call to
      * ccle_courseinstructorsget.
-     * 
+     *
      * @param string $term
      * @param string $srs
      * @param string $rolecode
@@ -189,7 +189,7 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
 
     /**
      * Returns an array to be used in testing createfinduser's updating process.
-     * 
+     *
      * @return array    Some combo of firstname, lastname, and email.
      */
     public function diff_conditions_provider() {
@@ -333,38 +333,6 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
     }
 
     /**
-     * Make sure createorfinduser throws an exception if it finds multiple
-     * records for a given idnumber.
-     *
-     * Note, cannot make a test case if there are multiple username names
-     * returned, because username plus mnet_localhost_id is a unique key.
-     *
-     * @expectedException dml_multiple_records_exception
-     */
-    public function test_createorfinduser_exception_idnumber() {
-        $fieldmappings = array('uid'        => 'idnumber',
-                               'firstname'  => 'firstname',
-                               'lastname'   => 'lastname',
-                               'email'      => 'email',
-                               'username'   => 'username');
-
-        // Create duplicate idnumbers.
-        $uclauser = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_user(
-                        array('idnumber' => '123456789'));
-        $uclauser = $this->getDataGenerator()->
-                get_plugin_generator('local_ucla')->create_user(
-                        array('idnumber' => '123456789'));
-        $enrollment = array();
-        foreach ($fieldmappings as $key => $value) {
-            $enrollment[$key] = $uclauser->$value;
-        }
-        $enrollment['username'] = '';
-
-        $this->mockenrollmenthelper->createorfinduser($enrollment);
-    }
-
-    /**
      * Make sure createorfinduser can find an existing user.
      */
     public function test_createorfinduser_existing() {
@@ -458,6 +426,51 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
     }
 
     /**
+     * Make sure that createorfinduser properly handles finding multiple users
+     * with the same UID/idnumber.
+     */
+    public function test_createorfinduser_multiple() {
+        $fieldmappings = array('uid'        => 'idnumber',
+                               'firstname'  => 'firstname',
+                               'lastname'   => 'lastname',
+                               'email'      => 'email',
+                               'username'   => 'username');
+
+        // Create users with the same idnumber.
+        $users = array();
+        $users[] = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_user(array('idnumber' => '123456789'));
+        $users[] = $this->getDataGenerator()
+                ->get_plugin_generator('local_ucla')
+                ->create_user(array('idnumber' => '123456789'));
+
+        foreach ($users as $user) {
+            // See if we return null if there was no way to disambiguate.
+            $enrollment = array('uid'        => $user->idnumber,
+                                'firstname'  => $user->firstname,
+                                'lastname'   => $user->lastname,
+                                'email'      => $user->email,
+                                'username'   => '');
+            $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+            $this->assertEmpty($founduser);
+
+            // See if we are able to find the right user for given username.
+            $enrollment = array('uid'        => $user->idnumber,
+                                'firstname'  => $user->firstname,
+                                'lastname'   => $user->lastname,
+                                'email'      => $user->email,
+                                'username'   => $user->username);
+            $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+            $this->assertNotEmpty($founduser);
+            foreach ($fieldmappings as $key => $value) {
+                $this->assertEquals($enrollment[$key], $founduser->$value);
+            }
+        }
+    }
+
+
+    /**
      * Make sure createorfinduser creates a non-existing user.
      */
     public function test_createorfinduser_nonexisting() {
@@ -528,7 +541,7 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
         // Make sure returned user does have info updated.
         $dbuser = $DB->get_record('user', array('id' => $user->id));
         foreach (array('firstname', 'lastname', 'email') as $field) {
-            $this->assertEquals($diffuser->$field, $founduser->$field, 
+            $this->assertEquals($diffuser->$field, $founduser->$field,
                     'Field being processed: ' . $field);
             // Make sure local DB was updated as well.
             $this->assertEquals($dbuser->$field, $founduser->$field,
@@ -609,7 +622,7 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
     }
 
     /**
-     * Call enrol_database_plugin->sync_enrolments() and make sure that it 
+     * Call enrol_database_plugin->sync_enrolments() and make sure that it
      * adds the database enrollment plugin for given set of courses that do
      * not already have it.
      */
@@ -622,7 +635,7 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
                 get_plugin_generator('local_ucla')->create_class(
                         array('term' => '13S'));
         $course = array_pop($class);
-        
+
         // Just created course, so shouldn't have database enrollment plugin.
         $instances = enrol_get_instances($course->courseid, true);
         $foundenroldatabase = false;
@@ -782,7 +795,7 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
         $this->assertTrue($result);
         $enrol->sync_enrolments($this->trace, array('13S'));
         $result = $this->is_username_enrolled($courseid, $instructor->username);
-        $this->assertTrue($result);        
+        $this->assertTrue($result);
     }
 
     /**
@@ -888,8 +901,8 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
 
             $actualcourse = $this->mockenrollmenthelper->get_course($term.'-'.$srs);
             $expectedcourse = $DB->get_record('course', array('id' => $courseid));
-            $this->assertEquals($expectedcourse, $actualcourse);            
-        }        
+            $this->assertEquals($expectedcourse, $actualcourse);
+        }
     }
 
     /**

@@ -169,10 +169,10 @@ class local_ucla_enrollment_helper {
 
         // Unable to find cached user, so let's try to find a user. Need to be
         // flexible in trying to find a user. In order of preference we will try
-        // to find a user by:
-        
-        // 1) localuserfield/remoteuserfield, aka UCLA UID, aka user.idnumber.
+        // to find a user by idnumber/UID or username/UCLA logonID.
 
+        // 1) localuserfield/remoteuserfield, aka UCLA UID, aka user.idnumber.
+        $foundmultipleuids = false;
         if (!empty($enrollment[$this->remoteuserfield])) {
             try {
                 $retval = $DB->get_record('user',
@@ -181,9 +181,18 @@ class local_ucla_enrollment_helper {
                               'auth' => 'shibboleth'), '*', MUST_EXIST);
             } catch (dml_missing_record_exception $notfound) {
                 // This is okay and expected, so just continue along.
+            } catch (dml_multiple_records_exception $multiple) {
+                // This is kinda bad. Means that multiple users have the same
+                // UID set. Need to report this, and try to see if username
+                // can give us a unique record.
+                $this->trace->output(sprintf('ERROR: Found multiple users ' .
+                        'with idnumber (%s). Trying to see if unique record ' .
+                        'for username (%s) can be found.',
+                        $enrollment[$this->remoteuserfield],
+                        $enrollment['username']));
+                $foundmultipleuids = true;
+                $retval = null;
             }
-            // We are not catching dml_multiple_records_exception exceptions,
-            // because we want those thrown up the chain and stop prepop.
         }
 
         // 2) username, aka UCLA LogonID, aka user.username.
@@ -196,6 +205,20 @@ class local_ucla_enrollment_helper {
             } catch (dml_missing_record_exception $notfound) {
                 // This is okay and expected, so just continue along.
             }
+
+            if (!empty($foundmultipleuids) && !empty($retval)) {
+                $this->trace->output(sprintf('WARNING: Found unique user ' .
+                        'record for username (%s), but still exist multiple ' .
+                        'users with same idnumber (%s)',
+                        $enrollment['username'],
+                        $enrollment[$this->remoteuserfield]));
+            }
+        }
+
+        if (!empty($foundmultipleuids) && empty($retval)) {
+            $this->trace->output('Unable to find unique user record for ' .
+                    'idnumber ().', $enrollment[$this->remoteuserfield]);
+            return null;
         }
 
         // User is not found on the local system, so we have to create one.
@@ -260,7 +283,7 @@ class local_ucla_enrollment_helper {
                                         $this->localuserfield,
                                         $enrollment[$field]), 2);
                         $user->{$this->localuserfield} = $enrollment[$field];
-                    } else  if ($enrollment[$field]
+                    } else if ($enrollment[$field]
                             != $user->{$this->localuserfield}) {
                         // Sanity check! If uid exists, it should match.
                         $this->trace->output(sprintf(
@@ -427,7 +450,7 @@ class local_ucla_enrollment_helper {
      * @return int                  Role id for given mapping. Returns false on
      *                              error.
      */
-    public function get_role($pseudorole, $subjarea){
+    public function get_role($pseudorole, $subjarea) {
         try {
             $roleid = get_moodlerole($pseudorole, $subjarea);
         } catch (moodle_exception $me) {
@@ -478,7 +501,7 @@ class local_ucla_enrollment_helper {
 
                 $user = $this->translate_ccle_roster_class($student);
                 $user[$this->remoterolefield] = $roleid;
-                $retval[] = $user; 
+                $retval[] = $user;
             }
         }
 
@@ -486,7 +509,7 @@ class local_ucla_enrollment_helper {
     }
 
     /**
-     * Returns an array of courses for the given terms we are working on that 
+     * Returns an array of courses for the given terms we are working on that
      * already have the enrol_database plugin added.
      */
     public function get_existing_courses() {
@@ -643,7 +666,7 @@ class local_ucla_enrollment_helper {
             $this->terms = $termsorcourseid;
         } else if (is_int($termsorcourseid)) {
             // Make sure that given term belongs to a reg course.
-            if (!$DB->record_exists('ucla_request_classes', 
+            if (!$DB->record_exists('ucla_request_classes',
                     array('courseid' => $termsorcourseid))) {
                 throw new Exception('Invalid courseid: ' . $termsorcourseid);
             }
