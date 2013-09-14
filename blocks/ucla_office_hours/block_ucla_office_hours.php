@@ -462,10 +462,21 @@ class block_ucla_office_hours extends block_base {
             // Name field
             $fullname = fullname($user);
 
+            // Try be be lenient on URL, because Moodle doesn't enforce adding
+            // http://.
+            if (!empty($user->url) && !validateUrlSyntax($user->url, 's+')) {
+                // See if it failed because is missing the http:// at the beginning.
+                if (validateUrlSyntax('http://' . $user->url, 's+')) {
+                    // It was.
+                    $user->url = 'http://' . $user->url;
+                }
+            }
+
             if (!empty($user->url) && url_appears_valid_url($user->url)) {
                 $fullname = html_writer::link(
                     new moodle_url($user->url),
-                    $fullname
+                    $fullname,
+                    array('target' => '_blank')
                 );
             }
 
