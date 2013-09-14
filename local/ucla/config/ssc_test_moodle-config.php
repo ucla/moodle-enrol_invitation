@@ -191,6 +191,7 @@ $CFG->forced_plugin_settings['message']['message_provider_moodle_instantmessage_
 $CFG->usetags = 0;
 $CFG->enablenotes = 0;
 $CFG->bloglevel = 0; // Disable blog system completely
+$CFG->enablebadges = 0; // Disable badges
 
 // Site administration > Users > Permissions > User policies
 $CFG->autologinguests = true;
@@ -207,6 +208,9 @@ $CFG->enablecourserequests = 1;
 
 // Site administration > Courses > Backups > General backup defaults
 $CFG->forced_plugin_settings['backup']['backup_general_users'] = 0;
+
+// Site administration > Grades > Grade category settings
+$CFG->grade_overridecat = 0;
 
 // Site administration > Language > Language settings
 $CFG->langstringcache = false;
@@ -239,6 +243,10 @@ $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['url']['displayoptions'] = '0,1,2,3,4,5,6';    // allow every option
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
+
+// Site administration > Plugins > Enrollments > UCLA registrar
+$CFG->forced_plugin_settings['enrol_database']['localuserfield'] = 'idnumber';
+$CFG->forced_plugin_settings['local_ucla']['overrideenroldatabase'] = 1;
 
 // Site administration > Plugins > Enrollments > Guest access
 $CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;

@@ -34,7 +34,7 @@ foreach ($url_params as $var => $val) {
 }
 $PAGE->set_url('/blog/index.php', $url_params);
 
-if (empty($CFG->bloglevel)) {
+if (empty($CFG->enableblogs)) {
     print_error('blogdisable', 'blog');
 }
 
@@ -56,7 +56,9 @@ if (!empty($groupid) && empty($courseid)) {
     $courseid = $DB->get_field('groups', 'courseid', array('id'=>$groupid));
 }
 
-$sitecontext = get_context_instance(CONTEXT_SYSTEM);
+$sitecontext = context_system::instance();
+// Blogs are always in system context.
+$PAGE->set_context($sitecontext);
 
 // check basic permissions
 if ($CFG->bloglevel == BLOG_GLOBAL_LEVEL) {
@@ -122,15 +124,13 @@ if (!empty($courseid)) {
     }
 
     $courseid = $course->id;
-    $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
-
     require_login($course);
 
-    if (!has_capability('moodle/blog:view', $coursecontext)) {
+    if (!has_capability('moodle/blog:view', $sitecontext)) {
         print_error('cannotviewcourseblog', 'blog');
     }
 } else {
-    $coursecontext = get_context_instance(CONTEXT_COURSE, SITEID);
+    $coursecontext = context_course::instance(SITEID);
 }
 
 if (!empty($groupid)) {
@@ -146,11 +146,11 @@ if (!empty($groupid)) {
         print_error('invalidcourseid');
     }
 
-    $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+    $coursecontext = context_course::instance($course->id);
     $courseid = $course->id;
     require_login($course);
 
-    if (!has_capability('moodle/blog:view', $coursecontext)) {
+    if (!has_capability('moodle/blog:view', $sitecontext)) {
         print_error(get_string('cannotviewcourseorgroupblog', 'blog'));
     }
 
@@ -193,15 +193,6 @@ if (!empty($userid)) {
 
 $courseid = (empty($courseid)) ? SITEID : $courseid;
 
-if (empty($entryid) && empty($modid) && empty($groupid)) {
-    $PAGE->set_context(context_user::instance($USER->id));
-} else if (!empty($modid)) {
-    $PAGE->set_context(context_module::instance($modid));
-} else if (!empty($courseid)) {
-    $PAGE->set_context(context_course::instance($courseid));
-} else {
-    $PAGE->set_context(context_system::instance());
-}
 
 $blogheaders = blog_get_headers();
 
@@ -211,7 +202,7 @@ if ($CFG->enablerssfeeds) {
     $thingid = null;
     list($thingid, $rsscontext, $filtertype) = blog_rss_get_params($blogheaders['filters']);
     if (empty($rsscontext)) {
-        $rsscontext = get_system_context();
+        $rsscontext = context_system::instance();
     }
     $rsstitle = $blogheaders['heading'];
 

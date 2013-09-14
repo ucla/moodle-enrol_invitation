@@ -1,0 +1,31 @@
+// Style the course menu block editing mode
+
+
+.edit-controls {
+    margin-bottom: 12px;
+    text-align: center;
+    
+    @include respond-to(wide-handhelds) {
+        width: 100%;
+    }
+}
+
+// Control link fixes
+.edit-control-links {
+    > a:link,
+    > a:visited,
+    > a {
+        color: white;
+        display: inline;
+        
+        &:hover {
+            text-decoration: none;
+        }
+    }
+    
+    .badge {
+        margin-left: 8px;
+        background-color: white;
+        color: black;
+    }
+}

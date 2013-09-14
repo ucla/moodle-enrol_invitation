@@ -36,3 +36,6 @@ $CFG->divertallemailsto = '';
 
 $CFG->phpunit_prefix = 'phpu_';
 $CFG->phpunit_dataroot = '/opt/phpu_moodledata';
+
+$CFG->behat_prefix = 'bht_';
+$CFG->behat_dataroot = '/opt/bht_moodledata';

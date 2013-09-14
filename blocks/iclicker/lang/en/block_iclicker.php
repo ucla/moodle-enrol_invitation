@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: block_iclicker.php 165 2012-08-23 01:12:09Z azeckoski@gmail.com $ */
+/* $Id: block_iclicker.php 181 2013-04-17 22:02:13Z azeckoski@gmail.com $ */
 
 // AZ test and force UTF-8 - 吞下玻璃 - Iñtërnâtiônàlizætiøn
 
@@ -25,12 +25,16 @@
 $string['app.iclicker']     = 'i>clicker';
 $string['app.title']        = 'i>clicker Moodle integrate';
 $string['pluginname']       = 'i>clicker Moodle integrate';
+// special capabilities
+$string['iclicker:addinstance']     = 'Add a new i>clicker block';
+$string['iclicker:myaddinstance']   = 'Add a new i>clicker block to the My Moodle page';
 
 // form controls
 $string['app.register']     = 'Register';
 $string['app.activate']     = 'Activate';
 $string['app.disable']      = 'Disable';
 $string['app.remove']       = 'Remove';
+$string['app.allowed']      = 'Allowed';
 
 // for the main registration page
 $string['reg.title'] = 'Remote Registration';
@@ -52,6 +56,7 @@ $string['reg.registered.below.success'] = 'Congratulations; you\'ve successfully
 $string['reg.registered.clickerId.empty'] = 'The clicker ID cannot be empty, please fill in the box and try again';
 $string['reg.registered.clickerId.duplicate'] = 'Clicker ID ({$a}) is already registered';
 $string['reg.registered.below.duplicate'] = 'You have already successfully registered this clicker ({$a}) and it is tied to your user ID.';
+$string['reg.registered.below.duplicate.noshare'] = 'Someone else has already registered this clicker ({$a}) and you cannot register it as well.';
 $string['reg.registered.clickerId.duplicate.notowned'] = 'Your clicker ({$a}) has already been registered, but to another student. This could be a result of two possibilities: 1) You are sharing a clicker remote with another student in the same course. You may share your i>clicker remote with another student on campus as long as s/he is not in the same course. You cannot share i>clicker remotes with students in the same course/section. 2) You simply mis-entered your remote ID. Please try again. If you receive this message a second time, contact support@iclicker.com for additional help.';
 $string['reg.registered.clickerId.invalid'] = 'The clicker ID ({$a}) is invalid, please correct the entry and try again';
 $string['reg.activate.success.true'] = 'Reactivated clicker ({$a}) registration';
@@ -105,19 +110,15 @@ $string['inst.sso.disabled'] = 'SSO is not enabled, you cannot access or generat
 
 // for the admin page
 $string['admin.title'] = 'Admin Control';
-$string['admin.process.header'] = 'Running process status:';
-$string['admin.process.add'] = 'Add i>clicker to all workspaces';
-$string['admin.process.remove'] = 'Remove i>clicker from all workspaces';
-$string['admin.process.sync'] = 'Sync with Webservices';
-$string['admin.process.type.add'] = 'Adding to workspaces';
-$string['admin.process.type.remove'] = 'Removing from workspaces';
-$string['admin.process.type.sync'] = 'Syncing with Webservices';
-$string['admin.process.message.add'] = 'Adding i>clicker tool to all workspaces';
-$string['admin.process.message.remove'] = 'Removing i>clicker tool from all workspaces';
-$string['admin.process.message.sync'] = 'Syncing all clicker registrations with Webservices';
-$string['admin.process.message.locked'] = 'Cannot start long running process ({$a}) because there is already one running on another server';
-$string['admin.process.message.inprogress'] = 'Cannot start long running process ({$a}) because there is already one running';
 $string['admin.paging'] = 'Paging:';
+$string['admin.search.id'] = 'Remote ID:';
+$string['admin.search.start'] = 'Start:';
+$string['admin.search.end'] = 'End:';
+$string['admin.search.search'] = 'Search';
+$string['admin.search.purge'] = 'Purge';
+$string['admin.search.purge.confirm'] = 'Are you sure you want to permanently purge {$a} clicker registrations based on the current search?';
+$string['admin.purge.success'] = 'Successfully purged {$a} clicker registrations';
+$string['admin.search.reset'] = 'Reset';
 $string['admin.no.regs'] = 'No registrations';
 $string['admin.regs.table.summary'] = 'Lists the registered clickers for all users for the admin; user name, clickerId, date registered, and controls';
 $string['admin.remove.submit.alt'] = 'Remove this registration permanently';
@@ -135,6 +136,7 @@ $string['admin.config.synchour'] = 'Sync runs at hour';
 $string['admin.errors.header'] = 'Most Recent Failures';
 $string['admin.config.ssoenabled'] = 'Single Sign On Enabled';
 $string['admin.config.ssosharedkey'] = 'Shared Key';
+$string['admin.csv.download'] = 'Download CSV file of all clicker registrations';
 
 // Config
 $string['config_general'] = 'General';
@@ -142,6 +144,8 @@ $string['config_notify_emails'] = 'Failure notification email';
 $string['config_notify_emails_desc'] = 'The email addresses to send notifications to on failures. Blank indicates disabled.';
 $string['config_notify_emails_enabled'] = 'Emails will be sent to {$a}';
 $string['config_notify_emails_disabled'] = 'DISABLED';
+$string['config_allow_sharing'] = 'i>clicker remote sharing';
+$string['config_allow_sharing_desc'] = 'Allow students to share i>clicker remotes, DEFAULT: false (sharing not allowed - only 1 student can register each remote)';
 $string['config_disable_alternateid'] = 'Alternate Id disabled';
 $string['config_disable_alternateid_desc'] = 'Whether to disable the use of alternate clicker IDs, DEFAULT: false (enable alternate clicker IDs)';
 $string['config_webservices'] = 'WebServices';
@@ -162,6 +166,8 @@ $string['config_sso_enabled'] = 'Single Sign On support is enabled.';
 $string['config_sso_disabled'] = 'Single Sign On support is currently disabled. Enter a key below to enable SSO support.';
 $string['config_shared_key'] = 'SSO Shared Key';
 $string['config_shared_key_desc'] = 'Enable Single Sign On support by setting a shared key (must be at least 10 chars long). Set this to blank to disable SSO support';
+$string['config_enable_shortname'] = 'Enable Course Short Name';
+$string['config_enable_shortname_desc'] = 'Enable use of the course short name as part of the displayed course name in the iclicker app';
 
 // Main block
 $string['leaveblanktohide'] = 'leave blank to hide';

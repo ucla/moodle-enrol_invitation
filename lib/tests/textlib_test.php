@@ -34,7 +34,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2010 Petr Skoda (http://skodak.org)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class core_textlib_testcase extends basic_testcase {
+class core_textlib_testcase extends advanced_testcase {
 
     /**
      * Tests the static parse charset method
@@ -341,6 +341,19 @@ class core_textlib_testcase extends basic_testcase {
     }
 
     /**
+     * Tests the static utf8ord method
+     * @return void
+     */
+    public function test_utf8ord() {
+        $this->assertSame(textlib::utf8ord(''), ord(''));
+        $this->assertSame(textlib::utf8ord('f'), ord('f'));
+        $this->assertSame(textlib::utf8ord('α'), 0x03B1);
+        $this->assertSame(textlib::utf8ord('й'), 0x0439);
+        $this->assertSame(textlib::utf8ord('𯨟'), 0x2FA1F);
+        $this->assertSame(textlib::utf8ord('Ž'), 381);
+    }
+
+    /**
      * Tests the static strtotitle method
      * @return void
      */
@@ -354,11 +367,8 @@ class core_textlib_testcase extends basic_testcase {
      * @return void
      */
     public function test_deprecated_textlib_get_instance() {
-        ob_start();
         $textlib = textlib_get_instance();
-        $output = ob_get_contents();
-        $this->assertNotEmpty($output);
-        ob_end_clean();
+        $this->assertDebuggingCalled();
         $this->assertSame($textlib->substr('abc', 1, 1), 'b');
         $this->assertSame($textlib->strlen('abc'), 3);
         $this->assertSame($textlib->strtoupper('Abc'), 'ABC');

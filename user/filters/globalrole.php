@@ -22,7 +22,7 @@ class user_filter_globalrole extends user_filter_type {
      * @return array of availble roles
      */
     function get_roles() {
-        $context = get_context_instance(CONTEXT_SYSTEM);
+        $context = context_system::instance();
         $roles = array(0=> get_string('anyrole','filters')) + get_assignable_roles($context);
         return $roles;
     }
@@ -78,11 +78,12 @@ class user_filter_globalrole extends user_filter_type {
     function get_label($data) {
         global $DB;
 
-        $rolename = $DB->get_field('role', 'name', array('id'=>$data['value']));
+        $role = $DB->get_record('role', array('id'=>$data['value']));
+
 
         $a = new stdClass();
         $a->label = $this->_label;
-        $a->value = '"'.format_string($rolename).'"';
+        $a->value = '"'.role_get_name($role).'"';
 
         return get_string('globalrolelabel', 'filters', $a);
     }

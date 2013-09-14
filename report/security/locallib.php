@@ -48,7 +48,6 @@ function report_security_get_issue_list() {
         'report_security_check_openprofiles',
         'report_security_check_google',
         'report_security_check_passwordpolicy',
-        'report_security_check_passwordsaltmain',
         'report_security_check_emailchangeconfirmation',
         'report_security_check_cookiesecure',
         'report_security_check_configrw',
@@ -218,7 +217,7 @@ function report_security_check_mediafilterswf($detailed=false) {
 
     $activefilters = filter_get_globally_enabled();
 
-    if (array_search('filter/mediaplugin', $activefilters) !== false and !empty($CFG->filter_mediaplugin_enable_swf)) {
+    if (array_search('mediaplugin', $activefilters) !== false and !empty($CFG->filter_mediaplugin_enable_swf)) {
         $result->status = REPORT_SECURITY_CRITICAL;
         $result->info   = get_string('check_mediafilterswf_error', 'report_security');
     } else {
@@ -471,35 +470,6 @@ function report_security_check_configrw($detailed=false) {
     return $result;
 }
 
-function report_security_check_passwordsaltmain($detailed=false) {
-    global $CFG;
-
-    $result = new stdClass();
-    $result->issue   = 'report_security_check_passwordsaltmain';
-    $result->name    = get_string('check_passwordsaltmain_name', 'report_security');
-    $result->info    = null;
-    $result->details = null;
-    $result->status  = null;
-    $result->link    = null;
-
-    if (empty($CFG->passwordsaltmain)) {
-        $result->status = REPORT_SECURITY_WARNING;
-        $result->info   = get_string('check_passwordsaltmain_warning', 'report_security');
-    } else if ($CFG->passwordsaltmain === 'some long random string here with lots of characters'
-            || trim($CFG->passwordsaltmain) === '' || preg_match('/^([a-z0-9]{0,10})$/i', $CFG->passwordsaltmain)) {
-        $result->status = REPORT_SECURITY_WARNING;
-        $result->info   = get_string('check_passwordsaltmain_weak', 'report_security');
-    } else {
-        $result->status = REPORT_SECURITY_OK;
-        $result->info   = get_string('check_passwordsaltmain_ok', 'report_security');
-    }
-
-    if ($detailed) {
-        $result->details = get_string('check_passwordsaltmain_details', 'report_security', get_docs_url('report/security/report_security_check_passwordsaltmain'));
-    }
-
-    return $result;
-}
 
 /**
  * Lists all users with XSS risk, it would be great to combine this with risk trusts in user table,
@@ -563,7 +533,7 @@ function report_security_check_defaultuserrole($detailed=false) {
     $result->info    = null;
     $result->details = null;
     $result->status  = null;
-    $result->link    = "<a href=\"$CFG->wwwroot/$CFG->admin/settings.php?section=userpolicies\">".get_string('userpolicies', 'admin').'</a>';;
+    $result->link    = "<a href=\"$CFG->wwwroot/$CFG->admin/settings.php?section=userpolicies\">".get_string('userpolicies', 'admin').'</a>';
 
     if (!$default_role = $DB->get_record('role', array('id'=>$CFG->defaultuserroleid))) {
         $result->status  = REPORT_SECURITY_WARNING;
@@ -621,7 +591,7 @@ function report_security_check_guestrole($detailed=false) {
     $result->info    = null;
     $result->details = null;
     $result->status  = null;
-    $result->link    = "<a href=\"$CFG->wwwroot/$CFG->admin/settings.php?section=userpolicies\">".get_string('userpolicies', 'admin').'</a>';;
+    $result->link    = "<a href=\"$CFG->wwwroot/$CFG->admin/settings.php?section=userpolicies\">".get_string('userpolicies', 'admin').'</a>';
 
     if (!$guest_role = $DB->get_record('role', array('id'=>$CFG->guestroleid))) {
         $result->status  = REPORT_SECURITY_WARNING;
@@ -679,7 +649,7 @@ function report_security_check_frontpagerole($detailed=false) {
     $result->info    = null;
     $result->details = null;
     $result->status  = null;
-    $result->link    = "<a href=\"$CFG->wwwroot/$CFG->admin/settings.php?section=frontpagesettings\">".get_string('frontpagesettings','admin').'</a>';;
+    $result->link    = "<a href=\"$CFG->wwwroot/$CFG->admin/settings.php?section=frontpagesettings\">".get_string('frontpagesettings','admin').'</a>';
 
     if (!$frontpage_role = $DB->get_record('role', array('id'=>$CFG->defaultfrontpageroleid))) {
         $result->status  = REPORT_SECURITY_INFO;
@@ -781,7 +751,7 @@ function report_security_check_riskbackup($detailed=false) {
     $result->status  = null;
     $result->link    = null;
 
-    $syscontext = get_context_instance(CONTEXT_SYSTEM);
+    $syscontext = context_system::instance();
 
     $params = array('capability'=>'moodle/backup:userinfo', 'permission'=>CAP_ALLOW, 'contextid'=>$syscontext->id);
     $sql = "SELECT DISTINCT r.id, r.name, r.shortname, r.sortorder, r.archetype
@@ -836,6 +806,7 @@ function report_security_check_riskbackup($detailed=false) {
         if ($systemroles) {
             $links = array();
             foreach ($systemroles as $role) {
+                $role->name = role_get_name($role);
                 $role->url = "$CFG->wwwroot/$CFG->admin/roles/manage.php?action=edit&amp;roleid=$role->id";
                 $links[] = '<li>'.get_string('check_riskbackup_editrole', 'report_security', $role).'</li>';
             }
@@ -848,10 +819,9 @@ function report_security_check_riskbackup($detailed=false) {
         if ($overriddenroles) {
             $links = array();
             foreach ($overriddenroles as $role) {
-                $context = get_context_instance_by_id($role->contextid);
-                if ($context->contextlevel == CONTEXT_COURSE) {
-                    $role->name = role_get_name($role, $context);
-                }
+                $role->name = $role->localname;
+                $context = context::instance_by_id($role->contextid);
+                $role->name = role_get_name($role, $context, ROLENAME_BOTH);
                 $role->contextname = print_context_name($context);
                 $role->url = "$CFG->wwwroot/$CFG->admin/roles/override.php?contextid=$role->contextid&amp;roleid=$role->id";
                 $links[] = '<li>'.get_string('check_riskbackup_editoverride', 'report_security', $role).'</li>';
@@ -863,11 +833,12 @@ function report_security_check_riskbackup($detailed=false) {
         // Get a list of affected users as well
         $users = array();
 
+        list($sort, $sortparams) = users_order_by_sql('u');
         $rs = $DB->get_recordset_sql("SELECT DISTINCT u.id, u.firstname, u.lastname, u.picture, u.imagealt, u.email, ra.contextid, ra.roleid
-            $sqluserinfo ORDER BY u.lastname, u.firstname", $params);
+            $sqluserinfo ORDER BY $sort", array_merge($params, $sortparams));
 
         foreach ($rs as $user) {
-            $context = get_context_instance_by_id($user->contextid);
+            $context = context::instance_by_id($user->contextid);
             $url = "$CFG->wwwroot/$CFG->admin/roles/assign.php?contextid=$user->contextid&amp;roleid=$user->roleid";
             $a = (object)array('fullname'=>fullname($user), 'url'=>$url, 'email'=>$user->email,
                                'contextname'=>print_context_name($context));

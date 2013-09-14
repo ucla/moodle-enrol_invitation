@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -18,8 +17,7 @@
 /**
  * IMS Enterprise enrolments plugin settings and presets.
  *
- * @package    enrol
- * @subpackage imsenterprise
+ * @package    enrol_imsenterprise
  * @copyright  2010 Eugene Venter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($ADMIN->fulltree) {
-    require_once('locallib.php');
+    require_once($CFG->dirroot.'/enrol/imsenterprise/locallib.php');
 
     $settings->add(new admin_setting_heading('enrol_imsenterprise_settings', '', get_string('pluginname_desc', 'enrol_imsenterprise')));
 
@@ -56,7 +54,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('enrol_imsenterprise_usersettings_roles', get_string('roles', 'enrol_imsenterprise'), get_string('imsrolesdescription', 'enrol_imsenterprise')));
 
     if (!during_initial_install()) {
-        $coursecontext = get_context_instance(CONTEXT_COURSE, SITEID);
+        $coursecontext = context_course::instance(SITEID);
         $assignableroles = get_assignable_roles($coursecontext);
         $assignableroles = array('0' => get_string('ignore', 'enrol_imsenterprise')) + $assignableroles;
         $imsroles = new imsenterprise_roles();
@@ -75,6 +73,19 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('enrol_imsenterprise/createnewcategories', get_string('createnewcategories', 'enrol_imsenterprise'), get_string('createnewcategories_desc', 'enrol_imsenterprise'), 0));
 
     $settings->add(new admin_setting_configcheckbox('enrol_imsenterprise/imsunenrol', get_string('allowunenrol', 'enrol_imsenterprise'), get_string('allowunenrol_desc', 'enrol_imsenterprise'), 0));
+
+    if (!during_initial_install()) {
+        $imscourses = new imsenterprise_courses();
+        foreach ($imscourses->get_courseattrs() as $courseattr) {
+
+            // The assignable values of this course attribute
+            $assignablevalues = $imscourses->get_imsnames($courseattr);
+            $name = get_string('setting' . $courseattr, 'enrol_imsenterprise');
+            $description = get_string('setting' . $courseattr . 'description', 'enrol_imsenterprise');
+            $defaultvalue = (string) $imscourses->determine_default_coursemapping($courseattr);
+            $settings->add(new admin_setting_configselect('enrol_imsenterprise/imscoursemap' . $courseattr, $name, $description, $defaultvalue, $assignablevalues));
+        }
+    }
 
     //--- miscellaneous -------------------------------------------------------------------------------------
     $settings->add(new admin_setting_heading('enrol_imsenterprise_miscsettings', get_string('miscsettings', 'enrol_imsenterprise'), ''));

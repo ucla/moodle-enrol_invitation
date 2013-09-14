@@ -48,6 +48,9 @@ class invitation_form extends moodleform {
         global $CFG, $DB, $USER;
         $mform = & $this->_form;
 
+        // Get rid of "Collapse all".
+        $mform->setDisableShortforms(true);
+
         // Add some hidden fields
         $course = $this->_customdata['course']; 
         $prefilled = $this->_customdata['prefilled'];
@@ -133,6 +136,7 @@ class invitation_form extends moodleform {
         
         // subject field
         $mform->addElement('text', 'subject', get_string('subject', 'enrol_invitation'));
+        $mform->setType('subject', PARAM_TEXT);
         $mform->addRule('subject', get_string('required'), 'required');       
         // default subject is "Site invitation for <course title>"        
         $default_subject = get_string('default_subject', 'enrol_invitation', 

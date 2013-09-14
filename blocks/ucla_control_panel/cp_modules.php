@@ -235,8 +235,7 @@ $modules[] = new ucla_cp_module('course_grades', new moodle_url(
 // Activity report (In M19 there was one link to get all reports, however in 
 // M2 no such link exists anymore. The most used report is the activity report
 // so that's why we are linking to it from control panel. Other report links
-// can be found in the course administration section in the settings block 
-// thanks to CCLE-2972
+// can be found in the course administration section in the settings block. 
 $modules[] = new ucla_cp_module('reports', 
         new moodle_url('/report/outline/index.php', array('id' => $course->id)), 
         $temp_tag, 'report/outline:view');

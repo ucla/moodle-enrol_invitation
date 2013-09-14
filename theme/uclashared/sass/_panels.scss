@@ -1,0 +1,18 @@
+//
+// Panels
+// --------------------------------------------------
+
+@import "bootstrap/lib/panels";
+
+
+// Make intro boxes look like panels
+#intro.box {
+    @extend .panel;
+    @extend .panel-default;
+    
+    .no-overflow {
+        @extend .panel-body;
+    }
+    
+    float: none;
+}

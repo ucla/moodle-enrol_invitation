@@ -51,9 +51,7 @@ $string['setting_default_footer_links'] = '';
 $string['setting_title_logo_sub_text'] = 'Text under logo';
 $string['setting_desc_logo_sub_text'] = 'This is the text displayed under the UCLA | CCLE logo. I.E. Social Sciences Computing.';
 $string['setting_default_logo_sub_text'] = 
-'<div id="dropdown">Shared Server</div>
-<div class="dropdownlist" style="display:none">
-<ul>
+'<ul>
     <li><span>Chemistry & Biochemistry</span></li>
     <li><span>Computer Science</span></li>
     <li><span>Dentistry</span></li>
@@ -69,8 +67,7 @@ $string['setting_default_logo_sub_text'] =
     <li><span>Public Affairs</span></li>
     <li><span>Public Health</span></li>
     <li><span>World Arts & Architecture</span></li>
-</ul>
-</div>';
+</ul>';
 
 $string['setting_title_logo_sub_dropdown'] = 'Dropdown javascript';
 $string['setting_desc_logo_sub_dropdown'] = 'Enable the Javascript shared_server_dropdown.js';

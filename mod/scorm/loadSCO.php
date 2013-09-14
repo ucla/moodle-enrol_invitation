@@ -70,7 +70,7 @@ if ($scorm->timeclose !=0) {
     }
 }
 
-$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+$context = context_module::instance($cm->id);
 
 if (!empty($scoid)) {
     //
@@ -79,7 +79,11 @@ if (!empty($scoid)) {
     if ($sco = scorm_get_sco($scoid)) {
         if ($sco->launch == '') {
             // Search for the next launchable sco
-            if ($scoes = $DB->get_records_select('scorm_scoes', "scorm = ? AND '.$DB->sql_isnotempty('scorm_scoes', 'launch', false, true).' AND id > ?", array($scorm->id, $sco->id), 'id ASC')) {
+            if ($scoes = $DB->get_records_select(
+                    'scorm_scoes',
+                    'scorm = ? AND '.$DB->sql_isnotempty('scorm_scoes', 'launch', false, true).' AND id > ?',
+                    array($scorm->id, $sco->id),
+                    'id ASC')) {
                 $sco = current($scoes);
             }
         }
@@ -89,7 +93,12 @@ if (!empty($scoid)) {
 // If no sco was found get the first of SCORM package
 //
 if (!isset($sco)) {
-    $scoes = $DB->get_records_select('scorm_scoes', "scorm = ? AND ".$DB->sql_isnotempty('scorm_scoes', 'launch', false, true), array($scorm->id), 'id ASC');
+    $scoes = $DB->get_records_select(
+        'scorm_scoes',
+        'scorm = ? AND '.$DB->sql_isnotempty('scorm_scoes', 'launch', false, true),
+        array($scorm->id),
+        'id ASC'
+    );
     $sco = current($scoes);
 }
 
@@ -152,10 +161,18 @@ if (scorm_external_link($sco->launch)) {
 
 add_to_log($course->id, 'scorm', 'launch', 'view.php?id='.$cm->id, $result, $cm->id);
 
-// which API are we looking for
-$LMS_api = (scorm_version_check($scorm->version, SCORM_12) || empty($scorm->version)) ? 'API' : 'API_1484_11';
-
 header('Content-Type: text/html; charset=UTF-8');
+
+if ($sco->scormtype == 'asset') {
+    // HTTP 302 Found => Moved Temporarily.
+    header('Location: ' . $result);
+    // Provide a short feedback in case of slow network connection.
+    echo '<html><body><p>' . get_string('activitypleasewait', 'scorm'). '</p></body></html>';
+    exit;
+}
+
+// We expect a SCO: select which API are we looking for.
+$LMS_api = (scorm_version_check($scorm->version, SCORM_12) || empty($scorm->version)) ? 'API' : 'API_1484_11';
 
 ?>
 <html>

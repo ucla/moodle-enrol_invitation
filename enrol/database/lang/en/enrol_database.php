@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'enrol_database', language 'en', branch 'MOODLE_20_STABLE'
+ * Strings for component 'enrol_database', language 'en'.
  *
  * @package   enrol_database
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
@@ -58,11 +57,6 @@ $string['newcourseshortname'] = 'New course short name field';
 //$string['pluginname'] = 'External database';
 $string['pluginname'] = 'UCLA registrar';
 // END UCLA MOD: CCLE-2275
-// BEGIN UCLA MOD: CCLE-2910 - UNEX help
-$string['fblocaluserfield'] = 'Fallback local user field';
-$string['fbremoteuserfield'] = 'Fallback remote user field';
-$string['fbremoteuserfield_desc'] = 'The name of the field in the remote table if we cannot find a match with remoteuserfield.';
-// END UCLA MOD: CCLE-2910
 $string['pluginname_desc'] = 'You can use an external database (of nearly any kind) to control your enrolments. It is assumed your external database contains at least a field containing a course ID, and a field containing a user ID. These are compared against fields that you choose in the local course and user tables.';
 $string['remotecoursefield'] = 'Remote course field';
 $string['remotecoursefield_desc'] = 'The name of the field in the remote table that we are using to match entries in the course table.';
@@ -71,10 +65,6 @@ $string['remoteenroltable_desc'] = 'Specify the name of the table that contains 
 $string['remoterolefield'] = 'Remote role field';
 $string['remoterolefield_desc'] = 'The name of the field in the remote table that we are using to match entries in the roles table.';
 $string['remoteuserfield'] = 'Remote user field';
-// BEGIN UCLA MOD CCLE-2429: Update users on prepop delay based on useraccess
-$string['minuserupdatewaitdays'] = 'User information update delay';
-$string['minuserupdatewaitdays_desc'] = 'Number of days since a user last used the site before updating their first name, last name and/or email from the external database.';
-// END UCLA MOD
 $string['settingsheaderdb'] = 'External database connection';
 $string['settingsheaderlocal'] = 'Local field mapping';
 $string['settingsheaderremote'] = 'Remote enrolment sync';

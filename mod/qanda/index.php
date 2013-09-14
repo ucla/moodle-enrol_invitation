@@ -85,8 +85,7 @@ foreach ($qandas as $qanda) {
     if ($usesections) {
         if ($qanda->section !== $currentsection) {
             if ($qanda->section) {
-                $course_sections = get_all_sections($course->id);
-                $printsection = get_section_name($course, $course_sections[$qanda->section]);
+                $printsection = get_section_name($course, $qanda->section);
             }
             if ($currentsection !== "") {
                 $table->data[] = 'hr';

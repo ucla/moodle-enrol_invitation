@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// Version         YYYYMMDDVV
-$plugin->version = 2013061000;
+// Version         YYYYMMDDVV.
+$plugin->version = 2013083000;
 $plugin->component = 'local_ucla';
-$plugin->cron = 86400;  // every 24 hours
+$plugin->cron = 86400;  // Every 24 hours.

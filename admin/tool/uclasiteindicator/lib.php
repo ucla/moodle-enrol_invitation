@@ -357,7 +357,7 @@ class siteindicator_manager {
         // Define the roles allowed for a particular role group
         // See CCLE-2948/CCLE-2949/CCLE-2913/site invite
         $instruction = array(
-            'editinginstructor',            
+            //'editinginstructor',
             'instructional_assistant',
             'editor',
             'grader',            

@@ -158,15 +158,15 @@ class mod_lti_mod_form extends moodleform_mod {
         // Add privacy preferences fieldset where users choose whether to send their data
         $mform->addElement('header', 'privacy', get_string('privacy', 'lti'));
 
-        $mform->addElement('checkbox', 'instructorchoicesendname', '&nbsp;', ' ' . get_string('share_name', 'lti'));
+        $mform->addElement('advcheckbox', 'instructorchoicesendname', '&nbsp;', ' ' . get_string('share_name', 'lti'));
         $mform->setDefault('instructorchoicesendname', '1');
         $mform->addHelpButton('instructorchoicesendname', 'share_name', 'lti');
 
-        $mform->addElement('checkbox', 'instructorchoicesendemailaddr', '&nbsp;', ' ' . get_string('share_email', 'lti'));
+        $mform->addElement('advcheckbox', 'instructorchoicesendemailaddr', '&nbsp;', ' ' . get_string('share_email', 'lti'));
         $mform->setDefault('instructorchoicesendemailaddr', '1');
         $mform->addHelpButton('instructorchoicesendemailaddr', 'share_email', 'lti');
 
-        $mform->addElement('checkbox', 'instructorchoiceacceptgrades', '&nbsp;', ' ' . get_string('accept_grades', 'lti'));
+        $mform->addElement('advcheckbox', 'instructorchoiceacceptgrades', '&nbsp;', ' ' . get_string('accept_grades', 'lti'));
         $mform->setDefault('instructorchoiceacceptgrades', '1');
         $mform->addHelpButton('instructorchoiceacceptgrades', 'accept_grades', 'lti');
 
@@ -207,7 +207,7 @@ class mod_lti_mod_form extends moodleform_mod {
                         'edit_icon_url' => (string)$OUTPUT->pix_url('t/edit'),
                         'add_icon_url' => (string)$OUTPUT->pix_url('t/add'),
                         'delete_icon_url' => (string)$OUTPUT->pix_url('t/delete'),
-                        'green_check_icon_url' => (string)$OUTPUT->pix_url('i/tick_green_small'),
+                        'green_check_icon_url' => (string)$OUTPUT->pix_url('i/valid'),
                         'warning_icon_url' => (string)$OUTPUT->pix_url('warning', 'lti'),
                         'instructor_tool_type_edit_url' => $editurl->out(false),
                         'ajax_url' => $ajaxurl->out(true),

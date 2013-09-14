@@ -19,7 +19,7 @@ require_once($CFG->dirroot . '/repository/lib.php');
 require_once($CFG->libdir . '/adminlib.php');
 
 $repository       = optional_param('repos', '', PARAM_ALPHANUMEXT);
-$action           = optional_param('action', '', PARAM_ACTION);
+$action           = optional_param('action', '', PARAM_ALPHANUMEXT);
 $sure             = optional_param('sure', '', PARAM_ALPHA);
 $downloadcontents = optional_param('downloadcontents', false, PARAM_BOOL);
 
@@ -47,7 +47,7 @@ if ($action == 'newon') {
     $visible = false;
 }
 
-require_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM));
+require_capability('moodle/site:config', context_system::instance());
 admin_externalpage_setup($pagename);
 
 $sesskeyurl = $CFG->wwwroot.'/'.$CFG->admin.'/repository.php?sesskey=' . sesskey();
@@ -60,6 +60,9 @@ $return = true;
 if (!empty($action)) {
     require_sesskey();
 }
+
+// Purge all caches related to repositories administration.
+cache::make('core', 'plugininfo_repository')->purge();
 
 /**
  * Helper function that generates a moodle_url object
@@ -281,17 +284,20 @@ if (($action == 'edit') || ($action == 'new')) {
     // Table to list plug-ins
     $table = new html_table();
     $table->head = array(get_string('name'), get_string('isactive', 'repository'), get_string('order'), $settingsstr);
-    $table->align = array('left', 'center', 'center', 'center', 'center');
+
+    $table->colclasses = array('leftalign', 'centeralign', 'centeralign', 'centeralign', 'centeralign');
+    $table->id = 'repositoriessetting';
     $table->data = array();
+    $table->attributes['class'] = 'admintable generaltable';
 
     // Get list of used plug-ins
-    $instances = repository::get_types();
-    if (!empty($instances)) {
+    $repositorytypes = repository::get_types();
+    if (!empty($repositorytypes)) {
         // Array to store plugins being used
         $alreadyplugins = array();
-        $totalinstances = count($instances);
+        $totalrepositorytypes = count($repositorytypes);
         $updowncount = 1;
-        foreach ($instances as $i) {
+        foreach ($repositorytypes as $i) {
             $settings = '';
             $typename = $i->get_typename();
             // Display edit link only if you can config the type or if it has multiple instances (e.g. has instance config)
@@ -314,9 +320,10 @@ if (($action == 'edit') || ($action == 'new')) {
                     $userinstances = array();
 
                     foreach ($instances as $instance) {
-                        if ($instance->context->contextlevel == CONTEXT_COURSE) {
+                        $repocontext = context::instance_by_id($instance->instance->contextid);
+                        if ($repocontext->contextlevel == CONTEXT_COURSE) {
                             $courseinstances[] = $instance;
-                        } else if ($instance->context->contextlevel == CONTEXT_USER) {
+                        } else if ($repocontext->contextlevel == CONTEXT_USER) {
                             $userinstances[] = $instance;
                         }
                     }
@@ -364,7 +371,7 @@ if (($action == 'edit') || ($action == 'new')) {
             else {
                 $updown .= $spacer;
             }
-            if ($updowncount < $totalinstances) {
+            if ($updowncount < $totalrepositorytypes) {
                 $updown .= "<a href=\"$sesskeyurl&amp;action=movedown&amp;repos=".$typename."\">";
                 $updown .= "<img src=\"" . $OUTPUT->pix_url('t/down') . "\" alt=\"down\" /></a>";
             }

@@ -127,16 +127,15 @@ class block_ucla_modify_coursemenu extends block_base {
     /**
      * Adding link to site menu block header.
      *
-     * @param object $course
-     * @param int $displaysection
+     * @param array $params
      *
      * @return array   Returns link to tool.
      */
-    static function get_editing_link($course, $displaysection) {
+    static function get_editing_link($params) {
         $link = html_writer::link(
                     new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php',
-                        array('courseid' => $course->id,
-                              'section' => $displaysection)),
+                        array('courseid' => $params['course']->id,
+                              'section' => $params['section'])),
                     get_string('pluginname', 'block_ucla_modify_coursemenu'));   
         // site menu block arranges editing links by key, make sure this is the
         // 1st link

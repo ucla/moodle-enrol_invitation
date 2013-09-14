@@ -23,9 +23,7 @@ YUI.add('moodle-course-modchooser', function(Y) {
         initializer : function(config) {
             var dialogue = Y.one('.chooserdialoguebody');
             var header = Y.one('.choosertitle');
-            var params = {
-                width: '540px'
-            };
+            var params = {};
             this.setup_chooser_dialogue(dialogue, header, params);
 
             // Initialize existing sections and register for dynamically created sections
@@ -163,6 +161,6 @@ YUI.add('moodle-course-modchooser', function(Y) {
     }
 },
 '@VERSION@', {
-    requires:['base', 'overlay', 'moodle-core-chooserdialogue', 'transition']
+    requires:['base', 'overlay', 'moodle-core-chooserdialogue', 'moodle-course-coursebase']
 }
 );

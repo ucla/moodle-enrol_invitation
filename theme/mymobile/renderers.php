@@ -17,8 +17,7 @@
 /**
  * Renderers for the mymobile theme
  *
- * @package    theme
- * @subpackage mymobile
+ * @package    theme_mymobile
  * @copyright  John Stabinger
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,8 +25,7 @@
 /**
  * A custom renderer for the mymobile theme to produce snippets of content.
  *
- * @package    theme
- * @subpackage mymobile
+ * @package    theme_mymobile
  * @copyright  John Stabinger
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -42,7 +40,7 @@ class theme_mymobile_renderer extends plugin_renderer_base {
      */
     public function settings_tree(settings_navigation $navigation) {
         $content = $this->navigation_node($navigation, array('class' => 'settings'));
-        if (has_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM))) {
+        if (has_capability('moodle/site:config', context_system::instance())) {
             // TODO: Work out whether something is missing from here.
         }
         return $content;
@@ -105,8 +103,7 @@ class theme_mymobile_renderer extends plugin_renderer_base {
 /**
  * Overridden core renderer for the mymobile theme
  *
- * @package    theme
- * @subpackage mymobile
+ * @package    theme_mymobile
  * @copyright  John Stabinger
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -301,7 +298,7 @@ class theme_mymobile_core_renderer extends core_renderer {
      *
      * @return string
      */
-    public function login_info() {
+    public function login_info($withlinks = null) {
         global $USER, $CFG, $DB, $SESSION;
 
         if (during_initial_install()) {
@@ -324,7 +321,7 @@ class theme_mymobile_core_renderer extends core_renderer {
             // $course->id is not defined during installation
             return '';
         } else if (isloggedin()) {
-            $context = get_context_instance(CONTEXT_COURSE, $course->id);
+            $context = context_course::instance($course->id);
             $fullname = fullname($USER, true);
 
             // Since Moodle 2.0 this link always goes to the public profile page (not the course profile page)
@@ -362,7 +359,7 @@ class theme_mymobile_core_renderer extends core_renderer {
                         } else {
                             $loggedinas .= get_string('failedloginattemptsall', '', $count);
                         }
-                        if (file_exists("$CFG->dirroot/report/log/index.php") and has_capability('report/log:view', get_context_instance(CONTEXT_SYSTEM))) {
+                        if (file_exists("$CFG->dirroot/report/log/index.php") and has_capability('report/log:view', context_system::instance())) {
                             $loggedinas .= ' (<a href="'.$CFG->wwwroot.'/course/report/log/index.php?chooselog=1&amp;id=1&amp;modid=site_errors">'.get_string('logs').'</a>)';
                         }
                         $loggedinas .= '</div>';
@@ -403,7 +400,7 @@ class theme_mymobile_core_renderer extends core_renderer {
             // $course->id is not defined during installation
             return '';
         } else if (isloggedin()) {
-            $context = get_context_instance(CONTEXT_COURSE, $course->id);
+            $context = context_course::instance($course->id);
 
             $fullname = fullname($USER, true);
             // Since Moodle 2.0 this link always goes to the public profile page (not the course profile page)
@@ -419,7 +416,7 @@ class theme_mymobile_core_renderer extends core_renderer {
             } else if (is_role_switched($course->id)) { // Has switched roles
                 $rolename = '';
                 if ($role = $DB->get_record('role', array('id'=>$USER->access['rsw'][$context->path]))) {
-                    $rolename = ': '.format_string($role->name);
+                    $rolename = ': '.role_get_name($role, $context);
                 }
                 $loggedinas = get_string('loggedinas', 'moodle', $username).$rolename." (<a href=\"$CFG->wwwroot/course/view.php?id=$course->id&amp;switchrole=0&amp;sesskey=".sesskey()."\">".get_string('switchrolereturn').'</a>)';
             } else {
@@ -445,7 +442,7 @@ class theme_mymobile_core_renderer extends core_renderer {
                         } else {
                             $loggedinas .= get_string('failedloginattemptsall', '', $count);
                         }
-                        if (has_capability('report/log:view', get_context_instance(CONTEXT_SYSTEM))) {
+                        if (has_capability('report/log:view', context_system::instance())) {
                             $loggedinas .= ' (<a href="'.$CFG->wwwroot.'/course/report/log/index.php?chooselog=1&amp;id=1&amp;modid=site_errors">'.get_string('logs').'</a>)';
                         }
                         $loggedinas .= '</div>';
@@ -635,6 +632,9 @@ class theme_mymobile_core_renderer extends core_renderer {
             $this->page->add_body_class('userloggedinas');
         }
 
+        // Give themes a chance to init/alter the page object.
+        $this->page->theme->init_page($this->page);
+
         $this->page->set_state(moodle_page::STATE_PRINTING_HEADER);
 
         // Find the appropriate page layout file, based on $this->page->pagelayout.
@@ -694,16 +694,23 @@ class theme_mymobile_core_renderer extends core_renderer {
      */
     public function blocks_for_region($region) {
         $blockcontents = $this->page->blocks->get_content_for_region($region, $this);
+        $blocks = $this->page->blocks->get_blocks_for_region($region);
+        $lastblock = null;
+        $zones = array();
+        foreach ($blocks as $block) {
+            $zones[] = $block->title;
+        }
 
         $output = '';
         foreach ($blockcontents as $bc) {
             if ($bc instanceof block_contents) {
+                $lastblock = $bc->title;
                 // We don't want to print navigation and settings blocks here.
                 if ($bc->attributes['class'] != 'block_settings  block' && $bc->attributes['class'] != 'block_navigation  block') {
                     $output .= $this->block($bc, $region);
                 }
             } else if ($bc instanceof block_move_target) {
-                $output .= $this->block_move_target($bc);
+                $output .= $this->block_move_target($bc, $zones, $lastblock);
             } else {
                 throw new coding_exception('Unexpected type of thing (' . get_class($bc) . ') found in list of block contents.');
             }
@@ -758,8 +765,6 @@ class theme_mymobile_core_renderer extends core_renderer {
 
         if ($select->helpicon instanceof help_icon) {
             $output .= $this->render($select->helpicon);
-        } else if ($select->helpicon instanceof old_help_icon) {
-            $output .= $this->render($select->helpicon);
         }
 
         $output .= html_writer::select($select->options, $select->name, $select->selected, $select->nothing, $select->attributes);
@@ -794,8 +799,7 @@ class theme_mymobile_core_renderer extends core_renderer {
 /**
  * Overridden choice module renderer for the mymobile theme
  *
- * @package    theme
- * @subpackage mymobile
+ * @package    theme_mymobile
  * @copyright  John Stabinger
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

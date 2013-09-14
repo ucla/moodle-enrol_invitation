@@ -234,18 +234,23 @@ function make_idnumber($courseinfo) {
 
 /**
  *  Fetch each corresponding term and srs for a particular courseid.
- *  @param  $courseid   Primary key for course table
- **/
+ * 
+ *  @param int $courseid
+ */
 function ucla_map_courseid_to_termsrses($courseid) {
     global $DB;
-    static $_cached_results = array();
-    
-    if (!isset($_cached_results[$courseid])) {
-        $_cached_results[$courseid] = $DB->get_records('ucla_request_classes', 
-            array('courseid' => $courseid), '', 'id, term, srs, hostcourse');
+
+    // Check to see if we queried for this particular mapping before.
+    $cache = cache::make('local_ucla', 'urcmappings');
+    $cachekey = 'ucla_map_courseid_to_termsrses:'.$courseid;
+    if ($termsrses = $cache->get($cachekey)) {
+        return $termsrses;
     }
     
-    return $_cached_results[$courseid];
+    $termsrses = $DB->get_records('ucla_request_classes', array('courseid' => $courseid));
+
+    $cache->set($cachekey, $termsrses);
+    return $termsrses;
 }
 
 /**
@@ -345,7 +350,7 @@ function ucla_get_courses_by_terms($terms) {
  **/
 function ucla_registrar_user_to_moodle_user($reginfo,
                                             $cachedconfigs=null) {
-    global $DB;
+    global $CFG, $DB;
 
     if ($cachedconfigs) {
         $configs = $cachedconfigs;
@@ -438,82 +443,115 @@ function is_summer_term($term) {
  * next character should be uppercase.
  *  - Special case: If a name as 's, like Women's studies, then the S shouldn't
  * be capitalized. 
- * 
- * @author Rex Lorenzo
- * @param string name   fname, mname, or lname
- * @return string       name in proper format
- **/
-function ucla_format_name($name=null) {
+ *
+ * @param string $name
+ * @param boolean $handleconjunctions   If true, will lower case any
+ *                                      conjunctions, like "and" and "a". Used
+ *                                      when formatting departments or subject
+ *                                      areas.
+ * @return string                       Name in proper format.
+ */
+function ucla_format_name($name=null, $handleconjunctions=false) {
     $name = ucfirst(textlib::strtolower(trim($name)));    
 
     if (empty($name)) {
         return '';
     }
 
-    /* the way to handle special cases in a person's name is to recurse on
+    /* The way to handle special cases in a person's name is to recurse on
      * the following cases:
-     *  - If name has a space
-     *  - If name has a hypen
-     *  - If name has an aprostrophe
-     *  - If name starts with "MC"
-     *  - If name has conjunctions, e.g. "and", "of", "the", "as", "a"
+     *  - If name has a space.
+     *  - If name is multipart.
+     *  - If name has a hypen.
+     *  - If name has an aprostrophe.
+     *  - If name starts with "MC".
+     *  - If name has conjunctions, e.g. "and", "of", "the", "as", "a".
+     *  - If name has initials.
      */    
 
-    // has space? 
-    $name_array = explode(' ', $name);
-    if (count($name_array) > 1) {   
-        foreach ($name_array as $key => $element) {
-            $result = ucla_format_name($element);   // recurse
+    // Has space?
+    $namearray = explode(' ', $name);
+    if (count($namearray) > 1) {
+        foreach ($namearray as $key => $element) {
+            $result = ucla_format_name($element, $handleconjunctions);
             if (!empty($result)) {
-                $name_array[$key] = $result;
+                $namearray[$key] = $result;
             } else {
-                unset($name_array[$key]);   // don't use element if it is blank
+                unset($namearray[$key]);   // Don't use element if it is blank.
             }
         }
-        $name = implode(' ', $name_array);  // combine elements back        
+        $name = implode(' ', $namearray);  // Combine elements back.
+
+        // Handle European multipart names.
+        // See https://public.wsu.edu/~brians/errors/multipart.html.
+        $multipartnames = array('Della', 'Le', 'La', 'Du', 'Des', 'Del', 'De La',
+                                'Van Der', 'De', 'Da', 'Di', 'Von', 'Van');
+        $replacementcount = 0;
+        foreach ($multipartnames as $multipartname) {
+            $name = preg_replace("/^$multipartname /",
+                    textlib::strtolower($multipartname) . ' ', $name, 1,
+                    $replacementcount);
+            if ($replacementcount > 0) {
+                // Should only have 1 type of multipart name, exit early.
+                break;
+            }
+        }
     }
 
-    // has hypen?
-    $name_array = explode('-', $name);
-    if (count($name_array) > 1) {   
-        foreach ($name_array as $key => $element) {
-            $name_array[$key] = ucla_format_name($element);   // recurse
+    // Has hypen?
+    $namearray = explode('-', $name);
+    if (count($namearray) > 1) {
+        foreach ($namearray as $key => $element) {
+            $namearray[$key] = ucla_format_name($element, $handleconjunctions);
         }
-        $name = implode('-', $name_array);  // combine elements back        
-    }    
+        $name = implode('-', $namearray);  // Combine elements back.
+    }
 
-    // has aprostrophe?
-    $name_array = explode("'", $name);
-    if (count($name_array) > 1) {  
-        foreach ($name_array as $key => $element) {
+    // Has aprostrophe?
+    $namearray = explode("'", $name);
+    if (count($namearray) > 1) {
+        foreach ($namearray as $key => $element) {
             /*
             * Special case: If a name as 's, like Women's studies, then the S 
-            * shouldn't be capitalized. 
-            */         
+            * shouldn't be capitalized.
+            */
             if (preg_match('/^[s]{1}\\s+.*/i', $element)) {
-                // found a single lowercase s with a space and maybe something 
+                // Found a single lowercase s with a space and maybe something
                 // following, that means you found a possessive s, so make sure
-                // it is lowercase and do not recuse
+                // it is lowercase and do not recuse.
                 $element[0] = 's'; 
-                $name_array[$key] = $element;
+                $namearray[$key] = $element;
             } else {
-                // found a ' that is part of a name
-                $name_array[$key] = ucla_format_name($element);   // recurse
+                // Found a ' that is part of a name.
+                $namearray[$key] = ucla_format_name($element, $handleconjunctions);
             }
         }
-        $name = implode("'", $name_array);  // combine elements back        
-    }    
-
-    // starts with MC (and is more than 2 characters)?
-    if (textlib::strlen($name)>2 && (0 == strncasecmp($name, 'mc', 2))) {
-        $name[2] = textlib::strtoupper($name[2]);    // make 3rd character uppercase
+        $name = implode("'", $namearray);  // Combine elements back.
     }
 
-    // If name has conjunctions, e.g. "and", "of", "the", "as", "a"
-    if (in_array(textlib::strtolower($name), array('and', 'of', 'the', 'as', 'a'))) {
+    // Starts with MC (and is more than 2 characters)?
+    if (textlib::strlen($name)>2 && (0 == strncasecmp($name, 'mc', 2))) {
+        $name[2] = textlib::strtoupper($name[2]);    // Make 3rd character uppercase.
+    }
+
+    // If name has conjunctions, e.g. "and", "of", "the", "as", "a".
+    if ($handleconjunctions &&
+            in_array(textlib::strtolower($name), array('and', 'of', 'the', 'as', 'a'))) {
         $name = textlib::strtolower($name);
     }
-    
+
+    // If name has initials. Should be capital if exactly 1 letter is followed
+    // by a period.
+    $namearray = explode(".", $name);
+    if (count($namearray) > 1) {
+        foreach ($namearray as $key => $element) {
+            if (textlib::strlen($element) == 1) {
+                $namearray[$key] = textlib::strtoupper($element);
+            }
+        }
+        $name = implode(".", $namearray);  // Combine elements back.
+    }
+
     return $name;
 
 }
@@ -619,39 +657,38 @@ function require_user_finish_login() {
  * Given a registrar profcode and list of other roles a user has, returns what
  * Moodle role a user should have.
  * 
- * @param mixed $profcode       Can be either array or string. If array, then 
- *                              expects prof code(s) for given user in an array 
- *                              indexed by 'primary' and 'secondary'. If string
- *                              then will assume profcode is for primary for
- *                              backwards compatibility.
- * @param array $other_roles    Expects all prof code(s) for all roles for all 
- *                              course sections indexed by 'primary' and 
- *                              'secondary'. However, if those keys are not
- *                              found, then will assume given array is for
- *                              primary section for backwards compability.
- * @param type $subject_area        Default "*SYSTEM*". What subject area we
+ * @param string|array $profcode    If array, then expects prof code(s) for
+ *                                  given user in an array indexed by 'primary'
+ *                                  and 'secondary'. If string then will assume
+ *                                  profcode is for primary for backwards
+ *                                  compatibility.
+ * @param array $otherroles         Expects all prof code(s) for all roles for
+ *                                  all course sections indexed by 'primary' and
+ *                                  'secondary'. However, if those keys are not
+ *                                  found, then will assume given array is for
+ *                                  primary section for backwards compability.
+ * @param string $subjectarea       Default "*SYSTEM*". What subject area we
  *                                  are assigning roles for.
- * @return type 
+ * @return int                      Role id for local Moodle system.
  */
-function role_mapping($profcode, array $other_roles, 
-        $subject_area="*SYSTEM*") {
+function role_mapping($profcode, array $otherroles, $subjectarea="*SYSTEM*") {
 
-    // do backwards compability for those sections in the code that haven't
+    // Do backwards compability for those sections in the code that haven't
     // been modified to use the new role mapping parameters of primary/secondary
-    // indexes either because it is too hard or dificult to convert
+    // indexes either because it is too hard or dificult to convert.
     if (!is_array($profcode)) {
         $profcode = array('primary' => array($profcode));
     }
-    if (!isset($other_roles['primary']) && !isset($other_roles['secondary'])) {
-        $other_roles['primary'] = $other_roles;
+    if (!isset($otherroles['primary']) && !isset($otherroles['secondary'])) {
+        $otherroles['primary'] = $otherroles;
     }
-        
-    // logic to parse profcodes, and return pseudorole
-    $pseudorole = get_pseudorole($profcode, $other_roles);
+
+    // Logic to parse profcodes, and return pseudorole.
+    $pseudorole = get_pseudorole($profcode, $otherroles);
     
-    // call to the ucla_rolemapping table
-    $moodleroleid = get_moodlerole($pseudorole, $subject_area); 
-    
+    // Convert pseudorole to the appropiate role for given subject area.
+    $moodleroleid = get_moodlerole($pseudorole, $subjectarea);
+
     return $moodleroleid;
 }
 
@@ -673,7 +710,8 @@ function role_mapping($profcode, array $other_roles,
  *                              sections indexed by 'primary' and 'secondary'.
  * 
  * @return string               Returns either: editingteacher, ta,
- *                              ta_instructor, or supervising_instructor
+ *                              ta_instructor, supervising_instructor, or
+ *                              student_instructor
  *                              Returns null if no pseudo role can be found
  */
 function get_pseudorole(array $prof_code, array $other_prof_codes) {
@@ -792,25 +830,30 @@ function ucla_validator($type, $value) {
  * @throws moodle_exception         Throws moodle exception if no role mapping 
  *                                  is found
  * 
- * @global type $CFG
- * @global type $DB
- * 
  * @param string $pseudorole
- * @param string $subject_area      Default "*SYSTEM*".
+ * @param string $subjectarea       Default "*SYSTEM*".
  * 
  * @return int                      Moodle role id. 
  */
-function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
+function get_moodlerole($pseudorole, $subjectarea='*SYSTEM*') {
     global $CFG, $DB;
+
+    $subjectarea = trim($subjectarea);
+
+    // Check to see if we queried for this particular mapping before.
+    $cache = cache::make('local_ucla', 'rolemappings');
+    $cachekey = $pseudorole.':'.$subjectarea;
+    if ($moodleroleid = $cache->get($cachekey)) {
+        return $moodleroleid;
+    }
 
     require($CFG->dirroot . '/local/ucla/rolemappings.php');
 
-    $subject_area = trim($subject_area);
-
     // if mapping exists in file, then don't care what values are in the db
-    if (!empty($role[$pseudorole][$subject_area])) {
+    if (!empty($role[$pseudorole][$subjectarea])) {
         if ($moodlerole = $DB->get_record('role', 
-                array('shortname' => $role[$pseudorole][$subject_area]))) {
+                array('shortname' => $role[$pseudorole][$subjectarea]))) {
+            $cache->set($cachekey, $moodlerole->id);
             return $moodlerole->id;
         }            
     }
@@ -819,8 +862,9 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
     if ($moodlerole = $DB->get_record('ucla_rolemapping', 
             array(
                 'pseudo_role' => $pseudorole, 
-                'subject_area' => $subject_area
+                'subject_area' => $subjectarea
             ))) {
+        $cache->set($cachekey, $moodlerole->moodle_roleid);
         return $moodlerole->moodle_roleid;    
     }
     
@@ -829,6 +873,7 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
     if (!empty($role[$pseudorole]['*SYSTEM*'])) {
         if ($moodlerole = $DB->get_record('role', 
                 array('shortname' => $role[$pseudorole]['*SYSTEM*']))) {
+            $cache->set($cachekey, $moodlerole->id);
             return $moodlerole->id;
         } else {
             debugging('pseudorole mapping found, but local role not found');
@@ -837,8 +882,8 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
     
     // oh no... didn't find proper role mapping, stop the presses
     throw new moodle_exception('invalidrolemapping', 'local_ucla', null, 
-            sprintf('Params: $pseudorole - %s, $subject_area - %s', 
-                    $pseudorole, $subject_area));
+            sprintf('Params: $pseudorole - %s, $subjectarea - %s', 
+                    $pseudorole, $subjectarea));
 }
 
 /**
@@ -1567,4 +1612,50 @@ function hide_courses($term) {
 
     return array($num_hidden_courses, $num_hidden_tasites,
                  $num_problem_courses, $error_messages);
+}
+
+/**
+ * Given a displayname in the following format:
+ *  LAST, FIRST MIDDLE, SUFFIX
+ * Will return an array for a user's lastname and firstname.
+ *
+ * Consolidates name formating used in shib_transform.php and prepop.
+ *
+ * @param string $displayname
+ *
+ * @return array
+ */
+function format_displayname($displayname) {
+    $retval = array('firstname' => '', 'lastname' => '');
+
+    // Expecting name in following format: LAST, FIRST MIDDLE, SUFFIX.
+    $names = explode(',',  $displayname);
+    // Trim every element.
+    $names = array_map('trim', $names);
+
+    if (empty($names)) {
+        // No name found.
+    } else if (empty($names[1])) {
+        // No first name.
+        $retval['lastname'] = $names[0];
+    } else {
+        // First name might have middle name data.
+        $retval['firstname'] = $names[1];
+        $retval['lastname'] = $names[0];
+    }
+
+    // Might have a suffix.
+    if (isset($names[2])) {
+        $retval['lastname'] .= ' ' . $names[2];
+    }
+
+    // Make sure the name is properly capitalized.
+    if (!empty($retval['firstname'])) {
+        $retval['firstname'] = ucla_format_name($retval['firstname']);
+    }
+    if (!empty($retval['lastname'])) {
+        $retval['lastname'] = ucla_format_name($retval['lastname']);
+    }
+
+    return $retval;
 }

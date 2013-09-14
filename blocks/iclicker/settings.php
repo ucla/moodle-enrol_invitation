@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: settings.php 142 2012-05-08 15:31:27Z azeckoski@gmail.com $ */
+/* $Id: settings.php 179 2013-01-25 20:13:56Z azeckoski@gmail.com $ */
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -39,6 +39,21 @@ if ($ADMIN->fulltree) {
             '', //50,200
             PARAM_TEXT,
             50
+        )
+    );
+    /*
+    $settings->add(
+        new admin_setting_configcheckbox(iclicker_service::BLOCK_NAME.'/block_iclicker_allow_sharing',
+            get_string('config_allow_sharing', $block_name),
+            get_string('config_allow_sharing_desc', $block_name),
+            0
+        )
+    );*/
+    $settings->add(
+        new admin_setting_configcheckbox(iclicker_service::BLOCK_NAME.'/block_iclicker_enable_shortname',
+            get_string('config_enable_shortname', $block_name),
+            get_string('config_enable_shortname_desc', $block_name),
+            0
         )
     );
     $settings->add(

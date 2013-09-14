@@ -27,6 +27,9 @@
         <testsuite name="core_phpunit">
             <directory suffix="_test.php">lib/phpunit/tests</directory>
         </testsuite>
+        <testsuite name="core_test">
+            <directory suffix="_test.php">lib/testing/tests</directory>
+        </testsuite>
         <testsuite name="core_db">
             <directory suffix="_test.php">lib/ddl/tests</directory>
             <directory suffix="_test.php">lib/dml/tests</directory>
@@ -35,9 +38,14 @@
             <directory suffix="_test.php">lib/tests</directory>
             <directory suffix="_test.php">lib/ajax/tests</directory>
             <directory suffix="_test.php">lib/form/tests</directory>
+            <directory>lib/password_compat/tests</directory>
         </testsuite>
         <testsuite name="core_files">
             <directory suffix="_test.php">lib/filestorage/tests</directory>
+            <directory suffix="_test.php">files/tests</directory>
+        </testsuite>
+        <testsuite name="core_cohort">
+            <directory suffix="_test.php">cohort/tests</directory>
         </testsuite>
         <testsuite name="core_grade">
             <directory suffix="_test.php">lib/grade/tests</directory>
@@ -48,6 +56,9 @@
             <directory suffix="_test.php">backup/controller/tests</directory>
             <directory suffix="_test.php">backup/converter/moodle1/tests</directory>
             <directory suffix="_test.php">backup/util</directory>
+        </testsuite>
+        <testsuite name="core_badges">
+            <directory suffix="_test.php">badges/tests</directory>
         </testsuite>
         <testsuite name="core_blog">
             <directory suffix="_test.php">blog/tests</directory>
@@ -63,6 +74,27 @@
             <directory suffix="_test.php">question/tests</directory>
             <directory suffix="_test.php">question/type/tests</directory>
             <directory suffix="_test.php">question/engine/upgrade/tests</directory>
+        </testsuite>
+        <testsuite name="core_cache">
+            <directory suffix="_test.php">cache/tests</directory>
+        </testsuite>
+        <testsuite name="core_calendar">
+            <directory suffix="_test.php">calendar/tests</directory>
+        </testsuite>
+        <testsuite name="core_enrol">
+            <directory suffix="_test.php">enrol/tests</directory>
+        </testsuite>
+        <testsuite name="core_group">
+            <directory suffix="_test.php">group/tests</directory>
+        </testsuite>
+        <testsuite name="core_external">
+            <directory suffix="_test.php">lib/external/tests</directory>
+        </testsuite>
+        <testsuite name="core_message">
+            <directory suffix="_test.php">message/tests</directory>
+        </testsuite>
+        <testsuite name="core_notes">
+            <directory suffix="_test.php">notes/tests</directory>
         </testsuite>
         <testsuite name="core_rating">
             <directory suffix="_test.php">rating/tests</directory>

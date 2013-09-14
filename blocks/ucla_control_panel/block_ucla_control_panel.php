@@ -105,7 +105,10 @@ class block_ucla_control_panel extends block_base {
 
         $courseid = $course->id;
         // obtain the section number here
-        $section = ucla_format_figure_section($course);
+        
+        $course->format = 'ucla';
+        $section = course_get_format($course)->figure_section($course);
+        
         if($section >= 0) {
             return new moodle_url($CFG->wwwroot . '/blocks/ucla_control_panel/'
                 . 'view.php', array('course_id' => $courseid,

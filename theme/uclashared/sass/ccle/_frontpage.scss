@@ -1,0 +1,149 @@
+//
+// CCLE / frontpage
+// --------------------------------------------------
+
+
+//
+// Frontpage banner area
+// --------------------------------------------------
+
+.frontpage-banner {
+    background: url([[pix:theme|ccle-banner-1]]) no-repeat;
+    background-position: 80% 25%;
+    height: 200px;
+
+    @include respond-at(tablet) {
+        height: 200px;
+        background-position: 70% 30%;
+    }
+    @include respond-at(desktop) {
+        height: 1000px;
+        background-position: 80% 10%;
+        border-right: 1px solid #ddd;
+    }
+}
+
+//
+// Frontpage content -- contains search, browseby, alerts..
+// --------------------------------------------------
+
+.frontpage-content {
+    @include respond-at(desktop) {
+        overflow: auto;
+        height: 1000px;
+    }
+}
+
+.frontpage-shared-server {
+    position: absolute;
+    bottom: 0;
+    padding: 4px;
+    color: white;
+    padding-left: 16px;
+    background-color: #444;
+    opacity: 0.75;
+    width: 100%;
+    
+    display: none;
+    
+    .server-link {
+        cursor: pointer;
+    }
+    .shared-server-list {
+        display: none;
+        color: #ddd;
+        height: 100px;
+        li {
+            list-style: none; 
+            float: left;
+            width: 30%;
+        };
+    }
+    
+    @include respond-at(desktop) {
+        .shared-server-list {
+            display: block;
+            li {
+                width: 80%;
+            }
+        }
+    }
+}
+
+.frontpage-navigation {
+    margin-bottom: 20px;
+    
+    button {
+        display: inline-block;
+        white-space: normal;
+        width: 90%;
+        text-align: left;
+        
+        @include respond-to(tablets) {
+            width: auto;
+        }
+    }
+    
+    h3 {
+        /*border-bottom: 1px solid #333;*/
+    }
+}
+
+.frontpage-search {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    
+    .as-collab-checkbox {display: none;}
+    .as-input-wrapper {
+
+    }
+    .input-group-btn .btn {
+        border-bottom-left-radius: 0;
+        border-top-left-radius: 0;
+    }
+    .yui3-aclist-content {
+        box-shadow: 0 0 0 ;
+        /*border: 0;*/
+    }
+}
+
+.frontpage-alert {
+    margin-bottom: 20px;
+}
+
+//
+// Structural fixes for the frontpage layout
+//      This lets us hide the blocks and display our 
+//      own content.
+//      @todo: this is not accessible -- need to fix
+// --------------------------------------------------
+.frontpage-layout + br {
+    display: none;
+}
+
+.front-page:not(.editing) {
+    #page-content .region-content {padding-top: 0; padding-bottom: 0}
+    
+    // Hide frontpage blocks
+    .block-region,
+    .weeks-display {
+        display: none;
+    }
+    
+    // Structural fixes
+    &.side-pre-only #page-content #region-main {
+        margin-left: 0;
+    }
+    #page-content #region-main {
+        margin-left: 0;
+    }
+    
+    #page-content #region-post-box {
+        margin-left: -200px;
+    }
+}
+
+.front-page.editing {
+    #page-header {position: relative}
+}
+

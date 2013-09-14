@@ -27,6 +27,7 @@ class mod_qanda_mod_form extends moodleform_mod {
         $this->add_intro_editor(true);
 
         $mform->addElement('text', 'entbypage', get_string('entbypage', 'qanda'));
+        $mform->setType('entbypage', PARAM_INT); 
         $mform->setDefault('entbypage', 10);
         $mform->addRule('entbypage', null, 'required', null, 'client');
         $mform->addRule('entbypage', null, 'numeric', null, 'client');
@@ -95,19 +96,27 @@ class mod_qanda_mod_form extends moodleform_mod {
             $CFG->qanda_defaultapproval = 0;
         }
 
-        $mform->addElement('hidden', 'mainqanda', '0');
+        $mform->addElement('hidden', 'mainqanda', 0);
+        $mform->setType('mainqanda', PARAM_INT); 
         $mform->addElement('hidden', 'allowduplicatedentries', $CFG->qanda_dupentries);
+        $mform->setType('allowduplicatedentries', PARAM_INT); 
         $mform->addElement('hidden', 'allowcomments', $CFG->qanda_allowcomments);
+        $mform->setType('allowcomments', PARAM_INT); 
         $mform->addElement('hidden', 'allowprintview', 1);
+        $mform->setType('allowprintview', PARAM_INT); 
         $mform->addElement('hidden', 'usedynalink', $CFG->qanda_linkbydefault);
-
+        $mform->setType('usedynalink', PARAM_INT);
         $mform->addElement('hidden', 'defaultapproval', $CFG->qanda_defaultapproval);
+        $mform->setType('defaultapproval', PARAM_INT); 
         $mform->addElement('hidden', 'showspecial', 0);
+        $mform->setType('showspecial', PARAM_INT); 
         $mform->addElement('hidden', 'showall', 1);
+        $mform->setType('showall', PARAM_INT);
         $mform->addElement('hidden', 'globalqanda', 0);
-
+        $mform->setType('globalqanda', PARAM_INT);
         $mform->addElement('hidden', 'showalphabet', 0);
-
+        $mform->setType('showalphabet', PARAM_INT);
+        
         //get and update available formats
         $recformats = qanda_get_available_formats();
 

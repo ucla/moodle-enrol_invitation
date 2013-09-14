@@ -19,7 +19,9 @@ class officehours_form extends moodleform {
         
         $mform = $this->_form;
         $mform->addElement('hidden', 'courseid', $courseid);
+        $mform->setType('courseid', PARAM_INT);
         $mform->addElement('hidden', 'editid', $editid);
+        $mform->setType('editid', PARAM_INT);
         
         // office info \\
         $mform->addElement('header', 'header_office_info', 
@@ -107,6 +109,31 @@ class officehours_form extends moodleform {
         }
         
         $this->add_action_buttons();
+    }
+
+    /**
+     * Try to make website a valid url with "http://" in front.
+     * 
+     * @param arrray $data
+     * @param arrray $files
+     */
+    public function validation($data, $files) {
+        $err = array();
+
+        if (!empty($data['website'])) {
+            if (!validateUrlSyntax($data['website'], 's+')) {
+                // See if it failed because is missing the http:// at the beginning.
+                if (validateUrlSyntax('http://' . $data['website'], 's+')) {
+                    // It was.
+                    $data['website'] = 'http://' . $data['website'];
+                    $this->_form->updateSubmission($data, $files);
+                } else {
+                    $err['website'] = get_string('invalidurl');
+                }
+            }
+        }
+
+        return $err;
     }
 }
 

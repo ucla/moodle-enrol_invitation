@@ -12,8 +12,8 @@ class easyupload_activity_form extends easy_upload_form {
 
         $course = $mform->getElement('course')->getValue();
 
-        $mform->addElement('hidden', 'redirectme', 
-            '/course/modedit.php');
+        $mform->addElement('hidden', 'redirectme', '/course/modedit.php');
+        $mform->setType('redirectme', PARAM_URL);
 
         // Add the select form
         $actsel = $mform->addElement('select', 'add', 

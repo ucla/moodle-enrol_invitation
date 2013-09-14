@@ -1,0 +1,68 @@
+//
+// UCLASHARED Theme SASS
+// --------------------------------------------------
+
+// Need compass library
+@import "compass";
+
+//
+// REQUIRED THEME COMPONENTS
+// --------------------------------------------------
+
+
+// When we override Bootstrap, we create an analogous file for it and 
+// put all overrides in there.  If we don't modify Bootstrap, we just 
+// pull the file directly.
+
+/*@import "CSS:editor";*/
+/*@import "CSS:base/style/core";
+@import "CSS:base/style/pagelayout";*/
+
+// Core variables and mixins
+@import "variables";
+@import "mixins";
+
+// Reset
+/*@import "bootstrap/lib/normalize";*/
+
+// Core CSS
+// -------------------
+@import "type";
+@import "form";
+@import "buttons";
+@import "tables";
+@import "bootstrap/lib/grid";
+
+
+// Components
+// -------------------
+@import "header";
+@import "footer";
+@import "alerts";
+@import "navs";
+@import "progress-bars";
+@import "panels";
+@import "labels";
+@import "glyphicons";
+
+@import "dock";
+
+@import "bootstrap/lib/button-groups";
+@import "bootstrap/lib/input-groups";
+@import "breadcrumbs";
+@import "bootstrap/lib/wells";
+@import "bootstrap/lib/badges";
+
+// Media queries
+// -------------------
+// Adds responsive capabilities to moodle's layout
+@import "responsive-utilities";
+@import "responsive";
+
+
+// Load CCLE Moodle specific elements
+// This course, and plugin styles
+// --------------------------------------------------
+@import "ccle/required";
+
+

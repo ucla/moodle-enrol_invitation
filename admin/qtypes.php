@@ -33,7 +33,7 @@ require_once($CFG->libdir . '/tablelib.php');
 
 // Check permissions.
 require_login();
-$systemcontext = get_context_instance(CONTEXT_SYSTEM);
+$systemcontext = context_system::instance();
 require_capability('moodle/question:config', $systemcontext);
 $canviewreports = has_capability('report/questioninstances:view', $systemcontext);
 
@@ -195,7 +195,7 @@ $table->define_headers(array(get_string('questiontype', 'question'), get_string(
         get_string('version'), get_string('requires', 'admin'), get_string('availableq', 'question'),
         get_string('delete'), get_string('settings')));
 $table->set_attribute('id', 'qtypes');
-$table->set_attribute('class', 'generaltable generalbox boxaligncenter boxwidthwide');
+$table->set_attribute('class', 'admintable generaltable');
 $table->setup();
 
 // Add a row for each question type.
@@ -257,7 +257,7 @@ foreach ($sortedqtypes as $qtypename => $localname) {
             $rowclass = 'dimmed_text';
         }
     } else {
-        $icons = $OUTPUT->spacer() . ' ';
+        $icons = $OUTPUT->spacer();
     }
 
     // Move icons.
@@ -294,10 +294,10 @@ echo $OUTPUT->footer();
 
 function question_types_enable_disable_icons($qtypename, $createable) {
     if ($createable) {
-        return question_type_icon_html('disable', $qtypename, 'i/hide',
+        return question_type_icon_html('disable', $qtypename, 't/hide',
                 get_string('enabled', 'question'), get_string('disable'));
     } else {
-        return question_type_icon_html('enable', $qtypename, 'i/show',
+        return question_type_icon_html('enable', $qtypename, 't/show',
                 get_string('disabled', 'question'), get_string('enable'));
     }
 }
@@ -306,7 +306,7 @@ function question_type_icon_html($action, $qtypename, $icon, $alt, $tip) {
     global $OUTPUT;
     return $OUTPUT->action_icon(new moodle_url('/admin/qtypes.php',
             array($action => $qtypename, 'sesskey' => sesskey())),
-            new pix_icon($icon, $alt, 'moodle', array('title' => '')),
-            null, array('title' => $tip)) . ' ';
+            new pix_icon($icon, $alt, 'moodle', array('title' => '', 'class' => 'iconsmall')),
+            null, array('title' => $tip));
 }
 

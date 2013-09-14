@@ -13,6 +13,9 @@ class subjarea_handler extends browseby_handler {
         $urlobj->params(array('type' => 'division'));
         $PAGE->navbar->add(get_string('division_title', 
             'block_ucla_browseby'), $urlobj);
+        
+        
+
     }
 
     static function get_pretty_division($division) {
@@ -22,8 +25,12 @@ class subjarea_handler extends browseby_handler {
     }
 
     function handle($args) {
-        global $OUTPUT;
-
+        global $OUTPUT, $PAGE;
+        
+        // Load search
+        $PAGE->requires->yui_module('moodle-block_ucla_search-search', 'M.ucla_search.init', 
+                array(array('name' => 'course-search')));
+        
         $division = false;
         if (isset($args['division'])) {
             $division = $args['division'];
@@ -96,18 +103,9 @@ class subjarea_handler extends browseby_handler {
                     'block_ucla_browseby'));
             return array($t, $s);
         }
-        // START UCLA MOD CCLE-2309
-        global $CFG;
-        $ucla_search = $CFG->dirroot . '/blocks/ucla_search/block_ucla_search.php';
         
-        if(file_exists($ucla_search)) {
-            require_once($ucla_search);
-            
-            block_ucla_search::load_browseby_search_js();
-            $s .= block_ucla_search::print_browseby_search();
-        }
-        // END UCLA MOD CCLE-2309
-
+        $s .= block_ucla_search::search_form('course-search');
+        
         $table = $this->list_builder_helper($subjectareas, 'subjarea',
             'subj_area_full', 'course', 'subjarea', $term);
 

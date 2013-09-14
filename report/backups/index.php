@@ -25,7 +25,9 @@
 
 require_once('../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
-require_once($CFG->dirroot.'/backup/lib.php');
+
+// Required for constants in backup_cron_automated_helper
+require_once($CFG->dirroot.'/backup/util/helper/backup_cron_helper.class.php');
 
 // Required for constants in backup_cron_automated_helper
 require_once($CFG->dirroot.'/backup/util/helper/backup_cron_helper.class.php');
@@ -83,7 +85,7 @@ foreach ($rs as $backuprow) {
 
     // Create the row and add it to the table
     $cells = array(
-        format_string($backuprow->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, $backuprow->courseid))),
+        format_string($backuprow->fullname, true, array('context' => context_course::instance($backuprow->courseid))),
         userdate($backuprow->laststarttime, $strftimedatetime),
         '-',
         userdate($backuprow->lastendtime, $strftimedatetime),

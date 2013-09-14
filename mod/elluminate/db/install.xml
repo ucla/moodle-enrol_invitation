@@ -73,9 +73,15 @@
 					SEQUENCE="false" PREVIOUS="chairlist" NEXT="grade" />
 				<FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true"
 					UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="nonchairlist"
-					NEXT="timemodified" />
-				<FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true"
-					UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="grade" />
+					NEXT="gradesession" />
+				<FIELD NAME="gradesession" TYPE="int" LENGTH="1"
+					NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"
+					PREVIOUS="grade" NEXT="telephony" />
+            <FIELD NAME="telephony" TYPE="int" LENGTH="1"
+               NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="gradesession" NEXT="timemodified" />
+	         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true"
+               UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="telephony" />
 			</FIELDS>
 			<KEYS>
 				<KEY NAME="primary" TYPE="primary" FIELDS="id"
@@ -87,9 +93,10 @@
 					PREVIOUS="course" />
 			</INDEXES>
 		</TABLE>
+		
 		<TABLE NAME="elluminate_recordings"
 			COMMENT="Contains Elluminate Live! info about recorded meetings"
-			PREVIOUS="elluminate" NEXT="elluminate_preloads">
+			PREVIOUS="elluminate" NEXT="elluminate_recording_files">
 			<FIELDS>
 				<FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true"
 					UNSIGNED="true" SEQUENCE="true" NEXT="meetingid" />
@@ -100,9 +107,23 @@
 				<FIELD NAME="description" TYPE="char" LENGTH="255" NOTNULL="false"
 					SEQUENCE="false" PREVIOUS="recordingid" NEXT="recordingsize" />
 				<FIELD NAME="recordingsize" TYPE="char" LENGTH="255" NOTNULL="false"
-					SEQUENCE="false" PREVIOUS="description" NEXT="visible" />
-				<FIELD NAME="visible" TYPE="int" LENGTH="1" NOTNULL="true"
-					UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="recordingsize"
+					SEQUENCE="false" PREVIOUS="description" NEXT="versionmajor" />
+				<FIELD NAME="versionmajor" TYPE="char" LENGTH="5" NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="recordingsize" NEXT="versionminor" />
+            <FIELD NAME="versionminor" TYPE="char" LENGTH="5" NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="versionmajor" NEXT="versionpatch" />
+            <FIELD NAME="versionpatch" TYPE="char" LENGTH="5" NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="versionminor" NEXT="startdate" />
+            <FIELD NAME="startdate" TYPE="int" LENGTH="10" NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="versionpatch" NEXT="enddate" />
+            <FIELD NAME="enddate" TYPE="int" LENGTH="10" NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="startdate" NEXT="securesignon" />
+            <FIELD NAME="securesignon" TYPE="int" LENGTH="1" NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="enddate" NEXT="roomname" />
+            <FIELD NAME="roomname" TYPE="char" LENGTH="255" NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="securesignon" NEXT="visible" />
+				<FIELD NAME="visible" TYPE="int" LENGTH="10" NOTNULL="true"
+					UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="roomname"
 					NEXT="groupvisible" />
 				<FIELD NAME="groupvisible" TYPE="int" LENGTH="1" NOTNULL="true"
 					UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="visible"
@@ -116,12 +137,46 @@
 			</KEYS>
 			<INDEXES>
 				<INDEX NAME="meetingid_recordingid" UNIQUE="true"
-					FIELDS="meetingid, recordingid" />
+					FIELDS="meetingid, recordingid" NEXT="recordingid" />
+            <INDEX NAME="recordingid" UNIQUE="true"
+               FIELDS="recordingid" PREVIOUS="meetingid_recordingid"/>
 			</INDEXES>
 		</TABLE>
+      <TABLE NAME="elluminate_recording_files"
+         COMMENT="Contains details about Blackboard Collaborate Recording File Formats"
+         PREVIOUS="elluminate_recordings" NEXT="elluminate_preloads">
+         <FIELDS>
+            <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true"
+               UNSIGNED="true" SEQUENCE="true" NEXT="recordingid" />
+            <FIELD NAME="recordingid" TYPE="char" LENGTH="30" NOTNULL="true"
+               SEQUENCE="false" PREVIOUS="id" NEXT="format" />
+            <FIELD NAME="format" TYPE="char" LENGTH="255" NOTNULL="true"
+               SEQUENCE="false" PREVIOUS="recordingid" NEXT="status" />
+            <FIELD NAME="status" TYPE="char" LENGTH="255" NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="format" NEXT="errorcode" />
+            <FIELD NAME="errorcode" TYPE="char" LENGTH="255" NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="status" NEXT="errortext" />
+            <FIELD NAME="errortext" TYPE="char" LENGTH="255" NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="errorcode" NEXT="updated" />
+            <FIELD NAME="updated" TYPE="int" LENGTH="10" NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="errortext" />
+         </FIELDS>
+         <KEYS>
+            <KEY NAME="primary" TYPE="primary" FIELDS="id"
+               COMMENT="Primary key for elluminate_recording_files" />
+         </KEYS>
+         <INDEXES>
+            <INDEX NAME="recordingid" UNIQUE="false"
+               FIELDS="recordingid" NEXT="updated" />
+            <INDEX NAME="updated" UNIQUE="false"
+               FIELDS="updated" PREVIOUS="recordingid" NEXT="status"/>
+            <INDEX NAME="status" UNIQUE="false"
+               FIELDS="status" PREVIOUS="updated"/>
+         </INDEXES>
+      </TABLE>
 		<TABLE NAME="elluminate_preloads"
 			COMMENT="Contains Elluminate Live! info about recorded meetings"
-			PREVIOUS="elluminate_recordings" NEXT="elluminate_attendance">
+			PREVIOUS="elluminate_recording_files" NEXT="elluminate_attendance">
 			<FIELDS>
 				<FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true"
 					UNSIGNED="true" SEQUENCE="true" NEXT="meetingid" />
@@ -148,7 +203,7 @@
 		</TABLE>
 		<TABLE NAME="elluminate_attendance"
 			COMMENT="Contains Elluminate Live! attendance data for meetings keeping track of attendance"
-			PREVIOUS="elluminate_preloads">
+			PREVIOUS="elluminate_preloads" NEXT="elluminate_cache">
 			<FIELDS>
 				<FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true"
 					UNSIGNED="true" SEQUENCE="true" NEXT="userid" />
@@ -173,5 +228,59 @@
 					FIELDS="userid, elluminateid" />
 			</INDEXES>
 		</TABLE>
+		<TABLE NAME="elluminate_cache"
+         COMMENT="Contains Cache for information from SAS that may be volatile"
+         PREVIOUS="elluminate_attendance"
+         NEXT="elluminate_option_licenses">
+         <FIELDS>
+            <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true"
+               UNSIGNED="true" SEQUENCE="true" NEXT="itemtype" />
+            <FIELD NAME="itemtype" TYPE="char" LENGTH="100" NOTNULL="true"
+               UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id"
+               NEXT="subtype" />
+            <FIELD NAME="subtype" TYPE="char" LENGTH="25" NOTNULL="false"
+               UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="itemtype"
+               NEXT="itemkey" />
+            <FIELD NAME="itemkey" TYPE="int" LENGTH="10" NOTNULL="true"
+               UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="subtype"
+               NEXT="value" />
+            <FIELD NAME="value" TYPE="char" LENGTH="255" NOTNULL="true"
+               UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="itemkey"
+               NEXT="created"/>
+            <FIELD NAME="created" TYPE="int" LENGTH="10" NOTNULL="true"
+               UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="value"/>
+         </FIELDS>
+         <KEYS>
+            <KEY NAME="primary" TYPE="primary" FIELDS="id"
+               COMMENT="Primary key for elluminate_cache" />
+         </KEYS>
+      </TABLE>
+      <TABLE NAME="elluminate_option_licenses"
+         COMMENT="Contains Licensing Information for the Blackboard Collaborate Module"
+         PREVIOUS="elluminate_cache">
+         <FIELDS>
+            <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true"
+               UNSIGNED="true" SEQUENCE="true" NEXT="optionname" />
+            <FIELD NAME="optionname" TYPE="char" LENGTH="50" NOTNULL="true"
+               UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id"
+               NEXT="variationname" />
+            <FIELD NAME="variationname" TYPE="char" LENGTH="50" NOTNULL="false"
+               UNSIGNED="true" DEFAULT="null" SEQUENCE="false" PREVIOUS="optionname"
+               NEXT="licensed" />
+            <FIELD NAME="licensed" TYPE="int" LENGTH="1" NOTNULL="true"
+               UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="variationname"
+               NEXT="updated"/>
+            <FIELD NAME="updated" TYPE="int" LENGTH="10" NOTNULL="true"
+               UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="licensed"/>
+         </FIELDS>
+         <KEYS>
+            <KEY NAME="primary" TYPE="primary" FIELDS="id"
+               COMMENT="Primary key for elluminate_option_licenses" />
+         </KEYS>
+         <INDEXES>
+            <INDEX NAME="optionname_variation" UNIQUE="true"
+               FIELDS="optionname, variationname" />
+         </INDEXES>
+      </TABLE>
 	</TABLES>
 </XMLDB>

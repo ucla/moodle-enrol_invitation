@@ -62,6 +62,10 @@ class syllabus_form extends moodleform {
         global $CFG, $DB, $OUTPUT, $USER;
 
         $mform = $this->_form;
+
+        // Get rid of "Collapse all".
+        $mform->setDisableShortforms(true);
+
         $this->courseid = $this->_customdata['courseid'];
         $this->action = $this->_customdata['action'];
         if (isset($this->_customdata['type'])) {
@@ -82,14 +86,18 @@ class syllabus_form extends moodleform {
             }
 
             $mform->addElement('hidden', 'action', $this->action);
+            $mform->setType('action', PARAM_ALPHA);
             $mform->addElement('hidden', 'type', $this->type);
+            $mform->setType('type', PARAM_ALPHA);
             $mform->addElement('hidden', 'id', $this->courseid);
+            $mform->setType('id', PARAM_INT);
         } else {
             // If viewing, then display both public/private syllabus forums.
             if (empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]) &&
                     empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE])) {
                 $mform->addElement('html', $OUTPUT->notification(
-                        get_string('no_syllabus', 'local_ucla_syllabus')));
+                        get_string('no_syllabus', 'local_ucla_syllabus'),
+                        'notifymessage'));
             }
             $this->display_public_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]);
             $this->display_private_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]);
@@ -325,6 +333,7 @@ class syllabus_form extends moodleform {
             $config['accepted_types'] = array('.pdf');
 
             $mform->addElement('hidden', 'syllabus_url', '');
+            $mform->setType('syllabus_url', PARAM_URL);
             // Perform single file upload.
             $mform->addElement('filemanager', 'syllabus_file',
                     get_string('upload_file', 'local_ucla_syllabus'), null, $config);
@@ -344,13 +353,16 @@ class syllabus_form extends moodleform {
             // Add URL field.
             $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'),
                     array('size'=>'50'));
+            $mform->setType('syllabus_url', PARAM_URL);
         }
 
         // Show access type.
         $mform->addElement('hidden', 'access_types[access_type]', UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE);
+        $mform->setType('access_types[access_type]', PARAM_TEXT);
 
         // Show display name.
         $mform->addElement('text', 'display_name', get_string('display_name', 'local_ucla_syllabus'));
+        $mform->setType('display_name', PARAM_TEXT);
         $mform->addRule('display_name',
                 get_string('display_name_none_entered', 'local_ucla_syllabus'),
                 'required');
@@ -377,6 +389,7 @@ class syllabus_form extends moodleform {
 
             // Indicate that we are editing an existing syllabus.
             $mform->addElement('hidden', 'entryid', $existingsyllabus->id);
+            $mform->setType('entryid', PARAM_INT);
         }
 
         $this->add_action_buttons();
@@ -398,6 +411,7 @@ class syllabus_form extends moodleform {
             $config['accepted_types'] = array('.pdf');
 
             $mform->addElement('hidden', 'syllabus_url', '');
+            $mform->setType('syllabus_url', PARAM_URL);
             // Perform single file upload.
             $mform->addElement('filemanager', 'syllabus_file',
                     get_string('upload_file', 'local_ucla_syllabus'), null, $config);
@@ -418,6 +432,7 @@ class syllabus_form extends moodleform {
             // Add URL field.
             $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'),
                     array('size'=>'50'));
+            $mform->setType('syllabus_url', PARAM_URL);
         }
 
         // Show access type.
@@ -436,6 +451,7 @@ class syllabus_form extends moodleform {
 
         // Show display name.
         $mform->addElement('text', 'display_name', get_string('display_name', 'local_ucla_syllabus'));
+        $mform->setType('display_name', PARAM_TEXT);
         $mform->addRule('display_name',
                 get_string('display_name_none_entered', 'local_ucla_syllabus'),
                 'required');
@@ -472,6 +488,7 @@ class syllabus_form extends moodleform {
 
             // Indicate that we are editing an existing syllabus.
             $mform->addElement('hidden', 'entryid', $existingsyllabus->id);
+            $mform->setType('entryid', PARAM_INT);
         }
 
         $this->add_action_buttons();

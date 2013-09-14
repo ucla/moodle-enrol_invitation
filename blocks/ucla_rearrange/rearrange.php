@@ -26,8 +26,9 @@ $context = get_context_instance(CONTEXT_COURSE, $courseid);
 require_capability('moodle/course:update', $context);
 require_capability('moodle/course:manageactivities', $context);
 
+$format = course_get_format($course);
 // see what section we are on
-$section_num = ucla_format_figure_section($course);
+$section_num = $format->figure_section();
 
 // Set up the page.
 $PAGE->set_context($context);
@@ -43,28 +44,33 @@ $go_back_url = new moodle_url('/course/view.php',
                 array('id' => $courseid, 'section' => $section_num));
 set_editing_mode_button($go_back_url);
 
-$sections = get_all_sections($courseid);
-
+$sections = $format->get_sections();
+$numsections = $format->get_course()->numsections;
+        
 $sectnums = array();
 $sectionnames = array();
 $sectionvisibility = array();
 foreach ($sections as $section) {
     //CCLE-2930:rearrange tool now shows correct sections by limitimg it
     //with the course numsections.
-    if ($section->section > $course->numsections) {
+    if ($section->section > $numsections) {
 	unset($sections[$section->section]);
 	continue;
     }
     $sid = $section->id;
     $sectids[$sid] = $sid;
     $sectnums[$sid] = $section->section;
-    $sectionnames[$sid] = get_section_name($course, $section);
+    $sectionnames[$sid] = $format->get_section_name($section);
     $sectionvisibility[$sid] = $section->visible;
 }
 
 $temp = get_fast_modinfo($course);
 $modinfo = & $temp;
-get_all_mods($courseid, $mods, $modnames, $modnamesplural, $modnamesused);
+
+$mods = get_fast_modinfo($course)->get_cms();
+//$modnames = get_module_types_names();
+//$modnamesplural = get_module_types_names(true);
+//$modnamesused = get_fast_modinfo($course)->get_used_module_names();
 
 $sectionnodeshtml = block_ucla_rearrange::get_section_modules_rendered(
                 $courseid, $sections, $mods, $modinfo

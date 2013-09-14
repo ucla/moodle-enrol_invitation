@@ -56,7 +56,7 @@ class PublicPrivate_Site {
 
         $table = new xmldb_table('course');
 
-        $enablepublicprivate = new xmldb_field('enablepublicprivate', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'hiddensections');
+        $enablepublicprivate = new xmldb_field('enablepublicprivate', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'visibleold');
         $grouppublicprivate = new xmldb_field('grouppublicprivate', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'enablepublicprivate');
         $groupingpublicprivate = new xmldb_field('groupingpublicprivate', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'grouppublicprivate');
 

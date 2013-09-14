@@ -1,0 +1,271 @@
+//
+// HEADER
+// --------------------------------------------------
+
+$prod-header-color:     #4168A1 !default;
+$test-header-color:     #d07919 !default;
+$stage-header-color:    #911687 !default;
+$dev-header-color:      #3EA639 !default;
+
+#page-header {
+    /*border-top: 1px solid #93d3eb;*/ 
+    background-color: $prod-header-color;
+    padding: 8px 0;
+    position: relative;
+
+    ///
+    // Strange rendering bug in report pages
+    //  Admin > Reports > logs
+    .pagelayout-report & {
+        float: left;
+    }
+    
+    ///
+    // When we are in front-page mode, we want to make the header
+    // transparent, and have content underneath collapse.
+    .front-page & {
+        // Darken the color
+        background-color: #3764AA;
+        
+        position: absolute;
+        z-index: 9999;
+        opacity: 0.85;
+        
+        .header-login {
+            display: block;
+        }
+        .header-links {
+            display: none;
+        }
+    }
+            
+    // DEV environment banner
+    &.env-dev {
+        background-color: $dev-header-color;
+        .header-logo .ccle-logo-text,
+        .weeks-display {
+            color: #f3dcc1;
+        }
+    }
+    // TEST banner
+    &.env-test {
+        background-color: $test-header-color;
+        .header-logo .ccle-logo-text,
+        .weeks-display {
+            color: #f3dcc1;
+        }
+    }
+    // STAGE banner
+    &.env-stage {
+        background-color: $stage-header-color;
+        .header-logo .ccle-logo-text,
+        .weeks-display {
+            color: #f3dcc1;
+        }
+    }
+}
+
+//
+// Login info box that is only visible in front-page mode
+// --------------------------------------------------
+
+.header-login-frontpage {
+    display: none;
+    text-align: center;
+    
+    .front-page & {
+        display: block;
+    }
+    
+    a {
+        color: white;
+        font-size: 1.6rem;
+        width: 100%;
+        display: inline-block;
+    }
+    
+    .login {
+        /*margin-left: 20px;*/
+        margin-top: 10px;
+        border: 1px solid white;
+        padding: 12px 16px;
+        color: white;
+        background: none;
+        font-size: 1.4rem;
+        text-decoration: none;
+        text-transform: uppercase;
+
+        @include border-radius(6px);
+        transition-property: background-color, color;
+        transition-duration: 0.25s;
+        transition-timing-function: ease-out;
+
+
+        &:hover {
+            color: #4168A1;
+            background-color: white;
+
+            transition-property: background-color, color;
+            transition-duration: 0.25s;
+            transition-timing-function: ease-out;
+        }
+    }
+    
+    @include respond-at(tablet) {
+        text-align: right;
+        
+        a {width: auto;}
+        .login {
+            margin-left: 20px;
+            margin-top: 0;
+        }
+    }
+}
+
+//
+// Login info box -- visible when logged in
+// --------------------------------------------------
+
+.header-login {
+    
+    text-align: center;
+    
+    .header-links {
+        color: white;
+        a {color: white;}
+    }
+    
+    @include respond-at(tablet) {
+        text-align: right;
+        
+        .header-links {
+            margin-top: 4px;
+        }
+        .weeks-display {
+            margin-top: 8px;
+        }
+    }
+}
+
+//
+// Responsive header logo area
+// --------------------------------------------------
+.header-logo {
+    text-align: center;
+    
+    .logo-ucla {
+        margin-right: 8px;
+        width: 60px;
+        display: inline-block;
+        
+        img {
+            display: inline-block;
+            max-width: 100%;
+        }
+        
+        @include respond-at(tablet) {
+            width: 90px;
+        }
+    }
+    .logo-ccle {
+        color: #FFBC00;
+        font-weight: bold;
+        
+        font-size: 2.5rem;
+        margin-right: 8px;
+        &:hover {text-decoration: none;}
+        
+        @include respond-at(tablet) {font-size: 3.8rem;}
+    }
+    .logo-ccle-full {
+        display: none;
+        
+        @include respond-at(tablet) {display: inline-block;}
+        
+    }
+    .logo-cc,
+    .logo-le {
+        color: #A1B6D6;
+        margin-right: 8px;
+        display: block;
+        font-size: 1.3rem;
+        width: 100%;
+        text-transform: capitalize;
+    }
+    .logo-le {
+        clear: left;
+    }
+    
+    @include respond-at(tablet) {
+        text-align: left;
+    }
+}
+
+//
+// Navbar area with breadcrumbs and navigation buttons
+//      Handles responsive cases.
+// --------------------------------------------------
+
+.navbar {
+    border-bottom: 1px solid #eee;
+    background-color: #fefefe;
+    
+    .controls {
+        margin: 4px 0;
+        padding: 0 16px;
+        float: right;
+        
+        /// Reponsive
+        @include respond-at(xs) {
+            width: 100%;
+            
+            .navbar-control {
+                width: 100%;
+                clear: both;
+                margin-left: 0;
+                
+                div {
+                    display: inline !important;
+                }
+                
+                // Buttons
+                fieldset {
+                    width: 100%;
+                }
+                
+                // Searchbar
+                input[type="text"] {
+                    width: 100%;
+                }
+                
+                // Handle case with help tooltip
+                .helptooltip {
+                    .iconhelp {
+                        width: 24px;
+                        height: 24px;
+                    }
+                    ~ input[type="text"]
+                    {
+                        width: 90%;
+                        margin-left: 8px;
+                    }
+                }
+            }
+        }
+    }
+    
+    .navbar-control {
+        float: left;
+        margin-left: 4px
+    }
+}
+
+//
+// Structural fix for the navbuttons
+// --------------------------------------------------
+.navbutton {
+    .wikisearch,
+    .forumsearch {
+        display: inline-block !important;
+    }
+}

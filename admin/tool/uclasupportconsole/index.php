@@ -119,7 +119,8 @@ if ($displayforms) {
     // Sadly, this cannot be output buffered...so
     echo html_writer::tag('h1', get_string('prepoprun', 'tool_uclasupportconsole'));
     echo "<pre>";
-    $dbenrol->sync_enrolments(true, null, $courseid);
+    $trace = new text_progress_trace();
+    $dbenrol->sync_enrolments($trace, $courseid);
     echo "</pre>";
 
     $consoles->no_finish = true;

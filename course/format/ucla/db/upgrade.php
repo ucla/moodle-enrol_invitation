@@ -15,10 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Keeps track of upgrades to the global search block
+ * Keeps track of upgrades to the UCLA format.
  *
- * @package    ucla
- * @subpackage format
+ * @package    format_ucla
  * @copyright  2012 UC Regents
  */
 
@@ -68,5 +67,23 @@ function xmldb_format_ucla_upgrade($oldversion) {
         
         // ucla savepoint reached
         upgrade_plugin_savepoint(true, 2012061701, 'format', 'ucla');        
-    }   
+    }
+    
+    // Map all data from mdl_ucla_course_prefs to mdl_course_format_options 
+    if ($oldversion < 2013081203) {
+        $table = new xmldb_table('ucla_course_prefs');
+        if ($dbman->table_exists($table)) {
+            $course_prefs = $DB->get_records('ucla_course_prefs');
+            foreach ($course_prefs as $course_pref) {
+                unset($course_pref->timestamp);
+                $course_pref->format = 'ucla';
+                $DB->insert_record('course_format_options', $course_pref, false);
+            }
+            $dbman->drop_table($table);
+        }
+        // ucla savepoint reached
+        upgrade_plugin_savepoint(true, 2013081203, 'format', 'ucla'); 
+    }
+
+    return true;
 }

@@ -40,10 +40,12 @@ class external_service_authorised_user_settings_form extends moodleform {
         $mform->addElement('text', 'iprestriction',
                 get_string('iprestriction', 'webservice'));
         $mform->addHelpButton('iprestriction', 'iprestriction', 'webservice');
+        $mform->setType('iprestriction', PARAM_RAW_TRIMMED);
 
         $mform->addElement('date_selector', 'validuntil',
                 get_string('validuntil', 'webservice'), array('optional' => true));
         $mform->addHelpButton('validuntil', 'validuntil', 'webservice');
+        $mform->setType('validuntil', PARAM_INT);
 
         $this->add_action_buttons(true, get_string('updateusersettings', 'webservice'));
 
@@ -65,14 +67,17 @@ class external_service_form extends moodleform {
         $mform->addRule('name', get_string('required'), 'required', null, 'client');
         $mform->setType('name', PARAM_TEXT);
         $mform->addElement('advcheckbox', 'enabled', get_string('enabled', 'webservice'));
+        $mform->setType('enabled', PARAM_BOOL);
         $mform->addElement('advcheckbox', 'restrictedusers',
                 get_string('restrictedusers', 'webservice'));
         $mform->addHelpButton('restrictedusers', 'restrictedusers', 'webservice');
+        $mform->setType('restrictedusers', PARAM_BOOL);
 
         //can users download files
         $mform->addElement('advcheckbox', 'downloadfiles', get_string('downloadfiles', 'webservice'));
         $mform->setAdvanced('downloadfiles');
         $mform->addHelpButton('downloadfiles', 'downloadfiles', 'webservice');
+        $mform->setType('downloadfiles', PARAM_BOOL);
 
         /// needed to select automatically the 'No required capability" option
         $currentcapabilityexist = false;
@@ -82,7 +87,7 @@ class external_service_form extends moodleform {
         }
 
         // Prepare the list of capabilities to choose from
-        $systemcontext = get_context_instance(CONTEXT_SYSTEM);
+        $systemcontext = context_system::instance();
         $allcapabilities = fetch_context_capabilities($systemcontext);
         $capabilitychoices = array();
         $capabilitychoices['norequiredcapability'] = get_string('norequiredcapability',
@@ -100,6 +105,7 @@ class external_service_form extends moodleform {
                 get_string('requiredcapability', 'webservice'), $capabilitychoices);
         $mform->addHelpButton('requiredcapability', 'requiredcapability', 'webservice');
         $mform->setAdvanced('requiredcapability');
+        $mform->setType('requiredcapability', PARAM_RAW);
 /// display notification error if the current requiredcapability doesn't exist anymore
         if (empty($currentcapabilityexist)) {
             global $OUTPUT;
@@ -169,7 +175,7 @@ class external_service_functions_form extends moodleform {
         $mform->setType('id', PARAM_INT);
 
         $mform->addElement('hidden', 'action');
-        $mform->setType('action', PARAM_ACTION);
+        $mform->setType('action', PARAM_ALPHANUMEXT);
 
         $this->add_action_buttons(true, get_string('addfunctions', 'webservice'));
 
@@ -195,21 +201,25 @@ class web_service_token_form extends moodleform {
                     array('deleted' => 0, 'suspended' => 0, 'confirmed' => 1));
 
             if ($usertotal < 500) {
+                list($sort, $params) = users_order_by_sql('u');
                 //user searchable selector - get all users (admin and guest included)
                 //user must be confirmed, not deleted, not suspended, not guest
                 $sql = "SELECT u.id, u.firstname, u.lastname
                             FROM {user} u
-                            WHERE u.deleted = 0 AND u.confirmed = 1 AND u.suspended = 0 AND u.id != ?
-                            ORDER BY u.lastname";
-                $users = $DB->get_records_sql($sql, array($CFG->siteguest));
+                            WHERE u.deleted = 0 AND u.confirmed = 1 AND u.suspended = 0 AND u.id != :siteguestid
+                            ORDER BY $sort";
+                $params['siteguestid'] = $CFG->siteguest;
+                $users = $DB->get_records_sql($sql, $params);
                 $options = array();
                 foreach ($users as $userid => $user) {
-                    $options[$userid] = $user->firstname . " " . $user->lastname;
+                    $options[$userid] = fullname($user);
                 }
                 $mform->addElement('searchableselector', 'user', get_string('user'), $options);
+                $mform->setType('user', PARAM_INT);
             } else {
                 //simple text box for username or user id (if two username exists, a form error is displayed)
                 $mform->addElement('text', 'user', get_string('usernameorid', 'webservice'));
+                $mform->setType('user', PARAM_RAW_TRIMMED);
             }
             $mform->addRule('user', get_string('required'), 'required', null, 'client');
         }
@@ -217,7 +227,7 @@ class web_service_token_form extends moodleform {
         //service selector
         $services = $DB->get_records('external_services');
         $options = array();
-        $systemcontext = get_context_instance(CONTEXT_SYSTEM);
+        $systemcontext = context_system::instance();
         foreach ($services as $serviceid => $service) {
             //check that the user has the required capability
             //(only for generation by the profile page)
@@ -229,15 +239,17 @@ class web_service_token_form extends moodleform {
         }
         $mform->addElement('select', 'service', get_string('service', 'webservice'), $options);
         $mform->addRule('service', get_string('required'), 'required', null, 'client');
-
+        $mform->setType('service', PARAM_INT);
 
         $mform->addElement('text', 'iprestriction', get_string('iprestriction', 'webservice'));
+        $mform->setType('iprestriction', PARAM_RAW_TRIMMED);
 
         $mform->addElement('date_selector', 'validuntil',
                 get_string('validuntil', 'webservice'), array('optional' => true));
+        $mform->setType('validuntil', PARAM_INT);
 
         $mform->addElement('hidden', 'action');
-        $mform->setType('action', PARAM_ACTION);
+        $mform->setType('action', PARAM_ALPHANUMEXT);
 
         $this->add_action_buttons(true);
 

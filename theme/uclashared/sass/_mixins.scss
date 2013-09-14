@@ -1,0 +1,206 @@
+//
+// MIXINS
+// --------------------------------------------------
+
+@import "bootstrap/lib/mixins";
+
+$breakpoint-xxsmall:        360px !default;         // 360px is iPhone vertical
+$breakpoint-xsmall:         480px !default;         // 480px is iPhone horizontal 
+$breakpoint-small:          640px !default;
+$breakpoint-medium-small:   768px !default;         // 768px is iPad horizontal 
+$breakpoint-medium:         960px !default;
+$breakpoint-medium-large:   1024px !default;        // 1024px is iPad vertical 
+$breakpoint-large:          1200px !default;
+
+
+// Define mixins here
+
+// CCLE admin header
+// --------------------------------------------------
+
+// Defines how all CCLE admin page headers should look like
+@mixin ccle-admin-header {
+
+    border-bottom: 1px solid #ccc;
+    font-size: $type-font-size * 1.8;
+    margin-top: 0;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    
+    & > a {
+        font-size: $type-font-size;
+        @extend .btn;
+        
+        margin-top: 20px;
+    }
+
+}
+
+
+// Responsive on-demand
+// --------------------------------------------------
+
+// Useful mixin to generate on demand responsive design changes
+// NOTE: This is buggy when using @extend inside block you're modifying
+
+// @todo: this is now deprecated....
+@mixin respond-to($media) {
+    @if $media == handhelds {
+        @media only screen and (max-width: $breakpoint-xsmall) { @content; }
+    }
+    @else if $media == wide-handhelds {
+        @media only screen and (max-width: $breakpoint-xsmall) { @content; }
+        @media only screen and (min-width: $breakpoint-xsmall) and (max-width: $breakpoint-medium-small) { @content; }
+    }
+    @else if $media == tablets {
+        @media only screen and (max-width: $breakpoint-xsmall) { @content; }
+        @media only screen and (min-width: $breakpoint-xsmall) and (max-width: $breakpoint-medium-small) { @content; }
+        @media only screen and (min-width: $breakpoint-medium-small) and (max-width: $breakpoint-medium - 1) { @content; }
+    }
+}
+
+$screen-phone-small: 360px !default;
+// Extra small screen / phone
+// $screen-xs: 480px;
+// $screen-phone: $screen-xs;
+
+// Small screen / tablet
+// $screen-sm: 768px !default;
+// $screen-tablet: $screen-sm;
+
+// Medium screen / desktop
+// $screen-md: 992px !default;
+// $screen-desktop: $screen-md;
+
+// Large screen / wide desktop
+// $screen-lg: 1200px !default;
+// $screen-lg-desktop: $screen-lg;
+
+@mixin respond-at($media) {
+    
+    @if $media == phone {
+        @media only screen and (min-width: $screen-xs) { @content; }
+    }
+    // Small devices (tablets, 768px and up)
+    @else if $media == tablet {
+        @media only screen and (min-width: $screen-sm) { @content; }
+    }
+    // Medium devices (desktops, 992px and up)
+    @else if $media == desktop {
+        @media only screen and (min-width: $screen-md) { @content; }
+    }
+    // Large devices (large desktops, 1200px and up)
+    @else if $media == large-desktop {
+        @media only screen and (min-width: $screen-lg) { @content; }
+    }
+    
+    @if $media == xs {
+        @media only screen and (max-width: $screen-phone) { @content; }
+    }
+    @else if $media == sm {
+        @media only screen and (min-width: $screen-phone + 1) { @content; }
+    }
+    @else if $media == md {
+        @media only screen and (min-width: $screen-tablet + 1)  { @content; }
+    }
+    @else if $media == lg {
+        @media only screen and (min-width: $screen-desktop + 1)  { @content; }
+    }
+    @else if $media == xl {
+        @media only screen and (min-width: $screen-lg-desktop + 1)  { @content; }
+    }
+}
+
+@mixin respond-min($media) {
+    @if $media == xs {
+        @media only screen and (max-width: $screen-phone) { @content; }
+    }
+    @else if $media == sm {
+        @media only and (max-width: $screen-tablet) { @content; }
+    }
+    @else if $media == md {
+        @media only and (max-width: $screen-desktop) { @content; }
+    }
+    @else if $media == lg {
+        @media only and (max-width: $screen-lg-desktop) { @content; }
+    }
+    @else if $media == xl {
+        @media only screen and (min-width: $screen-lg-desktop + 1)  { @content; }
+    }
+}
+
+// Typography mixins
+// --------------------------------------------------
+
+// Defines how all CCLE typography should look
+// @todo: define these from variables
+
+@mixin ccle-typography-h1 {
+    font-size: 3.2rem;
+    font-weight: 900;
+    line-height: 3.9rem;
+    margin: 0;
+}
+@mixin ccle-typography-h2 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    line-height: 3.9rem;
+    margin: 0;
+}
+@mixin ccle-typography-h3 {
+    font-size: 2.3rem;
+    font-weight: 700;
+    line-height: 2.5rem;
+    margin: 0;
+}
+@mixin ccle-typography-h4 {
+    font-size: 1.8rem;
+    font-weight: 500;
+    line-height: 1.9rem;
+    margin: 0;
+}
+@mixin ccle-typography-h5 {
+    font-size: 1.4rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    line-height: 1.8rem;
+    margin: 0;
+}
+@mixin ccle-typography-h6 {
+    font-size: 1.3rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    line-height: 1.9rem;
+    margin: 0;
+}
+
+// Convenience mixin to create a 'hidden' label
+@mixin hidden-label($font-size) {
+    content: "hidden";
+    margin-left: 8px;
+    color: #aaa;
+    padding: 0 4px;
+    display: inline-block;
+    border: 1px solid #ccc;
+    font-weight: normal;
+    vertical-align: middle;
+    font-size: $font-size;
+    background-color: #f9f9f9;
+    line-height: $font-size + 0.3;
+    
+    @include border-radius(4px);
+}
+
+// Generate glyphicons on the fly, only downside is that you must specify
+// the character index and not the character 'value'.
+@mixin glyphicon($icon) {
+    position: relative;
+    top: 1px;
+    display: inline-block;
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    content: $icon;
+}

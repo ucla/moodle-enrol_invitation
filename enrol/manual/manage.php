@@ -17,8 +17,7 @@
 /**
  * Manual user enrolment UI.
  *
- * @package    enrol
- * @subpackage manual
+ * @package    enrol_manual
  * @copyright  2010 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -33,12 +32,20 @@ $extendbase   = optional_param('extendbase', 3, PARAM_INT);
 
 $instance = $DB->get_record('enrol', array('id'=>$enrolid, 'enrol'=>'manual'), '*', MUST_EXIST);
 $course = $DB->get_record('course', array('id'=>$instance->courseid), '*', MUST_EXIST);
-$context = get_context_instance(CONTEXT_COURSE, $course->id, MUST_EXIST);
+$context = context_course::instance($course->id, MUST_EXIST);
 
 require_login($course);
-require_capability('enrol/manual:enrol', $context);
-require_capability('enrol/manual:manage', $context);
-require_capability('enrol/manual:unenrol', $context);
+$canenrol = has_capability('enrol/manual:enrol', $context);
+$canunenrol = has_capability('enrol/manual:unenrol', $context);
+
+// Note: manage capability not used here because it is used for editing
+// of existing enrolments which is not possible here.
+
+if (!$canenrol and !$canunenrol) {
+    // No need to invent new error strings here...
+    require_capability('enrol/manual:enrol', $context);
+    require_capability('enrol/manual:unenrol', $context);
+}
 
 if ($roleid < 0) {
     $roleid = $instance->roleid;
@@ -47,7 +54,7 @@ $roles = get_assignable_roles($context);
 $roles = array('0'=>get_string('none')) + $roles;
 
 if (!isset($roles[$roleid])) {
-    // weird - security always first!
+    // Weird - security always first!
     $roleid = 0;
 }
 
@@ -88,15 +95,15 @@ $timeformat = get_string('strftimedatefullshort');
 $today = time();
 $today = make_timestamp(date('Y', $today), date('m', $today), date('d', $today), 0, 0, 0);
 
-// enrolment start
+// Enrolment start.
 $basemenu = array();
 if ($course->startdate > 0) {
     $basemenu[2] = get_string('coursestart') . ' (' . userdate($course->startdate, $timeformat) . ')';
 }
 $basemenu[3] = get_string('today') . ' (' . userdate($today, $timeformat) . ')' ;
 
-// process add and removes
-if (optional_param('add', false, PARAM_BOOL) && confirm_sesskey()) {
+// Process add and removes.
+if ($canenrol && optional_param('add', false, PARAM_BOOL) && confirm_sesskey()) {
     $userstoassign = $potentialuserselector->get_selected_users();
     if (!empty($userstoassign)) {
         foreach($userstoassign as $adduser) {
@@ -126,8 +133,8 @@ if (optional_param('add', false, PARAM_BOOL) && confirm_sesskey()) {
     }
 }
 
-// Process incoming role unassignments
-if (optional_param('remove', false, PARAM_BOOL) && confirm_sesskey()) {
+// Process incoming role unassignments.
+if ($canunenrol && optional_param('remove', false, PARAM_BOOL) && confirm_sesskey()) {
     $userstounassign = $currentuserselector->get_selected_users();
     if (!empty($userstounassign)) {
         foreach($userstounassign as $removeuser) {
@@ -146,6 +153,9 @@ if (optional_param('remove', false, PARAM_BOOL) && confirm_sesskey()) {
 echo $OUTPUT->header();
 echo $OUTPUT->heading($instancename);
 
+$addenabled = $canenrol ? '' : 'disabled="disabled"';
+$removeenabled = $canunenrol ? '' : 'disabled="disabled"';
+
 ?>
 <form id="assignform" method="post" action="<?php echo $PAGE->url ?>"><div>
   <input type="hidden" name="sesskey" value="<?php echo sesskey() ?>" />
@@ -158,7 +168,7 @@ echo $OUTPUT->heading($instancename);
       </td>
       <td id="buttonscell">
           <div id="addcontrols">
-              <input name="add" id="add" type="submit" value="<?php echo $OUTPUT->larrow().'&nbsp;'.get_string('add'); ?>" title="<?php print_string('add'); ?>" /><br />
+              <input name="add" <?php echo $addenabled; ?> id="add" type="submit" value="<?php echo $OUTPUT->larrow().'&nbsp;'.get_string('add'); ?>" title="<?php print_string('add'); ?>" /><br />
 
               <div class="enroloptions">
 
@@ -175,7 +185,7 @@ echo $OUTPUT->heading($instancename);
           </div>
 
           <div id="removecontrols">
-              <input name="remove" id="remove" type="submit" value="<?php echo get_string('remove').'&nbsp;'.$OUTPUT->rarrow(); ?>" title="<?php print_string('remove'); ?>" />
+              <input name="remove" id="remove" <?php echo $removeenabled; ?> type="submit" value="<?php echo get_string('remove').'&nbsp;'.$OUTPUT->rarrow(); ?>" title="<?php print_string('remove'); ?>" />
           </div>
       </td>
       <td id="potentialcell">

@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -18,7 +17,7 @@
 /**
  * This file is responsible for serving the one huge CSS of each theme.
  *
- * @package   moodlecore
+ * @package   core
  * @copyright 2009 Petr Skoda (skodak)  {@link http://skodak.org}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -36,9 +35,23 @@ require_once($CFG->dirroot.'/lib/csslib.php');
 if ($slashargument = min_get_slash_argument()) {
     $slashargument = ltrim($slashargument, '/');
     if (substr_count($slashargument, '/') < 2) {
-        image_not_found();
+        css_send_css_not_found();
     }
-    // image must be last because it may contain "/"
+
+    if (strpos($slashargument, '_s/') === 0) {
+        // Can't use SVG
+        $slashargument = substr($slashargument, 3);
+        $usesvg = false;
+    } else {
+        $usesvg = true;
+    }
+
+    $chunk = null;
+    if (preg_match('#/(chunk(\d+)(/|$))#', $slashargument, $matches)) {
+        $chunk = (int)$matches[2];
+        $slashargument = str_replace($matches[1], '', $slashargument);
+    }
+
     list($themename, $rev, $type) = explode('/', $slashargument, 3);
     $themename = min_clean_param($themename, 'SAFEDIR');
     $rev       = min_clean_param($rev, 'INT');
@@ -48,6 +61,8 @@ if ($slashargument = min_get_slash_argument()) {
     $themename = min_optional_param('theme', 'standard', 'SAFEDIR');
     $rev       = min_optional_param('rev', 0, 'INT');
     $type      = min_optional_param('type', 'all', 'SAFEDIR');
+    $chunk     = min_optional_param('chunk', null, 'INT');
+    $usesvg    = (bool)min_optional_param('svg', '1', 'INT');
 }
 
 if (!in_array($type, array('all', 'ie', 'editor', 'plugins', 'parents', 'theme'))) {
@@ -68,8 +83,20 @@ if ($type === 'ie') {
     css_send_ie_css($themename, $rev, $etag, !empty($slashargument));
 }
 
-$candidatesheet = "$CFG->cachedir/theme/$themename/css/$type.css";
-$etag = sha1("$themename/$rev/$type");
+$candidatedir = "$CFG->cachedir/theme/$themename/css";
+$etag = "$themename/$rev/$type";
+$candidatename = $type;
+if (!$usesvg) {
+    // Add to the sheet name, one day we'll be able to just drop this.
+    $candidatedir .= '/nosvg';
+    $etag .= '/nosvg';
+}
+if ($chunk !== null) {
+    $etag .= '/chunk'.$chunk;
+    $candidatename .= '.'.$chunk;
+}
+$candidatesheet = "$candidatedir/$candidatename.css";
+$etag = sha1($etag);
 
 if (file_exists($candidatesheet)) {
     if (!empty($_SERVER['HTTP_IF_NONE_MATCH']) || !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
@@ -90,17 +117,43 @@ define('NO_UPGRADE_CHECK', true);  // Ignore upgrade check
 require("$CFG->dirroot/lib/setup.php");
 
 $theme = theme_config::load($themename);
+$theme->force_svg_use($usesvg);
 
 $rev = theme_get_revision();
-$etag = sha1("$themename/$rev/$type");
+
+$etag = "$themename/$rev/$type";
+if (!$usesvg) {
+    // Add to the etag, one day we'll be able to just delete svg nonsense this.
+    $etag .= '/nosvg';
+}
+$etag = sha1($etag);
 
 if ($type === 'editor') {
     $cssfiles = $theme->editor_css_files();
     css_store_css($theme, $candidatesheet, $cssfiles);
 } else {
+    // IE requests plugins/parents/theme instead of all at once.
+    $basedir = "$CFG->cachedir/theme/$themename/css";
+    if (!$usesvg) {
+        $basedir .= '/nosvg';
+    }
     $css = $theme->css_files();
     $allfiles = array();
+    $relroot = preg_replace('|^http.?://[^/]+|', '', $CFG->wwwroot);
     foreach ($css as $key=>$value) {
+        if (!empty($slashargument)) {
+            if ($usesvg) {
+                $chunkurl = "{$relroot}/theme/styles.php/{$themename}/{$rev}/{$key}";
+            } else {
+                $chunkurl = "{$relroot}/theme/styles.php/_s/{$themename}/{$rev}/{$key}";
+            }
+        } else {
+            if ($usesvg) {
+                $chunkurl = "{$relroot}/theme/styles.php?theme={$themename}&rev={$rev}&type={$key}";
+            } else {
+                $chunkurl = "{$relroot}/theme/styles.php?theme={$themename}&rev={$rev}&type={$key}&svg=0";
+            }
+        }
         $cssfiles = array();
         foreach($value as $val) {
             if (is_array($val)) {
@@ -111,11 +164,11 @@ if ($type === 'editor') {
                 $cssfiles[] = $val;
             }
         }
-        $cssfile = "$CFG->cachedir/theme/$themename/css/$key.css";
-        css_store_css($theme, $cssfile, $cssfiles);
+        $cssfile = "$basedir/$key.css";
+        css_store_css($theme, $cssfile, $cssfiles, true, $chunkurl);
         $allfiles = array_merge($allfiles, $cssfiles);
     }
-    $cssfile = "$CFG->cachedir/theme/$themename/css/all.css";
+    $cssfile = "$basedir/all.css";
     css_store_css($theme, $cssfile, $allfiles);
 }
 

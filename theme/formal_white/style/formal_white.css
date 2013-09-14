@@ -25,16 +25,52 @@ h1.headerheading {margin:14px 11px 8px 11px;float:left;font-size:200%;}
 h2.main, h3.main, h4.main {margin:1em;padding:0;text-align:center;}
 
 /* page-header */
-#page-header{line-height:0;overflow:hidden;}
+#page-header{
+    margin: 0;
+    overflow: hidden;
+    padding: 0;
+    width: 100%;
+}
 
 /* headerlogo */
-#headerlogo {position:relative;margin:0;}
-  /* if I use: position:absolute; I even need height:105px; in #page-header */
-  /* if I use: position:relative; z-index doesn't work*/
+#headerlogo {
+    float: left;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    width: auto;
+    line-height: 0;
+}
+
+.dir-rtl #headerlogo {
+    float: right;
+}
 
 /* headermenu */
-.headermenu {position:absolute;text-align:right;line-height:1.7em;font-size:90%;margin:0.5em;right:[[calculated:headermenuright]];top:15px;}
-.langmenu {margin-right:0.4em}
+.headermenu {
+    font-size: 90%;
+    line-height: 1.7em;
+    position: absolute;
+    top: 0;
+}
+
+.dir-ltr .headermenu {
+     float: right;
+     margin: 1.7em [[calculated:headermenumargin]] 0 0;
+     right: 0;
+     text-align: right;
+ }
+
+.dir-rtl .headermenu {
+    float: left;
+    margin: 1.7em 0 0 [[calculated:headermenumargin]];
+    left: 0;
+    text-align: left;
+}
+
+.langmenu {
+    margin-right: 0.1em;
+}
 
 #dock {background-color:[[setting:blockcontentbgc]];border-right:1px dashed #000;}
 #dock .dockeditem_container {margin-top: 10px;}
@@ -43,7 +79,7 @@ h2.main, h3.main, h4.main {margin:1em;padding:0;text-align:center;}
 #dock #dockeditempanel .dockeditempanel_hd .commands {position:absolute;right:0.3em;top:0.25em;}
 
 /* navbar */
-.navbar {width:auto;padding-top:0.35em;padding-bottom:0.15em;background-image:url([[pix:theme|bg_bread]]);background-color:#AB9D80;}
+.navbar {width:auto;background-image:url([[pix:theme|bg_bread]]);background-repeat:repeat-x;line-height:29px;} /* 30 pixel is the height if bg_bread */
 .navbar li span {color:#E3DFD4;}
 .navbar li a:link, .navbar li a:visited {color:white;}
 
@@ -85,8 +121,8 @@ h2.main, h3.main, h4.main {margin:1em;padding:0;text-align:center;}
 .editcourse td,
 .generaltable th,
 .generaltable td,
-#page-admin-course-category .generalbox th,
-#page-admin-course-category .generalbox td,
+#page-admin-course-manage .generalbox th,
+#page-admin-course-manage .generalbox td,
 #attempts th,
 #attempts td,
 .plugincompattable th,
@@ -108,7 +144,7 @@ th.header,
 .formtable tbody th,
 .generalbox th,
 .generaltable th.header {background-image:url([[pix:theme|gradient_h]]);background-repeat:repeat-x;border-top:1px solid #C6BDA8;background-color:#E3DFD4;}
-/*#modules, .compatibleblockstable {margin-left:auto; margin-right:auto;} waiting for MDL-26760*/
+#modules, #compatibleblockstable {margin-left:auto; margin-right:auto;}
 table.flexible .r0, table.generaltable .r0 {background-color: #F0F0F0;}
 table.flexible .r1, table.generaltable .r1 {background-color: #FAFAFA;}
 
@@ -124,7 +160,7 @@ tr.rolecap {border-top:1px dashed #F30;}
 tr.rolecapheading + tr.rolecap {border-top:none;}
 
 /* course categories */
-#page-admin-course-index .editcourse td div.singleselect {text-align:left;}
+#page-admin-course-manage .editcourse td div.singleselect {text-align:left;}
 
 /* course */
 /* ul.topics .section span.commands {float:right;} /* distanza dei comandi dagli elementi del corso */
@@ -152,9 +188,6 @@ table td.cell p {margin:0;}
 #page-footer-content {text-align:center;border:7px double #E3DFD4;margin:0;padding:0.5em;}
 #page-footer .logininfo {padding:0.3em 0 0.7em 0;}
 #page-footer .moodledocs {text-align:center;background-color:#EFEFEF;padding:0.7em 0 0.8em 0;}
-
-/* js help messages */
-#helppopupbox .helpheading {margin-top:1em;}
 
 /* pre, code, tt */
 pre, code, tt {

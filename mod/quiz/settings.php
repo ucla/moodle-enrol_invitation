@@ -210,13 +210,23 @@ if (!empty($CFG->enableoutcomes)) {
         '0'));
 }
 
+// Autosave frequency.
+$options = array(
+      0 => get_string('donotuseautosave', 'quiz'),
+     60 => get_string('oneminute', 'quiz'),
+    120 => get_string('numminutes', 'moodle', 2),
+    300 => get_string('numminutes', 'moodle', 5),
+);
+$quizsettings->add(new admin_setting_configselect('quiz/autosaveperiod',
+        get_string('autosaveperiod', 'quiz'), get_string('autosaveperiod_desc', 'quiz'), 0, $options));
+
 // Now, depending on whether any reports have their own settings page, add
 // the quiz setting page to the appropriate place in the tree.
 if (empty($reportsbyname) && empty($rulesbyname)) {
     $ADMIN->add('modsettings', $quizsettings);
 } else {
     $ADMIN->add('modsettings', new admin_category('modsettingsquizcat',
-            get_string('modulename', 'quiz'), !$module->visible));
+            get_string('modulename', 'quiz'), $module->is_enabled() === false));
     $ADMIN->add('modsettingsquizcat', $quizsettings);
 
     // Add settings pages for the quiz report subplugins.
@@ -224,7 +234,7 @@ if (empty($reportsbyname) && empty($rulesbyname)) {
         $reportname = $report;
 
         $settings = new admin_settingpage('modsettingsquizcat'.$reportname,
-                $strreportname, 'moodle/site:config', !$module->visible);
+                $strreportname, 'moodle/site:config', $module->is_enabled() === false);
         if ($ADMIN->fulltree) {
             include($CFG->dirroot . "/mod/quiz/report/$reportname/settings.php");
         }
@@ -236,7 +246,7 @@ if (empty($reportsbyname) && empty($rulesbyname)) {
     // Add settings pages for the quiz access rule subplugins.
     foreach ($rulesbyname as $strrulename => $rule) {
         $settings = new admin_settingpage('modsettingsquizcat' . $rule,
-                $strrulename, 'moodle/site:config', !$module->visible);
+                $strrulename, 'moodle/site:config', $module->is_enabled() === false);
         if ($ADMIN->fulltree) {
             include($CFG->dirroot . "/mod/quiz/accessrule/$rule/settings.php");
         }

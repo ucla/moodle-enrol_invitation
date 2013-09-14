@@ -211,6 +211,40 @@ class stored_file {
     }
 
     /**
+     * Replaces the fields that might have changed when file was overriden in filepicker:
+     * reference, contenthash, filesize, userid
+     *
+     * Note that field 'source' must be updated separately because
+     * it has different format for draft and non-draft areas and
+     * this function will usually be used to replace non-draft area
+     * file with draft area file.
+     *
+     * @param stored_file $newfile
+     * @throws coding_exception
+     */
+    public function replace_file_with(stored_file $newfile) {
+        if ($newfile->get_referencefileid() &&
+                $this->fs->get_references_count_by_storedfile($this)) {
+            // The new file is a reference.
+            // The current file has other local files referencing to it.
+            // Double reference is not allowed.
+            throw new moodle_exception('errordoublereference', 'repository');
+        }
+
+        $filerecord = new stdClass;
+        $contenthash = $newfile->get_contenthash();
+        if ($this->fs->content_exists($contenthash)) {
+            $filerecord->contenthash = $contenthash;
+        } else {
+            throw new file_exception('storedfileproblem', 'Invalid contenthash, content must be already in filepool', $contenthash);
+        }
+        $filerecord->filesize = $newfile->get_filesize();
+        $filerecord->referencefileid = $newfile->get_referencefileid();
+        $filerecord->userid = $newfile->get_userid();
+        $this->update($filerecord);
+    }
+
+    /**
      * Unlink the stored file from the referenced file
      *
      * This methods destroys the link to the record in files_reference table. This effectively
@@ -275,26 +309,32 @@ class stored_file {
     public function delete() {
         global $DB;
 
-        $transaction = $DB->start_delegated_transaction();
+        if ($this->is_directory()) {
+            // Directories can not be referenced, just delete the record.
+            $DB->delete_records('files', array('id'=>$this->file_record->id));
 
-        // If there are other files referring to this file, convert them to copies.
-        if ($files = $this->fs->get_references_by_storedfile($this)) {
-            foreach ($files as $file) {
-                $this->fs->import_external_file($file);
+        } else {
+            $transaction = $DB->start_delegated_transaction();
+
+            // If there are other files referring to this file, convert them to copies.
+            if ($files = $this->fs->get_references_by_storedfile($this)) {
+                foreach ($files as $file) {
+                    $this->fs->import_external_file($file);
+                }
             }
+
+            // If this file is a reference (alias) to another file, unlink it first.
+            if ($this->is_external_file()) {
+                $this->delete_reference();
+            }
+
+            // Now delete the file record.
+            $DB->delete_records('files', array('id'=>$this->file_record->id));
+
+            $transaction->allow_commit();
         }
 
-        // If this file is a reference (alias) to another file, unlink it first.
-        if ($this->is_external_file()) {
-            $this->delete_reference();
-        }
-
-        // Now delete the file record.
-        $DB->delete_records('files', array('id'=>$this->file_record->id));
-
-        $transaction->allow_commit();
-
-        // moves pool file to trash if content not needed any more
+        // Move pool file to trash if content not needed any more.
         $this->fs->deleted_file_cleanup($this->file_record->contenthash);
         return true; // BC only
     }

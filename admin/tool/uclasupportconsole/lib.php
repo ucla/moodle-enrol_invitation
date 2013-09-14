@@ -260,7 +260,8 @@ function supportconsole_simple_form($title, $contents='', $buttonvalue='Go') {
     $formhtml .= html_writer::empty_tag('input', array(
             'type' => 'submit',
             'name' => 'submit-button',
-            'value' => $buttonvalue
+            'value' => $buttonvalue,
+            'class' => 'btn btn-primary'
         ));
 
     $formhtml .= html_writer::end_tag('form');

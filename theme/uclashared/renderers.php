@@ -1,8 +1,10 @@
 <?php
 
+require_once($CFG->dirroot . '/theme/bootstrapbase/renderers/core_renderer.php');
 require_once($CFG->dirroot . '/enrol/renderer.php');
+require_once($CFG->dirroot . '/course/renderer.php');
 
-class theme_uclashared_core_renderer extends core_renderer {
+class theme_uclashared_core_renderer extends theme_bootstrapbase_core_renderer {
     private $sep = NULL;
     private $theme = 'theme_uclashared';
 
@@ -39,7 +41,7 @@ class theme_uclashared_core_renderer extends core_renderer {
      *  Displays what user you are logged in as, and if needed, along with the 
      *  user you are logged-in-as.
      **/
-    function login_info() {
+    function login_info($withlinks = NULL) {
         global $CFG, $DB, $USER;
 
         $course = $this->page->course;
@@ -226,13 +228,21 @@ class theme_uclashared_core_renderer extends core_renderer {
             $address = new moodle_url($CFG->wwwroot);
         } 
 
+        // Get UCLA logo image
         $pix_url = $this->pix_url($pix, $pix_loc);
-        //UCLA MOD BEGIN: CCLE-2862-Main_site_logo_image_needs_alt_attribute
         $logo_alt = get_string('UCLA_CCLE_text', 'theme_uclashared');
-        $logo_img = html_writer::empty_tag('img', array('src' => $pix_url, 'alt' => $logo_alt));
-        //UCLA MOD END: CCLE-2862
-        $link = html_writer::link($address, $logo_img);
-
+        $logoimg = html_writer::empty_tag('img', array('src' => $pix_url, 'alt' => $logo_alt));
+        
+        // Build new logo in a single link
+        $link = html_writer::link($address, 
+                html_writer::span($logoimg, 'logo-ucla') .
+                html_writer::span('CCLE', 'logo-ccle') .
+                html_writer::span(
+                    html_writer::span('common collaboration', 'logo-cc') .
+                    html_writer::span('& learning environment', 'logo-le'),
+                    'logo-ccle-full')
+                );
+        
         return $link;
     }
 
@@ -258,23 +268,17 @@ class theme_uclashared_core_renderer extends core_renderer {
             return '';
         }
 
-        // Use html_writer to render the control panel button
-        $cp_text = html_writer::empty_tag('img', 
-            array('src' => $OUTPUT->pix_url('cp_button', 'block_ucla_control_panel'),
-                  'alt' => get_string('control_panel', $this->theme)));
+        $cptext = get_string('control_panel', $this->theme);
         
-        $cp_link = $this->call_separate_block_function(
+        $cplink = $this->call_separate_block_function(
                 'ucla_control_panel', 'get_action_link'
             );
 
-        if (!$cp_link) {
-            return false;
+        if (!$cplink) {
+            return '';
         }
-       
-        $cp_button = html_writer::link($cp_link, $cp_text, 
-            array('class' => 'control-panel-button'));
 
-        return $cp_button;
+        return $OUTPUT->single_button($cplink, $cptext, 'get');
     }
 
     function footer_links() {
@@ -357,34 +361,6 @@ class theme_uclashared_core_renderer extends core_renderer {
     }
 
     /**
-     *  Overwriting pix icon renderers to not use icons for action buttons.
-     *
-     * @param action_link $link
-     * @return string HTML fragment
-     */
-    function render_action_link(action_link $action) {
-        $noeditingicons = get_user_preferences('noeditingicons', 1);
-        if (!empty($noeditingicons)) {
-            if ($action->text instanceof pix_icon) {
-                $icon = $action->text;
-
-                /// We want to preserve the icon (but hide it), 
-                /// so the YUI js references remain intact
-                $icon->attributes['style'] = 'display:none';
-                $attr = $icon->attributes;
-                $displaytext = $attr['alt'];
-
-                $out = $this->render($icon);
-
-                // Output hidden icon and text
-                $action->text = $out . $displaytext;
-            }
-        }
-
-        return parent::render_action_link($action);
-    }
-
-    /**
      *  Wrapper function to prevent initial install.
      **/
     function get_config($plugin, $var) {
@@ -428,4 +404,80 @@ class theme_uclashared_core_enrol_renderer extends core_enrol_renderer {
             
     }
 
+}
+
+/**
+ * Overriding the core course renderer (course/renderer.php).
+ */
+class theme_uclashared_core_course_renderer extends core_course_renderer {
+    // List the courses, but using our advanced search highlighting.
+    function courses_list($courses, $showcategoryname = false, $additionalclasses = null,
+                          $paginationurl = null, $totalcount = null, $page = 0, $perpage = null) {
+        global $CFG;
+
+        // Create instance of coursecat_helper to pass display options to the
+        // function rendering the courses list.
+        $chelper = new coursecat_helper();
+        if ($showcategoryname) {
+            $chelper->set_show_courses(self::COURSECAT_SHOW_COURSES_EXPANDED_WITH_CAT);
+        } else {
+            $chelper->set_show_courses(self::COURSECAT_SHOW_COURSES_EXPANDED);
+        }
+
+        if ($totalcount !== null && $paginationurl !== null) {
+            // Add options to display pagination.
+            if ($perpage === null) {
+                $perpage = $CFG->coursesperpage;
+            }
+            $chelper->set_courses_display_options(array(
+                'limit' => $perpage,
+                'offset' => ((int)$page) * $perpage,
+                'paginationurl' => $paginationurl,
+            ));
+        } else if ($paginationurl !== null) {
+            // Add options to display 'View more' link.
+            $chelper->set_courses_display_options(array('viewmoreurl' => $paginationurl));
+            $totalcount = count($courses) + 1;
+        }
+
+        // Perform search highlighting for the advanced search.
+        $searchcriteria = optional_param('search', '', PARAM_TEXT);
+        $chelper->set_search_criteria(array('search' => $searchcriteria));
+
+        // When displaying the course summary in the search results, we have
+        // three potential sources: the course summary, the registrar summary,
+        // and the registrar description. We want to show the source which
+        // contains the search term. But if none of the sources contains the
+        // term (for example if the term comes from the course title/category)
+        // then we seek to simply show a non-empty one.
+        foreach ($courses as $course) {
+            if (stripos($course->summary, $searchcriteria) !== false) {
+                // Course summary contains search term.
+                $summarysource = $course->summary;
+            } else if (stripos($course->reg_summary, $searchcriteria) !== false) {
+                // Registrar summary contains search term.
+                $summarysource = $course->reg_summary;
+            } else if (stripos($course->reg_desc, $searchcriteria) !== false) {
+                // Registrar description contains search term.
+                $summarysource = $course->reg_desc;
+            } else if (!empty($course->summary)) {
+                // No search term, but course summary is non-empty.
+                $summarysource = $course->summary;
+            } else if (!empty($course->reg_summary)) {
+                // No search term, but registrar summary is non-empty.
+                $summarysource = $course->reg_summary;
+            } else if (!empty($course->reg_desc)) {
+                // No search term, but registrar description is non-empty.
+                $summarysource = $course->reg_desc;
+            } else {
+                // There is no summary/description of the course anywhere.
+                $summarysource = '';
+            }
+            $course->summary = $summarysource;
+        }
+
+        $chelper->set_attributes(array('class' => $additionalclasses));
+        $content = $this->coursecat_courses($chelper, $courses, $totalcount);
+        return $content;
+    }
 }

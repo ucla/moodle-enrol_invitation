@@ -46,7 +46,7 @@ function useredit_update_picture(stdClass $usernew, moodleform $userform, $filem
     global $CFG, $DB;
     require_once("$CFG->libdir/gdlib.php");
 
-    $context = get_context_instance(CONTEXT_USER, $usernew->id, MUST_EXIST);
+    $context = context_user::instance($usernew->id, MUST_EXIST);
     $user = $DB->get_record('user', array('id'=>$usernew->id), 'id, picture', MUST_EXIST);
 
     $newpicture = $user->picture;
@@ -157,6 +157,7 @@ function useredit_shared_definition(&$mform, $editoroptions = null, $filemanager
     } else {
         $mform->addElement('text', 'email', get_string('email'), 'maxlength="100" size="30"');
         $mform->addRule('email', $strrequired, 'required', null, 'client');
+        $mform->setType('email', PARAM_EMAIL);
     }
 
     $choices = array();
@@ -227,17 +228,11 @@ function useredit_shared_definition(&$mform, $editoroptions = null, $filemanager
         $mform->setType('htmleditor', PARAM_INT);
     }
 
-    $choices = array();
-    $choices['0'] = get_string('screenreaderno');
-    $choices['1'] = get_string('screenreaderyes');
-    $mform->addElement('select', 'screenreader', get_string('screenreaderuse'), $choices);
-    $mform->setDefault('screenreader', 0);
-    $mform->addHelpButton('screenreader', 'screenreaderuse');
-
-    // BEGIN UCLA MOD: CCLE-2997 - Don't make city/country for user profiles required
     $mform->addElement('text', 'city', get_string('city'), 'maxlength="120" size="21"');
-    $mform->setType('city', PARAM_MULTILANG);
+    $mform->setType('city', PARAM_TEXT);
+    // START UCLA MOD: CCLE-4184 - Make city a non required field
     //$mform->addRule('city', $strrequired, 'required', null, 'client');
+    // END UCLA MOD: CCLE-4184
     if (!empty($CFG->defaultcity)) {
         $mform->setDefault('city', $CFG->defaultcity);
     }
@@ -245,7 +240,9 @@ function useredit_shared_definition(&$mform, $editoroptions = null, $filemanager
     $choices = get_string_manager()->get_list_of_countries();
     $choices= array(''=>get_string('selectacountry').'...') + $choices;
     $mform->addElement('select', 'country', get_string('selectacountry'), $choices);
+    // START UCLA MOD: CCLE-4184 - Make city a non required field
     //$mform->addRule('country', $strrequired, 'required', null, 'client');
+    // END UCLA MOD: CCLE-4184
     if (!empty($CFG->country)) {
         $mform->setDefault('country', $CFG->country);
     }
@@ -279,7 +276,7 @@ function useredit_shared_definition(&$mform, $editoroptions = null, $filemanager
     $mform->setType('description_editor', PARAM_CLEANHTML);
     $mform->addHelpButton('description_editor', 'userdescription');
 
-    if (!empty($CFG->gdversion) and empty($USER->newadminuser)) {
+    if (empty($USER->newadminuser)) {
         $mform->addElement('header', 'moodle_picture', get_string('pictureofuser'));
 
         if (!empty($CFG->enablegravatar)) {
@@ -295,7 +292,7 @@ function useredit_shared_definition(&$mform, $editoroptions = null, $filemanager
         $mform->addHelpButton('imagefile', 'newpicture');
 
         $mform->addElement('text', 'imagealt', get_string('imagealt'), 'maxlength="100" size="30"');
-        $mform->setType('imagealt', PARAM_MULTILANG);
+        $mform->setType('imagealt', PARAM_TEXT);
 
     }
 
@@ -333,10 +330,10 @@ function useredit_shared_definition(&$mform, $editoroptions = null, $filemanager
     $mform->setType('idnumber', PARAM_NOTAGS);
 
     $mform->addElement('text', 'institution', get_string('institution'), 'maxlength="40" size="25"');
-    $mform->setType('institution', PARAM_MULTILANG);
+    $mform->setType('institution', PARAM_TEXT);
 
     $mform->addElement('text', 'department', get_string('department'), 'maxlength="30" size="25"');
-    $mform->setType('department', PARAM_MULTILANG);
+    $mform->setType('department', PARAM_TEXT);
 
     $mform->addElement('text', 'phone1', get_string('phone'), 'maxlength="20" size="25"');
     $mform->setType('phone1', PARAM_NOTAGS);
@@ -345,7 +342,7 @@ function useredit_shared_definition(&$mform, $editoroptions = null, $filemanager
     $mform->setType('phone2', PARAM_NOTAGS);
 
     $mform->addElement('text', 'address', get_string('address'), 'maxlength="70" size="25"');
-    $mform->setType('address', PARAM_MULTILANG);
+    $mform->setType('address', PARAM_TEXT);
 
 
 }

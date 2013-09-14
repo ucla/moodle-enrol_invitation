@@ -107,7 +107,7 @@ class grade_report_grader extends grade_report {
         global $CFG;
         parent::__construct($courseid, $gpr, $context, $page);
 
-        $this->canviewhidden = has_capability('moodle/grade:viewhidden', get_context_instance(CONTEXT_COURSE, $this->course->id));
+        $this->canviewhidden = has_capability('moodle/grade:viewhidden', context_course::instance($this->course->id));
 
         // load collapsed settings for this report
         if ($collapsed = get_user_preferences('grade_report_grader_collapsed_categories')) {
@@ -147,6 +147,10 @@ class grade_report_grader extends grade_report {
         $this->setup_groups();
 
         $this->setup_sortitemid();
+
+        // START UCLA MOD: CCLE-3970 - Install and evaluate LSU's Gradebook Improvements
+        $this->overridecat = (bool)get_config('moodle', 'grade_overridecat');
+        // END UCLA MOD: CCLE-3970
     }
 
     /**
@@ -297,13 +301,11 @@ class grade_report_grader extends grade_report {
                         }
                     }
 
-                    // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
                     $url = '/report/grader/index.php?id=' . $this->course->id;
                     $fullname = fullname($this->users[$userid]);
 
                     $info = "{$gradeitem->itemname}: $fullname";
                     add_to_log($this->course->id, 'grade', 'update', $url, $info);
-                    // END UCLA MOD: CCLE-3980
 
                     $gradeitem->update_final_grade($userid, $finalgrade, 'gradebook', $feedback, FORMAT_MOODLE);
 
@@ -461,7 +463,7 @@ class grade_report_grader extends grade_report {
             $this->userselect = "AND g.userid $usql";
             $this->userselect_params = $uparams;
 
-            //add a flag to each user indicating whether their enrolment is active
+            // Add a flag to each user indicating whether their enrolment is active.
             $sql = "SELECT ue.userid
                       FROM {user_enrolments} ue
                       JOIN {enrol} e ON e.id = ue.enrolid
@@ -474,8 +476,16 @@ class grade_report_grader extends grade_report {
             $params = array_merge($uparams, array('estatus'=>ENROL_INSTANCE_ENABLED, 'uestatus'=>ENROL_USER_ACTIVE, 'courseid'=>$coursecontext->instanceid));
             $useractiveenrolments = $DB->get_records_sql($sql, $params);
 
+            $defaultgradeshowactiveenrol = !empty($CFG->grade_report_showonlyactiveenrol);
+            $showonlyactiveenrol = get_user_preferences('grade_report_showonlyactiveenrol', $defaultgradeshowactiveenrol);
+            $showonlyactiveenrol = $showonlyactiveenrol || !has_capability('moodle/course:viewsuspendedusers', $coursecontext);
             foreach ($this->users as $user) {
-                $this->users[$user->id]->suspendedenrolment = !array_key_exists($user->id, $useractiveenrolments);
+                // If we are showing only active enrolments, then remove suspended users from list.
+                if ($showonlyactiveenrol && !array_key_exists($user->id, $useractiveenrolments)) {
+                    unset($this->users[$user->id]);
+                } else {
+                    $this->users[$user->id]->suspendedenrolment = !array_key_exists($user->id, $useractiveenrolments);
+                }
             }
         }
 
@@ -528,10 +538,11 @@ class grade_report_grader extends grade_report {
     /**
      * Builds and returns a div with on/off toggles.
      * @return string HTML code
+     * @deprecated since 2.4 as it appears not to be used any more.
      */
     public function get_toggles_html() {
         global $CFG, $USER, $COURSE, $OUTPUT;
-
+        debugging('Call to deprecated function grade_report_grader::get_toggles_html().', DEBUG_DEVELOPER);
         $html = '';
         if ($USER->gradeediting[$this->courseid]) {
             if (has_capability('moodle/grade:manage', $this->context) or has_capability('moodle/grade:hide', $this->context)) {
@@ -568,10 +579,11 @@ class grade_report_grader extends grade_report {
     * @param string $type The type of toggle
     * @param bool $return Whether to return the HTML string rather than printing it
     * @return void
+    * @deprecated since 2.4 as it appears not to be used any more.
     */
     public function print_toggle($type) {
         global $CFG, $OUTPUT;
-
+        debugging('Call to deprecated function grade_report_grader::print_toggle().', DEBUG_DEVELOPER);
         $icons = array('eyecons' => 't/hide',
                        'calculations' => 't/calc',
                        'locks' => 't/lock',
@@ -626,7 +638,6 @@ class grade_report_grader extends grade_report {
         $rows = array();
 
         $showuserimage = $this->get_pref('showuserimage');
-        $fixedstudents = $this->is_fixed_students();
 
         $strfeedback  = $this->get_lang_string("feedback");
         $strgrade     = $this->get_lang_string('grade');
@@ -681,13 +692,29 @@ class grade_report_grader extends grade_report {
 
         $rows = $this->get_left_icons_row($rows, $colspan);
 
+        // START UCLA MOD: CCLE-3970 - Install and evaluate LSU's Gradebook Improvements
+        $repeat = $this->get_pref('repeatheaders');
+        $repeatentries = unserialize(serialize($rows));;
+        array_shift($repeatentries);
+        // END UCLA MOD: CCLE-3970
+
         $rowclasses = array('even', 'odd');
 
         $suspendedstring = null;
         foreach ($this->users as $userid => $user) {
+            // START UCLA MOD: CCLE-3970 - Install and evaluate LSU's Gradebook Improvements
+            if ($this->rowcount > 0 and $this->rowcount % $repeat == 0) {
+                $rows = array_merge($rows, unserialize(serialize($repeatentries)));
+            }
+            $this->rowcount++;
+            // END UCLA MOD: CCLE-3970
+
             $userrow = new html_table_row();
             $userrow->id = 'fixed_user_'.$userid;
-            $userrow->attributes['class'] = 'r'.$this->rowcount++.' '.$rowclasses[$this->rowcount % 2];
+            // START UCLA MOD: CCLE-3970 - Install and evaluate LSU's Gradebook Improvements
+            //$userrow->attributes['class'] = 'r'.$this->rowcount++.' '.$rowclasses[$this->rowcount % 2];
+            $userrow->attributes['class'] = 'r'.$this->rowcount.' '.$rowclasses[$this->rowcount % 2];
+            // END UCLA MOD: CCLE-3970
 
             $usercell = new html_table_cell();
             $usercell->attributes['class'] = 'user';
@@ -850,7 +877,7 @@ class grade_report_grader extends grade_report {
                     $itemcell->attributes['class'] = $type . ' ' . $catlevel . ' highlightable';
 
                     if ($element['object']->is_hidden()) {
-                        $itemcell->attributes['class'] .= ' hidden';
+                        $itemcell->attributes['class'] .= ' dimmed_text';
                     }
 
                     $itemcell->colspan = $colspan;
@@ -889,9 +916,22 @@ class grade_report_grader extends grade_report {
         }
         $jsscales = $scalesarray;
 
+        // START UCLA MOD: CCLE-3970 - Install and evaluate LSU's Gradebook Improvements
+        $repeat = $this->get_pref('repeatheaders');
+        $repeatentries = unserialize(serialize($rows));
+        array_shift($repeatentries);
+        // END UCLA MOD: CCLE-3970
+        
         $rowclasses = array('even', 'odd');
 
         foreach ($this->users as $userid => $user) {
+
+            // START UCLA MOD: CCLE-3970 - Install and evaluate LSU's Gradebook Improvements
+            if ($this->rowcount > 0 and $this->rowcount % $repeat == 0) {
+                $rows = array_merge($rows, $repeatentries);
+            }
+            $this->rowcount++;
+            // END UCLA MOD: CCLE-3970
 
             if ($this->canviewhidden) {
                 $altered = array();
@@ -1046,6 +1086,9 @@ class grade_report_grader extends grade_report {
                     } else if ($item->gradetype != GRADE_TYPE_TEXT) { // Value type
                         if ($this->get_pref('quickgrading') and $grade->is_editable()) {
                             $value = format_float($gradeval, $decimalpoints);
+                            $gradelabel = fullname($user) . ' ' . $item->itemname;
+                            $itemcell->text .= '<label class="accesshide" for="grade_'.$userid.'_'.$item->id.'">'
+                                          .get_string('useractivitygrade', 'gradereport_grader', $gradelabel).'</label>';
                             $itemcell->text .= '<input size="6" tabindex="' . $tabindices[$item->id]['grade']
                                           . '" type="text" class="text" title="'. $strgrade .'" name="grade['
                                           .$userid.'][' .$item->id.']" id="grade_'.$userid.'_'.$item->id.'" value="'.$value.'" />';
@@ -1057,7 +1100,9 @@ class grade_report_grader extends grade_report {
 
                     // If quickfeedback is on, print an input element
                     if ($this->get_pref('showquickfeedback') and $grade->is_editable()) {
-
+                        $feedbacklabel = fullname($user) . ' ' . $item->itemname;
+                        $itemcell->text .= '<label class="accesshide" for="feedback_'.$userid.'_'.$item->id.'">'
+                                      .get_string('useractivityfeedback', 'gradereport_grader', $feedbacklabel).'</label>';
                         $itemcell->text .= '<input class="quickfeedback" tabindex="' . $tabindices[$item->id]['feedback'].'" id="feedback_'.$userid.'_'.$item->id
                                       . '" size="6" title="' . $strfeedback . '" type="text" name="feedback['.$userid.']['.$item->id.']" value="' . s($grade->feedback) . '" />';
                     }
@@ -1526,7 +1571,20 @@ class grade_report_grader extends grade_report {
         // Init all icons
         $editicon = '';
 
-        if ($element['type'] != 'categoryitem' && $element['type'] != 'courseitem') {
+// START UCLA MOD: CCLE-3970 - Install and evaluate LSU's Gradebook Improvements
+//        if ($element['type'] != 'categoryitem' && $element['type'] != 'courseitem') {
+        $editable = true;
+
+        if ($element['type'] == 'grade') {
+            $item = $element['object']->grade_item;
+
+            if ($item->is_course_item() or $item->is_category_item()) {
+                $editable = $this->overridecat;
+            }
+        }
+
+        if ($element['type'] != 'categoryitem' && $element['type'] != 'courseitem' && $editable) {
+// END UCLA MOD: CCLE-3970
             $editicon = $this->gtree->get_edit_icon($element, $this->gpr);
         }
 
@@ -1654,7 +1712,7 @@ class grade_report_grader extends grade_report {
      */
     public function is_fixed_students() {
         global $USER, $CFG;
-        return empty($USER->screenreader) && $CFG->grade_report_fixedstudents &&
+        return $CFG->grade_report_fixedstudents &&
             (check_browser_version('MSIE', '7.0') ||
              check_browser_version('Firefox', '2.0') ||
              check_browser_version('Gecko', '2006010100') ||
@@ -1680,6 +1738,8 @@ class grade_report_grader extends grade_report {
         $strsortdesc  = $this->get_lang_string('sortdesc', 'grades');
         $strfirstname = $this->get_lang_string('firstname');
         $strlastname  = $this->get_lang_string('lastname');
+        $iconasc = $OUTPUT->pix_icon('t/sort_asc', $strsortasc, '', array('class' => 'iconsmall sorticon'));
+        $icondesc = $OUTPUT->pix_icon('t/sort_desc', $strsortdesc, '', array('class' => 'iconsmall sorticon'));
 
         $firstlink = html_writer::link(new moodle_url($this->baseurl, array('sortitemid'=>'firstname')), $strfirstname);
         $lastlink = html_writer::link(new moodle_url($this->baseurl, array('sortitemid'=>'lastname')), $strlastname);
@@ -1688,9 +1748,9 @@ class grade_report_grader extends grade_report {
 
         if ($this->sortitemid === 'lastname') {
             if ($this->sortorder == 'ASC') {
-                $arrows['studentname'] .= print_arrow('up', $strsortasc, true);
+                $arrows['studentname'] .= $iconasc;
             } else {
-                $arrows['studentname'] .= print_arrow('down', $strsortdesc, true);
+                $arrows['studentname'] .= $icondesc;
             }
         }
 
@@ -1698,9 +1758,9 @@ class grade_report_grader extends grade_report {
 
         if ($this->sortitemid === 'firstname') {
             if ($this->sortorder == 'ASC') {
-                $arrows['studentname'] .= print_arrow('up', $strsortasc, true);
+                $arrows['studentname'] .= $iconasc;
             } else {
-                $arrows['studentname'] .= print_arrow('down', $strsortdesc, true);
+                $arrows['studentname'] .= $icondesc;
             }
         }
 
@@ -1711,9 +1771,9 @@ class grade_report_grader extends grade_report {
 
             if ($field == $this->sortitemid) {
                 if ($this->sortorder == 'ASC') {
-                    $arrows[$field] .= print_arrow('up', $strsortasc, true);
+                    $arrows[$field] .= $iconasc;
                 } else {
-                    $arrows[$field] .= print_arrow('down', $strsortdesc, true);
+                    $arrows[$field] .= $icondesc;
                 }
             }
         }

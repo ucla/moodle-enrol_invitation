@@ -7,7 +7,7 @@
 
     require_once("../../config.php");
 
-    if (!filter_is_enabled('filter/algebra')) {
+    if (!filter_is_enabled('algebra')) {
         print_error('filternotenabled');
     }
 
@@ -15,7 +15,7 @@
     require_once($CFG->dirroot.'/filter/tex/lib.php');
 
     require_login();
-    require_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM));
+    require_capability('moodle/site:config', context_system::instance());
 
     $query = urldecode($_SERVER['QUERY_STRING']);
 

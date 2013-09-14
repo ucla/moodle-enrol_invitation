@@ -8,7 +8,7 @@
     $delete = optional_param('delete', '', PARAM_ALPHANUM); // delete confirmation hash
 
     $PAGE->set_url('/course/delete.php', array('id' => $id));
-    $PAGE->set_context(get_context_instance(CONTEXT_SYSTEM));
+    $PAGE->set_context(context_system::instance());
     require_login();
 
     $site = get_site();
@@ -25,19 +25,19 @@
         print_error("invalidcourseid");
     }
 
-    $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+    $coursecontext = context_course::instance($course->id);
 
     if (!can_delete_course($id)) {
         print_error('cannotdeletecourse');
     }
 
     $category = $DB->get_record("course_categories", array("id"=>$course->category));
-    $courseshortname = format_string($course->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id)));
-    $categoryname = format_string($category->name, true, array('context' => get_context_instance(CONTEXT_COURSECAT, $category->id)));
+    $courseshortname = format_string($course->shortname, true, array('context' => context_course::instance($course->id)));
+    $categoryname = format_string($category->name, true, array('context' => context_coursecat::instance($category->id)));
 
     $PAGE->navbar->add($stradministration, new moodle_url('/admin/index.php/'));
     $PAGE->navbar->add($strcategories, new moodle_url('/course/index.php'));
-    $PAGE->navbar->add($categoryname, new moodle_url('/course/category.php', array('id'=>$course->category)));
+    $PAGE->navbar->add($categoryname, new moodle_url('/course/index.php', array('categoryid' => $course->category)));
     if (! $delete) {
         $strdeletecheck = get_string("deletecheck", "", $courseshortname);
         $strdeletecoursecheck = get_string("deletecoursecheck");
@@ -49,7 +49,7 @@
 
         $message = "$strdeletecoursecheck<br /><br />" . format_string($course->fullname, true, array('context' => $coursecontext)) .  " (" . $courseshortname . ")";
 
-        echo $OUTPUT->confirm($message, "delete.php?id=$course->id&delete=".md5($course->timemodified), "category.php?id=$course->category");
+        echo $OUTPUT->confirm($message, "delete.php?id=$course->id&delete=".md5($course->timemodified), "manage.php?categoryid=$course->category");
 
         echo $OUTPUT->footer();
         exit;
@@ -80,7 +80,7 @@
 
     echo $OUTPUT->heading( get_string("deletedcourse", "", $courseshortname) );
 
-    echo $OUTPUT->continue_button("category.php?id=$course->category");
+    echo $OUTPUT->continue_button("manage.php?categoryid=$course->category");
 
     echo $OUTPUT->footer();
 

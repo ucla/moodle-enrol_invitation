@@ -1,0 +1,119 @@
+//
+// Buttons
+// --------------------------------------------------
+
+@import "bootstrap/lib/buttons";
+
+////
+// Button overrides
+// --------------------------------------------------
+
+.btn {
+
+    @include respond-at(xs) {
+        width: 100%;
+        margin-top: 4px;
+    }
+}
+
+.btn-cpanel {
+    @include button-variant(#0d3286, #fcd226, #fcb126);
+    font-weight: bold;
+    
+    &:hover {
+        color: #0d3286;
+    }
+}
+
+
+///
+// Moodle overrides
+// --------------------------------------------------
+
+input[type="button"],
+input[type="submit"] {
+    @extend .btn;
+    @extend .btn-default;
+    
+    // support console
+    // course requestor
+    #tool_uclacourserequestor &, 
+    .uclaconsole &,
+    .ucla-search & {
+        @extend .btn;
+        @extend .btn-primary;
+    }
+}
+
+// Form buttons
+.mform {
+    .collapseexpand {
+        @extend .btn;
+        @extend .btn-link;
+    }
+    input[name="submitbutton"] {
+        @extend .btn;
+        @extend .btn-primary;
+    }
+}
+
+// Navbar buttons and inputs
+.navbutton {
+    .wikisearch,
+    .forumsearch {
+
+        input[alt="search"] {
+            @extend .form-control; 
+            @extend .input-xs;
+            display: inline-block !important;
+        }
+        input[type="submit"] {
+            @extend .btn;
+            @extend .btn-default;
+            @extend .btn-sm;
+        }
+    }
+    .singlebutton input[type="submit"] {
+        @extend .btn;
+        @extend .btn-warning;
+        @extend .btn-sm;
+    }
+}
+
+.pagelayout-redirect {
+    text-align: center;
+    
+    .continuebutton {
+        @extend .btn;
+        @extend .btn-success;
+        /*@extend .btn-lg;*/
+        
+        a, a:link {color: white}
+        a:hover {text-decoration: none}
+    }
+}
+
+.section-modchooser-link {
+    @extend .btn;
+    @extend .btn-warning;
+    
+    > a, > a:link {
+        color: white;
+        &:hover {text-decoration: none;}
+    }
+}
+
+.alert-login {
+    input[type="submit"] {
+        @extend .btn;
+        @extend .btn-primary;
+    }
+}
+
+.control-panel {
+    input[type="submit"] {
+        @extend .btn;
+        @extend .btn-cpanel;
+        @extend .btn-sm;
+    }
+}

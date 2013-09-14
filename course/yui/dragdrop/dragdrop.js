@@ -87,8 +87,7 @@ YUI.add('moodle-course-dragdrop', function(Y) {
 
                     if ((movedown || moveup) && cssleft) {
                         cssleft.setStyle('cursor', 'move');
-                        cssleft.appendChild(Y.Node.create('<br />'));
-                        cssleft.appendChild(this.get_drag_handle(title, CSS.SECTIONHANDLE));
+                        cssleft.appendChild(this.get_drag_handle(title, CSS.SECTIONHANDLE, 'icon', true));
 
                         if (moveup) {
                             moveup.remove();
@@ -267,7 +266,8 @@ YUI.add('moodle-course-dragdrop', function(Y) {
                 });
                 del.dd.plug(Y.Plugin.DDProxy, {
                     // Don't move the node at the end of the drag
-                    moveOnEnd: false
+                    moveOnEnd: false,
+                    cloneNode: true
                 });
                 del.dd.plug(Y.Plugin.DDConstrained, {
                     // Keep it inside the .course-content
@@ -420,15 +420,9 @@ YUI.add('moodle-course-dragdrop', function(Y) {
 
     M.course = M.course || {};
     M.course.init_resource_dragdrop = function(params) {
-        // START UCLA MOD CCLE-3458 - we want to inherit and override
-        // this object's methods in order to show text instead of icons
-//        new DRAGRESOURCE(params);
-        M.course.init_resource_dragdrop = DRAGRESOURCE;
-        M.course.init_params = params;
-        // END UCLA MOD CCLE-3456
-
+        new DRAGRESOURCE(params);
     }
     M.course.init_section_dragdrop = function(params) {
         new DRAGSECTION(params);
     }
-}, '@VERSION@', {requires:['base', 'node', 'io', 'dom', 'dd', 'dd-scroll', 'moodle-core-dragdrop', 'moodle-enrol-notification', 'moodle-course-coursebase']});
+}, '@VERSION@', {requires:['base', 'node', 'io', 'dom', 'dd', 'dd-scroll', 'moodle-core-dragdrop', 'moodle-core-notification', 'moodle-course-coursebase']});

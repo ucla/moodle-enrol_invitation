@@ -28,7 +28,7 @@ if (!$course = $DB->get_record('course', array('id'=>$id))) {
 }
 
 require_login($course);
-$context = get_context_instance(CONTEXT_COURSE, $id);
+$context = context_course::instance($id);
 
 require_capability('moodle/grade:export', $context);
 require_capability('gradeexport/xls:view', $context);
@@ -52,12 +52,8 @@ if ($groupmode == SEPARATEGROUPS and !$currentgroup and !has_capability('moodle/
 
 // process post information
 if ($data = $mform->get_data()) {
-    // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
-    $url = '/export/xls/index.php?id=' . $course->id;
-    add_to_log($course->id, 'grade', 'preview xls', $url);
-    // END UCLA MOD: CCLE-3980
-
-    $export = new grade_export_xls($course, $currentgroup, '', false, false, $data->display, $data->decimals, $data->export_onlyactive);
+    $onlyactive = $data->export_onlyactive || !has_capability('moodle/course:viewsuspendedusers', $context);
+    $export = new grade_export_xls($course, $currentgroup, '', false, false, $data->display, $data->decimals, $onlyactive, true);
 
     // print the grades on screen for feedbacks
     $export->process_form($data);

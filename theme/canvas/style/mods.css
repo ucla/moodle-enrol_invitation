@@ -33,6 +33,7 @@
     text-align: left;
     border-right: 1px solid #ddd;
 }
+.path-mod-forum.dir-rtl .forumheaderlist th {text-align: right;}
 
 .forumnodiscuss,
 .path-mod-forum .forumheaderlist .replies {
@@ -464,3 +465,7 @@
 .que {
     border-color: #eee;
 }
+
+/* SCORM Player
+-------------------------*/
+#page-mod-scorm-player div.singleselect {margin: -20px 0 0;}

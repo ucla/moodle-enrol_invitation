@@ -11,8 +11,8 @@ YUI.add('moodle-block_community-imagegallery', function(Y) {
         event:null,
         previousevent:null,
         nextevent:null,
-        panelevent: null,
-        panel: null, //all the images boxes
+        panelevent:null,
+        panel:null, //all the images boxes
         imageidnumbers: [],
         imageloadingevent: null,
         loadingimage: null,
@@ -150,9 +150,9 @@ YUI.add('moodle-block_community-imagegallery', function(Y) {
             Y.one('#nextarrow').on('click', this.show, this, imageid, nextnumber);
             Y.one('#imagenumber').on('click', this.show, this, imageid, nextnumber);
 
-            //we add a new event on the body in order to hide the panel for the next click
+            // We add a new event on the body in order to hide the panel for the next click.
             this.event = Y.one(document.body).on('click', this.hide, this);
-            //we add a new event on the panel in order to hide the panel for the next click (touch device)
+            // We add a new event on the panel in order to hide the panel for the next click (touch device).
             this.panelevent = Y.one("#imageoverlay").on('click', this.hide, this);
 
             this.panel.on('visibleChange',function(e){
@@ -202,5 +202,5 @@ YUI.add('moodle-block_community-imagegallery', function(Y) {
     }
 
 }, '@VERSION@', {
-    requires:['base','node', 'moodle-enrol-notification']
+    requires:['base','node', 'moodle-core-notification']
 });

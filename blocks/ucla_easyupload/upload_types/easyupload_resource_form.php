@@ -11,6 +11,7 @@ class easyupload_resource_form extends easy_upload_form {
 
         $mform->addElement('hidden', 'redirectme', 
             '/course/modedit.php');
+        $mform->setType('redirectme', PARAM_URL);
         
         $mform->addElement('select', 'add', 
             get_string('dialog_add_resource_box', self::associated_block),

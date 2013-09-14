@@ -1,0 +1,142 @@
+//
+// ALERTS
+// --------------------------------------------------
+
+@import "bootstrap/lib/alerts";
+
+/// overrides
+
+.alert {
+    color: #333;
+    margin: 16px 0;
+    padding: 8px 14px;
+    width: 100%;
+    clear: both;
+    
+    @include border-radius(0);
+    
+    // Adjust for smaller screens
+    @include respond-at(sm) {
+        // Adjust box to fill in all screen space
+        margin: 20px 0;
+        
+        // Resize buttons inside alerts to be mobile friendly
+        .mform .felement {
+            width: 100%;
+            margin-top: 5px;
+        }
+    }
+}
+
+// @todo: change these hex values to $vars
+.alert-info {
+    border-left: 4px solid #3A87AD;
+}
+
+.alert-warning {
+    border-left: 4px solid #F1E7BC;
+}
+
+.alert-danger {
+    border-left: 4px solid #B94A48;
+}
+
+.alert-error {
+    @extend .alert-danger;
+}
+
+.alert-success {
+    border-left: 4px solid #468847;
+}
+
+// Define a login alert box
+.alert-login {
+    .continuebutton {
+        margin-top: 8px;
+    }
+}
+
+// Only style alerts for main course content
+#maincontent {
+        /*~ .generalbox:not(.info):not(#intro):not(.supportconsole)*/
+    ~ .noticebox {
+        @extend .alert;
+        @extend .alert-warning;
+    }
+    
+    ~ #notice.generalbox:not(.info):not(#intro) {
+        @extend .alert;
+        @extend .alert-info;
+    }
+}
+
+.box {
+    &.errorbox {
+        @extend .alert;
+        @extend .alert-danger;
+    }
+    &.noticebox {
+        @extend .alert;
+        @extend .alert-warning;
+        
+        #tool_uclacourserequestor & {
+            @extend .alert-success;
+
+        }
+    }
+}
+
+.course-content {
+    .noticebox,
+    .generalbox {
+        @extend .alert;
+        @extend .alert-warning;
+    }
+}
+
+.pagelayout-redirect {
+    #content,
+    .content {
+        padding: 10%;
+    }
+}
+
+#uclacourserequestor_notice {
+    color: #394A6E;
+}
+
+.adminwarning {
+    @extend .alert;
+    @extend .alert-warning;
+}
+
+// Syllabus alertbox
+// --------------------------------------------------
+
+// This also normalizes the form so that it doesn't look out of place
+.ucla-format-notice-box {
+    // This will use the 'info' clor
+    @extend .alert;
+    @extend .alert-info;
+
+        .mform {
+            .felement {
+                margin-left: 0;
+            }
+            
+            input[name="yesbutton"] {
+                @extend .btn;
+                @extend .btn-success;
+            }
+            input[name="laterbutton"] {
+                @extend .btn;
+                @extend .btn-default;
+            }
+            input[name="nobutton"] {
+                @extend .btn;
+                @extend .btn-default;
+            }
+        }
+
+}
+

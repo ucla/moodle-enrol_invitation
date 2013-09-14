@@ -146,6 +146,7 @@ $CFG->forced_plugin_settings['message']['message_provider_moodle_instantmessage_
 $CFG->usetags = 0;
 $CFG->enablenotes = 0;
 $CFG->bloglevel = 0; // Disable blog system completely
+$CFG->enablebadges = 0; // Disable badges
 
 // Site administration > Users > Permissions > User policies
 $CFG->autologinguests = true;
@@ -158,6 +159,9 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 
 // Site administration > Courses > Course request
 $CFG->enablecourserequests = 1;
+
+// Site administration > Grades > Grade category settings
+$CFG->grade_overridecat = 0;
 
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
@@ -186,6 +190,9 @@ $CFG->turnitin_tutoremail = 0;
 $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
+
+// Site administration > Plugins > Enrollments > UCLA registrar
+$CFG->forced_plugin_settings['local_ucla']['overrideenroldatabase'] = 1;
 
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'tbd';
@@ -283,22 +290,19 @@ $CFG->forced_plugin_settings['enrol_database']['dbtype'] = $CFG->registrar_dbtyp
 $CFG->forced_plugin_settings['enrol_database']['dbhost'] = $CFG->registrar_dbhost;
 $CFG->forced_plugin_settings['enrol_database']['dbuser'] = $CFG->registrar_dbuser;
 $CFG->forced_plugin_settings['enrol_database']['dbpass'] = $CFG->registrar_dbpass;
-$CFG->forced_plugin_settings['enrol_database']['dbname'] = $CFG->registrar_dbname;
+$CFG->forced_plugin_settings['enrol_database']['dbname'] = '';
 $CFG->forced_plugin_settings['enrol_database']['remoteenroltable'] = 'enroll2';
 $CFG->forced_plugin_settings['enrol_database']['remotecoursefield'] = 'termsrs';
 $CFG->forced_plugin_settings['enrol_database']['remoteuserfield'] = 'uid';
 $CFG->forced_plugin_settings['enrol_database']['remoterolefield'] = 'role';
 $CFG->forced_plugin_settings['enrol_database']['localcoursefield'] = 'id';
 $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
+$CFG->forced_plugin_settings['enrol_database']['localuserfield'] = 'idnumber';
 // CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't 
 // lose grading data
 $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
 
-// CCLE-2910 - UNEX student support
-$CFG->forced_plugin_settings['enrol_database']['fblocaluserfield'] = 'username';
-$CFG->forced_plugin_settings['enrol_database']['fbremoteuserfield'] = 'username';
-
-//// CCLE-2802 - Frontpage banner layout include
+// CCLE-2802 - Frontpage banner layout include
 //$CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
 
 // CCLE-2364 - SUPPORT CONSOLE (put after $_dirroot_, because needs $CFG->dataroot to be set)

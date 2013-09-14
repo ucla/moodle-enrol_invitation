@@ -21,9 +21,14 @@
 function handle_course_created($course) {
     global $CFG;
 
-    require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
-    $pubpriv_course = new PublicPrivate_Course($course);
-    $pubpriv_course->activate();
+    require_once($CFG->dirroot . '/local/publicprivate/lib/site.class.php');
+    if (PublicPrivate_Site::is_enabled()) {
+        require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
+        $pubprivcourse = new PublicPrivate_Course($course);
+        if (!$pubprivcourse->is_activated()) {
+            $pubprivcourse->activate();
+        }
+    }
 }
 
 /**
@@ -39,6 +44,11 @@ function handle_course_created($course) {
 function handle_course_updated($course) {
     global $CFG;
 
+    require_once($CFG->dirroot . '/local/publicprivate/lib/site.class.php');
+    if (!PublicPrivate_Site::is_enabled()) {
+        return;
+    }
+
     require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
     $pubpriv_course = new PublicPrivate_Course($course);
     $changehappened = false;
@@ -51,7 +61,7 @@ function handle_course_updated($course) {
 
     } else if ($course->enablepublicprivate == 0 && $pubpriv_course->is_activated()) {
         $pubpriv_course->deactivate();
-        $changehappened - true;
+        $changehappened = true;
     }
 
     // If we enabled or disabled public/private, then guest enrollment plugin
@@ -91,6 +101,11 @@ function handle_course_updated($course) {
  */
 function handle_mod($mod) {
     global $CFG;
+
+    require_once($CFG->dirroot . '/local/publicprivate/lib/site.class.php');
+    if (!PublicPrivate_Site::is_enabled()) {
+        return;
+    }
 
     require_once($CFG->dirroot . '/local/publicprivate/lib/module.class.php');
     $changes_made = false;  // if true, then need to clear course cache
@@ -272,8 +287,62 @@ function notice_nonenrolled_users($course) {
         } else {
             $display_string = get_string('publicprivatenotice_notenrolled','local_publicprivate');
         }
-        return $OUTPUT->box($display_string, 'noticebox notice_nonenrolled_users');
+        return $OUTPUT->box($display_string, 'alert alert-warning alert-login');
     }
 
     return;
+}
+
+/**
+ * If the course for $mod->course has public/private enabled, then display
+ * an editing button to enable/disable public/private.
+ * 
+ * @author ebollens
+ * @version 20110719
+ */
+function get_private_public($mod, $sr = null) {
+    global $CFG;
+    require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
+    $publicprivate_course = new PublicPrivate_Course($mod->course);
+    $actions = array();
+
+    // If public/private is not enabled, we cannot return anything.
+    if (!$publicprivate_course->is_activated()) {
+        return $actions;
+    }
+
+    $baseurl = new moodle_url('/local/publicprivate/mod.php', array('sesskey' => sesskey()));
+
+    if ($sr !== null) {
+        $baseurl->param('sr', $sr);
+    }
+
+    $public         = get_string("publicprivatemakepublic", "local_publicprivate");
+    $private        = get_string("publicprivatemakeprivate", "local_publicprivate");
+
+    if($publicprivate_course->is_activated()) {
+        require_once($CFG->dirroot.'/local/publicprivate/lib/module.class.php');
+        $publicprivate_module = new PublicPrivate_Module($mod->id);
+
+        /**
+         * If the module is private, show a toggle to make it public, or if it
+         * is public, then show a toggle to make it private.
+         */
+        if($publicprivate_module->is_private()) {
+            $actions[] = new action_link(
+                new moodle_url($baseurl, array('public' => $mod->id)),
+                new pix_icon('t/locked', $public, 'moodle', array('class' => 'iconsmall')),
+                null,
+                array('class' => 'editing_makepublic publicprivate', 'title' => $public)
+            );                
+        } else {
+            $actions[] = new action_link(
+                new moodle_url($baseurl, array('private' => $mod->id)),
+                new pix_icon('t/lock', $private, 'moodle', array('class' => 'iconsmall')),
+                null,
+                array('class' => 'editing_makeprivate publicprivate', 'title' => $private)
+            );                    
+        }
+    }
+    return $actions;
 }

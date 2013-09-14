@@ -77,7 +77,9 @@ function UpdatableGroupsCombo(wwwRoot, courseId) {
     */
 
     // Hide the updategroups input since AJAX will take care of this.
-    YAHOO.util.Dom.setStyle("updategroups", "display", "none");
+    YUI().use('yui2-dom', function (Y) {
+        Y.YUI2.util.Dom.setStyle("updategroups", "display", "none");
+    });
 }
 
 
@@ -129,7 +131,9 @@ function UpdatableMembersCombo(wwwRoot, courseId) {
     };
 
     // Hide the updatemembers input since AJAX will take care of this.
-    YAHOO.util.Dom.setStyle("updatemembers", "display", "none");
+    YUI().use('yui2-dom', function (Y) {
+        Y.YUI2.util.Dom.setStyle("updatemembers", "display", "none");
+    });
 }
 
 /**
@@ -181,11 +185,16 @@ UpdatableMembersCombo.prototype.refreshMembers = function () {
 
     if(singleSelection) {
         var sUrl = this.wwwRoot+"/group/index.php?id="+this.courseId+"&group="+groupId+"&act_ajax_getmembersingroup";
-        YAHOO.util.Connect.asyncRequest("GET", sUrl, this.connectCallback, null);
+        var callback = this.connectCallback;
+        YUI().use('yui2-connection', function (Y) {
+            Y.YUI2.util.Connect.asyncRequest("GET", sUrl, callback, null);
+        });
     }
 };
 
-
+// START UCLA MOD: CCLE-2566 - PROTECTING GROUP AND GROUPING
+// Create an alternate refreshMembers function,  
+// which checks if a group is Public/Private before displaying members.
 UpdatableMembersCombo.prototype.refreshMembersPublicPrivate = function (groupPublicPrivate) {
 
     // Get group selector and check selection type
@@ -234,10 +243,16 @@ UpdatableMembersCombo.prototype.refreshMembersPublicPrivate = function (groupPub
 
     if(singleSelection && !includesPublicPrivate) {
         var sUrl = this.wwwRoot+"/group/index.php?id="+this.courseId+"&group="+groupId+"&act_ajax_getmembersingroup";
-        YAHOO.util.Connect.asyncRequest("GET", sUrl, this.connectCallback, null);
+        // CCLE-3534 - Prevent changing users in public/private groups.
+        // Updated to work with Moodle 2.5.
+        var callback = this.connectCallback;
+        YUI().use('yui2-connection', function (Y) {
+            Y.YUI2.util.Connect.asyncRequest("GET", sUrl, callback, null);
+        });
     }
     
 }
+// END UCLA MOD: CCLE-2566
 
 
 var createLoaderImg = function (elClass, parentId, wwwRoot) {

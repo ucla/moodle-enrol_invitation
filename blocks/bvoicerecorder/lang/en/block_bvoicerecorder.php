@@ -16,3 +16,5 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 $string['pluginname'] = 'Voice Authoring';
+$string['bvoicerecorder'] = 'Voice Authoring';
+$string['bvoicerecorder:addinstance'] = 'Add a new Voice Authoring block';

@@ -26,133 +26,60 @@
  *   - you need to change the "www-data" to match the apache user account
  *   - use "su" if "sudo" not available
  *
- * @package    enrol
- * @subpackage database
+ * @package    enrol_database
  * @copyright  2010 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 define('CLI_SCRIPT', true);
 
-$moodleroot = dirname(dirname(dirname(dirname(__FILE__)))); 
+require(__DIR__.'/../../../config.php');
+require_once("$CFG->libdir/clilib.php");
 
-require($moodleroot . '/config.php');
-require_once($CFG->dirroot . '/local/ucla/lib.php');
-require_once($CFG->dirroot . '/lib/clilib.php');
+// Now get cli options.
+list($options, $unrecognized) = cli_get_params(array('verbose'=>false, 'help'=>false), array('v'=>'verbose', 'h'=>'help'));
 
-list($options, $unrecognized) = cli_get_params(
-    array(
-        'current-term' => false,
-        'course-id' => false,
-        'help' => false,
-        'verbose' => false
-    ),
-    array(
-        'h' => 'help',
-        'v' => 'verbose'
-    )
-);
+if ($unrecognized) {
+    $unrecognized = implode("\n  ", $unrecognized);
+    cli_error(get_string('cliunknowoption', 'admin', $unrecognized));
+}
 
 if ($options['help']) {
-    $help = 
+    $help =
 "Execute enrol sync with external database.
 The enrol_database plugin must be enabled and properly configured.
 
-If no term is specified it will run for the terms defined in 
-get_config('tool_uclacoursecreator', 'terms')
-
 Options:
---current-term        Run for the term specified in \$CFG->currentterm
--v, --verbose         Print verbose progess information
+-v, --verbose         Print verbose progress information
 -h, --help            Print out this help
 
 Example:
-\$sudo -u www-data /usr/bin/php enrol/database/cli/ucla_sync.php ([TERM] ([TERM] ... ))
-\$sudo -u www-data /usr/bin/php enrol/database/cli/ucla_sync.php --course-id [COURSEID]
+\$ sudo -u www-data /usr/bin/php enrol/database/cli/sync.php
+
+Sample cron entry:
+# 5 minutes past 4am
+5 4 * * * sudo -u www-data /usr/bin/php /var/www/moodle/enrol/database/cli/sync.php
 ";
+
     echo $help;
     die;
 }
 
-// Figure out non dashed options
-$reg_argv = array();
-
-$is_courseid = false;
-$singlecourseid = false;
-
-foreach ($argv as $arg) {
-    if (strpos($arg, '-') !== false) {
-        if ($arg == '--course-id') {
-            $is_courseid = true;
-        }
-
-        continue;
-    }
-
-    if ($is_courseid) {
-        $is_courseid = false;
-        if (is_numeric($arg)) {
-            $singlecourseid = $arg;
-        } 
-
-        continue;
-    }
-
-    $reg_argv[] = $arg;
-}
-
-// If we're doing a course, we don't need to figure out our terms.
-if ($singlecourseid !== false) {
-    $terms = null;
-} else {
-    // Figure out terms
-    $terms = array();
-
-    // Terms provided in arguments?
-    if (count($reg_argv) > 1) {
-        $terms = $reg_argv;
-    } 
-
-    // Include current term?
-    if ($options['current-term']) {
-        if (!empty($CFG->currentterm)) {
-            $terms = array($CFG->currentterm);
-        } else {
-            echo "Current term not set.";
-        }
-    }
-
-    // If use the terms in enrol_database configuration
-    if (empty($terms)) {
-        $terms = get_active_terms();
-    }
-}
-
-if (!empty($terms)) {
-    foreach ($terms as $key => $term) {
-        if (!ucla_validator('term', $term)) {
-            unset($terms[$key]);
-        }
-    }
-}
-
-if ($terms !== null && empty($terms)) {
-    echo "No terms to run for.\n";
-    exit(0);
-}
-
 if (!enrol_is_enabled('database')) {
-    echo('enrol_database_plugin is disabled, sync is disabled'."\n");
-    exit(1);
+    cli_error('enrol_database plugin is disabled, synchronisation stopped', 2);
 }
 
-$verbose = !empty($options['verbose']);
+if (empty($options['verbose'])) {
+    $trace = new null_progress_trace();
+} else {
+    $trace = new text_progress_trace();
+}
+
+/** @var enrol_database_plugin $enrol  */
 $enrol = enrol_get_plugin('database');
 $result = 0;
 
-// Note that this function will assume that a $terms parameter === NULL
-// means ALL terms, unless singlecourse is NOT NULL
-// Not providing an argument will mean all terms.
-$result = $result | $enrol->sync_enrolments($verbose, $terms, $singlecourseid);
+$result = $result | $enrol->sync_courses($trace);
+$result = $result | $enrol->sync_enrolments($trace);
 
 exit($result);

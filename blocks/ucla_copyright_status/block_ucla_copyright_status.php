@@ -31,16 +31,15 @@ class block_ucla_copyright_status extends block_base {
     /**
      * Adding link to site menu block header.
      *
-     * @param object $course
-     * @param int $displaysection
+     * @param array $params
      *
      * @return array   Returns link to tool. 
      */
-    static function get_editing_link($course, $displaysection) {
+    static function get_editing_link($params) {
         global $CFG;
         
         // Get number of items copyright itemsthat need attention
-        $a = sizeof(get_files_copyright_status_by_course($course->id, 
+        $a = sizeof(get_files_copyright_status_by_course($params['course']->id, 
                 $CFG->sitedefaultlicense));
 
         // Put inside a badge if items need attention
@@ -56,8 +55,8 @@ class block_ucla_copyright_status extends block_base {
         
         $link = html_writer::link(
                 new moodle_url('/blocks/ucla_copyright_status/view.php',
-                    array('courseid' => $course->id,
-                          'section' => $displaysection)),
+                    array('courseid' => $params['course']->id,
+                          'section' => $params['section'])),
                 get_string('pluginname', 'block_ucla_copyright_status'),
                 array('id' => 'id-copyright-status'));
         

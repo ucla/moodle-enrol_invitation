@@ -1,0 +1,195 @@
+//
+// CCLE / COURSE / editing mode
+// --------------------------------------------------
+
+$editing-link-color: orangered;
+
+// UCLA format specific
+.ucla-format {
+
+    // edit icons -> text preference switch
+    &.text-icons {
+
+        // All icons that will 'converted' to text
+        $collection: (
+            editing_title,
+            editing_moveright,
+            editing_moveleft,
+            editing_move,
+            editing_duplicate,
+            editing_delete,
+            editing_update,
+            editing_hide,
+            editing_show,
+            editing_section,
+            editing_showhide,
+            edit_course_summary,
+            editing_instr_info,
+            editing_makepublic,
+            editing_makeprivate
+        );
+
+        // Write down all the classes
+        @each $icon in $collection {
+            .#{$icon} {
+                color: $editing-link-color;
+                &:after {
+                    content: attr(title);
+                    margin-left: 2px;
+                    margin-right: 12px;
+                }
+            }
+        }
+
+        .activityinstance,
+        .commands {
+            float: left;
+            width: 100%;
+        }
+
+        .editing_move:after {
+            cursor: move;
+        }
+
+        li.activity {
+            img.iconsmall {
+                height: 16px;
+                width: 16px;
+                vertical-align: middle !important;
+            }
+        }
+    }
+    
+    // Some changes when text->icon pref is OFF
+    &:not(.text-icons) {
+        img.iconsmall {
+            height: 20px;
+            width: 20px;
+            vertical-align: middle !important;
+        }
+
+        li.activity {
+            
+            /// Group icons
+            .commands {
+                float: right;
+
+                a, .editing_move {
+                    margin-right: 8px;
+                    float: left;
+                }
+                
+                // Move delete icon to right
+                a.editing_delete {
+                    float: right;
+                }
+                
+                // Set icon groupings
+                .editing_move,
+                .editing_duplicate,
+                .publicprivate {
+                    padding-right: 8px;
+                    margin-right: 12px;
+                    border-right: 1px solid #ddd;
+                }
+                .publicprivate {
+                    margin-right: 20px;
+                }
+            }
+        }
+    }
+    
+/*    .commands a, .commands .editing_move {
+        float: left;
+    }*/
+    
+
+    /// ucla edit links that appear below section names.
+    .jit-links {
+        margin-top: 2px;
+        padding-left: 42px;
+        background: url([[pix:theme|jit_links]]) 8px 1px no-repeat;
+        display: inline;
+        position: relative;
+
+        > a:link,
+        > a {
+            color: $editing-link-color;
+            margin-right: 12px;
+        }
+    }
+}
+
+
+// This styles the 'Add activity or resource' area + button
+.section-modchooser,
+.section_add_menus {
+    border-top: 4px solid #ccc;
+    margin-bottom: 10px;
+    padding: 10px;
+
+    .section-modchooser-link {
+        display: inline-block;
+
+        // Remove moodle default icon, and display glyphicon instead
+        .smallicon {display: none;}
+        a:before {
+            @include glyphicon("\2b");
+            margin-right: 4px;
+        }
+    }
+}
+
+// This is an editable activity list.  This is where the we add
+// zebra stripes + hover effect to the list.
+li.activity {
+
+    padding: 5px 10px;
+    border-top: 1px solid #F5F5F5;
+    border-right: 1px solid white;
+    clear: right;
+    // Fixes clipping errors
+    display: inline-block;
+    width: 100%;
+
+    // Make 'label' resources always display white background
+    &:not(.label) {
+        &:nth-child(2n) {
+            background-color: #F9F9F9;
+        }
+        &:hover {
+            background-color: #F5F5F5;
+        }
+    }
+    &.label:hover {
+        background-color: white !important;
+    }
+    
+    // Add a dashed line to indicate where target will drop
+    &.yui3-dd-draggable + &.yui3-dd-drop-active-valid {
+        border-top: 2px dashed orangered;
+    }
+}
+
+/// Ugly but direct override... 
+.path-course-view li.activity span.autocompletion, 
+.path-course-view li.activity form.togglecompletion {
+    float: right;
+    padding: 0 4px;
+    right: 0;
+}
+
+
+// Add resource or activity modal dialog
+// This fixes alignment bugs
+.alloptions > .option {
+    & > label {
+        float: left;
+        & > .typename {
+            float: right;
+            display: inline-block;
+            width: 145px;
+        }
+    }
+}
+

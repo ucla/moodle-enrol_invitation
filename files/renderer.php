@@ -114,7 +114,7 @@ class core_files_renderer extends plugin_renderer_base {
                 array('invalidjson', 'repository'), array('popupblockeddownload', 'repository'),
                 array('unknownoriginal', 'repository'), array('confirmdeletefolder', 'repository'),
                 array('confirmdeletefilewithhref', 'repository'), array('confirmrenamefolder', 'repository'),
-                array('confirmrenamefile', 'repository')
+                array('confirmrenamefile', 'repository'), array('newfolder', 'repository')
             )
         );
         if (empty($filemanagertemplateloaded)) {
@@ -206,9 +206,9 @@ class core_files_renderer extends plugin_renderer_base {
                 <div class="{!}fp-btn-download"><a href="#"><img src="'.$this->pix_url('a/download_all').'" /> '.$strdownload.'</a></div>
             </div>
             <div class="{!}fp-viewbar">
-                <a class="{!}fp-vb-icons" href="#"></a>
-                <a class="{!}fp-vb-details" href="#"></a>
-                <a class="{!}fp-vb-tree" href="#"></a>
+                <a title="'. get_string('displayicons', 'repository') .'" class="{!}fp-vb-icons" href="#"></a>
+                <a title="'. get_string('displaydetails', 'repository') .'" class="{!}fp-vb-details" href="#"></a>
+                <a title="'. get_string('displaytree', 'repository') .'" class="{!}fp-vb-tree" href="#"></a>
             </div>
         </div>
         <div class="fp-pathbar">
@@ -223,6 +223,7 @@ class core_files_renderer extends plugin_renderer_base {
                 <div class="dndupload-message">'.$strdndenabledinbox.'<br/><div class="dndupload-arrow"></div></div>
             </div>
             <div class="dndupload-target">'.$strdroptoupload.'<br/><div class="dndupload-arrow"></div></div>
+            <div class="dndupload-progressbars"></div>
             <div class="dndupload-uploadinprogress">'.$icon_progress.'</div>
         </div>
         <div class="filemanager-updating">'.$icon_progress.'</div>
@@ -457,14 +458,21 @@ class core_files_renderer extends plugin_renderer_base {
      */
     private function fm_print_restrictions($fm) {
         $maxbytes = display_size($fm->options->maxbytes);
-        if (empty($fm->options->maxfiles) || $fm->options->maxfiles == -1) {
-            $maxsize = get_string('maxfilesize', 'moodle', $maxbytes);
-        } else {
-            $strparam = (object)array('size' => $maxbytes, 'attachments' => $fm->options->maxfiles);
+        $strparam = (object) array('size' => $maxbytes, 'attachments' => $fm->options->maxfiles,
+            'areasize' => display_size($fm->options->areamaxbytes));
+        $hasmaxfiles = !empty($fm->options->maxfiles) && $fm->options->maxfiles > 0;
+        $hasarealimit = !empty($fm->options->areamaxbytes) && $fm->options->areamaxbytes != -1;
+        if ($hasmaxfiles && $hasarealimit) {
+            $maxsize = get_string('maxsizeandattachmentsandareasize', 'moodle', $strparam);
+        } else if ($hasmaxfiles) {
             $maxsize = get_string('maxsizeandattachments', 'moodle', $strparam);
+        } else if ($hasarealimit) {
+            $maxsize = get_string('maxsizeandareasize', 'moodle', $strparam);
+        } else {
+            $maxsize = get_string('maxfilesize', 'moodle', $maxbytes);
         }
         // TODO MDL-32020 also should say about 'File types accepted'
-        return '<span>'. $maxsize. '</span>';
+        return '<span>'. $maxsize . '</span>';
     }
 
     /**
@@ -516,7 +524,7 @@ class core_files_renderer extends plugin_renderer_base {
 <div class="file-picker fp-generallayout">
     <div class="fp-repo-area">
         <ul class="fp-list">
-            <li class="{!}fp-repo"><a href="#"><img class="{!}fp-repo-icon" width="16" height="16" />&nbsp;<span class="{!}fp-repo-name"></span></a></li>
+            <li class="{!}fp-repo"><a href="#"><img class="{!}fp-repo-icon" alt="'. get_string('repositoryicon', 'repository') .'" width="16" height="16" />&nbsp;<span class="{!}fp-repo-name"></span></a></li>
         </ul>
     </div>
     <div class="fp-repo-items">
@@ -525,16 +533,16 @@ class core_files_renderer extends plugin_renderer_base {
                 <div class="{!}fp-toolbar">
                     <div class="{!}fp-tb-back"><a href="#">'.get_string('back', 'repository').'</a></div>
                     <div class="{!}fp-tb-search"><form></form></div>
-                    <div class="{!}fp-tb-refresh"><a href="#"><img src="'.$this->pix_url('a/refresh').'" /></a></div>
-                    <div class="{!}fp-tb-logout"><img src="'.$this->pix_url('a/logout').'" /><a href="#"></a></div>
-                    <div class="{!}fp-tb-manage"><a href="#"><img src="'.$this->pix_url('a/setting').'" /> '.get_string('manageurl', 'repository').'</a></div>
-                    <div class="{!}fp-tb-help"><a href="#"><img src="'.$this->pix_url('a/help').'" /> '.get_string('help').'</a></div>
+                    <div class="{!}fp-tb-refresh"><a href="#"><img alt="'. get_string('refresh', 'repository') .'"  src="'.$this->pix_url('a/refresh').'" /></a></div>
+                    <div class="{!}fp-tb-logout"><img alt="'. get_string('logout', 'repository') .'" src="'.$this->pix_url('a/logout').'" /><a href="#"></a></div>
+                    <div class="{!}fp-tb-manage"><a href="#"><img alt="'. get_string('settings', 'repository') .'" src="'.$this->pix_url('a/setting').'" /> '.get_string('manageurl', 'repository').'</a></div>
+                    <div class="{!}fp-tb-help"><a href="#"><img alt="'. get_string('help', 'repository') .'" src="'.$this->pix_url('a/help').'" /> '.get_string('help').'</a></div>
                     <div class="{!}fp-tb-message"></div>
                 </div>
                 <div class="{!}fp-viewbar">
-                    <a class="{!}fp-vb-icons" href="#"></a>
-                    <a class="{!}fp-vb-details" href="#"></a>
-                    <a class="{!}fp-vb-tree" href="#"></a>
+                    <a title="'. get_string('displayicons', 'repository') .'" class="{!}fp-vb-icons" href="#"></a>
+                    <a title="'. get_string('displaydetails', 'repository') .'" class="{!}fp-vb-details" href="#"></a>
+                    <a title="'. get_string('displaytree', 'repository') .'" class="{!}fp-vb-tree" href="#"></a>
                 </div>
                 <div class="fp-clear-left"></div>
             </div>
@@ -932,7 +940,12 @@ class core_files_renderer extends plugin_renderer_base {
      * Default contents is one text input field with name="s"
      */
     public function repository_default_searchform() {
-        $str = '<div class="fp-def-search"><input name="s" value='.get_string('search', 'repository').' /></div>';
+        $searchinput = html_writer::label(get_string('searchrepo', 'repository'),
+            'reposearch', false, array('class' => 'accesshide'));
+        $searchinput .= html_writer::empty_tag('input', array('type' => 'text',
+            'id' => 'reposearch', 'name' => 's', 'value' => get_string('search', 'repository')));
+        $str = html_writer::tag('div', $searchinput, array('class' => "fp-def-search"));
+
         return $str;
     }
 }
@@ -969,7 +982,7 @@ class files_tree_viewer implements renderable {
         $this->path = array();
         while ($level) {
             $params = $level->get_params();
-            $context = get_context_instance_by_id($params['contextid']);
+            $context = context::instance_by_id($params['contextid']);
             // $this->context is current context
             if ($context->id != $this->context->id or empty($params['filearea'])) {
                 break;

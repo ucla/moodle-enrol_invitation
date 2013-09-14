@@ -1,0 +1,124 @@
+
+
+@import "uclatheme";
+
+@import "course";
+@import "editing";
+
+// Define how a section should look
+.section {
+    .sectionheader {
+        border-bottom: 1px solid #ccc;
+        .sectionname {
+            color: $ucla-blue;
+        }
+        
+        .hidden {
+            padding-left: 10px;
+            color: #ddd;
+            //
+            display: block !important;
+        }
+    }
+}
+
+// UCLA format course
+.ucla-format {
+    
+    // Color links UCLA blue
+    a,
+    a:link {
+        color: $ucla-blue;
+    }
+    
+    margin: auto 0px;
+    
+    .registrar-summary {
+        
+    }
+    
+    // ucla format sections
+    .section {
+        list-style: none;
+
+        // Style hidden sections
+        &.hidden {
+            .content {
+                padding: 4px;
+                border: 2px dashed #ddd;
+            }
+            .sectionname:after {
+                @include hidden-label(1.8rem);
+            }
+        }
+        
+        .largeicon {
+            width: 20px;
+            height: 20px;
+        }
+        .activityicon {
+            vertical-align: text-top !important;
+        }
+
+        
+        // contains the 'move section' icon
+        .left {
+            margin-top: 8px;
+            margin-bottom: 4px;
+            background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAFUlEQVQImWNgQAPPnj37T3UBBgYGAMjZEnZyZfyLAAAAAElFTkSuQmCC);
+            
+            /*border: 1px dashed #ccc;*/
+            .spacer {display: none;}
+            .section-handle {
+                padding: 2px;
+                &:after {
+                    content: "Move section";
+                    margin-left: 8px;
+                    font-size: 1.2rem;
+                    padding-top: 4px;
+                    color: #888;
+                }
+            }
+        }
+        .sectionname {
+            display: inline;
+        }
+        
+        .right {
+            float: right; 
+            
+            > br {display: none;}
+        }
+        
+        .content {
+            margin: 0;
+        }
+    }
+}
+
+.site-title {
+    color: $ccle-blue;
+}
+.site-meta {
+    font-size: 1.2rem;
+    color: #444;
+}
+.site-title-divider {
+    width: 100%;
+    display: inline-block;
+    height: 4px;
+    background-color: $ccle-blue;
+    float: left;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+// Registrar info in the 'site info' summary
+.registrar-info {
+    color: #878787;
+    line-height: 1.2;
+    border-bottom: 1px solid #ccc;
+    padding: 4px 0;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}

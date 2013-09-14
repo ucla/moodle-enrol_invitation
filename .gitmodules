@@ -13,3 +13,6 @@
 [submodule "local/codechecker"]
 	path = local/codechecker
 	url = https://github.com/moodlehq/moodle-local_codechecker.git
+[submodule "theme/uclashared/package/bootstrap"]
+	path = theme/uclashared/package/bootstrap
+	url = git@github.com:jlong/sass-twitter-bootstrap.git

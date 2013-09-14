@@ -1,0 +1,29 @@
+
+@import "uclatheme";
+
+// Define alert color vars
+
+$alert-blue:    #389998;
+$alert-red:     #D64F33;
+$alert-green:   #88B851;
+$alert-yellow:  #EDB83D;
+
+$alert-colors: (
+    blue $alert-blue, 
+    red $alert-red, 
+    green $alert-green, 
+    yellow $alert-yellow
+);
+
+
+@import "edit";
+@import "frontpage";
+
+.box-boundary {
+    margin-bottom: 8px;
+    
+    .box-section-title {
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+}

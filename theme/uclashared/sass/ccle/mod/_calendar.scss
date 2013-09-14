@@ -1,0 +1,104 @@
+//
+// CCLE / COURSE / calendar
+// --------------------------------------------------
+
+.block.block_calendar_month {
+    background-color: white;
+    
+    td, th {
+        border-width: 0px; 
+        padding:1px; 
+        width:14%; 
+        line-height:18px;
+    }
+    abbr {
+        border-bottom-width:0px;
+    }
+    
+    > .content {
+        background-color: white;
+        padding: 0;
+        color: #666;
+    }
+    
+    .calendar-controls {
+        padding: 12px 4px 8px 4px;
+        
+        .arrow  {
+            color: #aaa;
+        }
+        .current > a {
+            color: $ccle-dark-blue;
+            font-weight: bold; 
+            text-transform: uppercase;
+        }
+    }
+    
+    table .weekdays {
+        text-transform: uppercase;
+        color: #aaa;
+        font-size: $type-font-size;
+        
+        & > th {
+            font-weight: normal;
+        }
+    }
+    
+    .today.eventnone {
+        border: 0;
+        /*background-color: #eaeaea;*/
+        &  > a {
+            @extend .badge;
+            @extend .label-danger;
+            
+            background-color: red;
+            color: white;
+            /*line-height: 2.0rem;*/
+        }
+    }
+    
+    .content h3.eventskey {
+        border-top: 1px solid #eee;
+        padding: 8px 0;
+        margin: 0;
+        text-align: center;
+    }
+    
+    .content .minicalendar .weekdays th:first-child abbr {
+        margin-left: 2px;
+    }
+    
+    .content .minicalendar .weekdays th:last-child abbr {
+        margin-right: 2px;
+    }
+    
+    .minicalendar td.weekend {
+        color: #ccc;
+    }
+    
+    .minicalendar td {
+        font-size: $type-font-size;
+        font-weight: normal;
+    }
+    
+    tbody {
+        tr:not(.weekdays) {
+            border-top: 1px solid #efefef;
+        }
+        td {
+            line-height: 2.5rem;
+        }
+    }
+
+}
+
+
+// Mini calendars        
+.minicalendarblock {
+    > .minicalendar {
+        background-color: white;
+        border: 0;
+    }
+}
+
+

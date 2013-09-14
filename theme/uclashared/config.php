@@ -17,6 +17,7 @@ $THEME->sheets = array(
     'base',
     'core',     // custom core stlye changes
     'general',
+    'theme'
 );
 
 $tf_general     = 'course.php';
@@ -212,14 +213,16 @@ $THEME->layouts = array(
 
 $THEME->rendererfactory = 'theme_overridden_renderer_factory';
 $THEME->enable_dock = true;
+$THEME->csspostprocess = 'uclashared_process_css';
+$THEME->javascripts[] = 'shared_server_dropdown';
 
-if ($noconfigs) {
-    $dropdown_contents = false;
-} else {
-    $dropdown_contents = get_config('theme_' . $THEME->name, 'logo_sub_dropdown');
-}
-
-if ($dropdown_contents) {
-    $THEME->javascripts[] = 'jquery-1.5.2.min'; 
-    $THEME->javascripts[] = 'shared_server_dropdown';
-}
+//if ($noconfigs) {
+//    $dropdown_contents = false;
+//} else {
+//    $dropdown_contents = get_config('theme_' . $THEME->name, 'logo_sub_dropdown');
+//}
+//
+//if ($dropdown_contents) {
+//    $THEME->javascripts[] = 'jquery-1.5.2.min'; 
+//    $THEME->javascripts[] = 'shared_server_dropdown';
+//}

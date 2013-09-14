@@ -33,7 +33,7 @@ defined('MOODLE_INTERNAL') || die();
 $string['admindirname'] = '管理目錄';
 $string['availablelangs'] = '可使用的語言包';
 $string['chooselanguagehead'] = '選擇一種語言';
-$string['chooselanguagesub'] = '請選擇在安裝過程中使用的語言。這語言將成為此網站預設的語言。稍後您可以根據需要重新選擇。';
+$string['chooselanguagesub'] = '請選擇在安裝過程中使用的語言。稍後您可以根據需要重新選擇用於網站和使用者的語言。';
 $string['clialreadyconfigured'] = '檔案 config.php  已經存在，若你要安裝這一網站，請使用dmin/cli/install_database.php';
 $string['clialreadyinstalled'] = '檔案 config.php  已經存在，若你要升級這一網站，請使用admin/cli/upgrade.php';
 $string['cliinstallheader'] = 'Moodle {$a} 命令列安裝程式';
@@ -73,9 +73,9 @@ $string['pathsunsecuredataroot'] = '資料根(Dataroot)目錄的位置不安全'
 $string['pathswrongadmindir'] = '管理目錄不存在';
 $string['phpextension'] = '{$a} PHP擴展';
 $string['phpversion'] = 'PHP版本';
-$string['phpversionhelp'] = '<p>Moodle 需要的PHP版本至少要4.3.0或是5.1.0 (5.0.x有一些已知的問題)  </p>
-<p>您目前執行的是{$a} 版</p>
-<p>您必須更新您的 PHP 或在有更新版本的主機進行安裝!！(若是5.0.x，你可以下降到4.4.x 版本)</p>';
+$string['phpversionhelp'] = '<p>Moodle 需要的PHP版本至少要4.3.0或是5.1.0 (5.0.x有一些已知的問題) </p>
+<p>您目前執行的版本是{$a}</p>
+<p>您必須更新您的 PHP 或在有更新版本的主機上進行安裝！(若是5.0.x，你可以下降到4.4.x 版本)</p>';
 $string['welcomep10'] = '{$a->installername} ({$a->installerversion})';
 $string['welcomep20'] = '這個頁面是提醒您已經成功安裝與啟動 <strong>{$a->packname} {$a->packversion}</strong> ，恭喜！';
 $string['welcomep30'] = '<strong>{$a->installername}</strong>包含了可以建立<strong>Moodle</strong>執行環境的應用程序：';

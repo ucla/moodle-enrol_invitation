@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: instructor.php 165 2012-08-23 01:12:09Z azeckoski@gmail.com $ */
+/* $Id: instructor.php 179 2013-01-25 20:13:56Z azeckoski@gmail.com $ */
 
 /**
  * Handles rendering the form for creating new pages and the submission of the form as well
@@ -59,7 +59,7 @@ echo $OUTPUT->header();
         <?php if (count($courses) == 0) { ?>
         <span class="no_items"><?php echo iclicker_service::msg('inst.no.courses') ?></span>
         <?php } else if ($show_students) { ?>
-        <div class="title"><?php echo iclicker_service::msg('inst.course') ?>: <?php echo $course->fullname ?></div>
+        <div class="title"><?php echo iclicker_service::msg('inst.course') ?>: <?php echo $course->title ?></div>
         <div class="description"><?php echo $course->summary ?></div>
         <!-- clicker registration listing -->
         <div><?php echo iclicker_service::msg('inst.students') ?> (<?php echo $students_count ?>):</div>
@@ -104,7 +104,7 @@ echo $OUTPUT->header();
             <tbody>
                 <?php foreach($courses as $course) { ?>
             <tr class="courses_row data_row style1">
-                <td align="center"><?php echo $course->fullname ?></td>
+                <td align="center"><?php echo $course->title ?></td>
                 <td align="center"><a href="<?php echo $instPath.'?courseId='.$course->id ?>"><?php echo iclicker_service::msg('inst.course.view.students') ?></a></td>
             </tr>
                 <?php } ?>

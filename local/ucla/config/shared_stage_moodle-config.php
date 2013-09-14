@@ -190,6 +190,7 @@ $CFG->forced_plugin_settings['message']['message_provider_moodle_instantmessage_
 $CFG->usetags = 0;
 $CFG->enablenotes = 0;
 $CFG->bloglevel = 0; // Disable blog system completely
+$CFG->enablebadges = 0; // Disable badges
 
 // Site administration > Users > Permissions > User policies
 $CFG->autologinguests = true;
@@ -211,6 +212,9 @@ $CFG->enablecourserequests = 1;
 
 // Site administration > Grades > General settings
 $CFG->recovergradesdefault = 1;
+
+// Site administration > Grades > Grade category settings
+$CFG->grade_overridecat = 0;
 
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
@@ -256,6 +260,9 @@ $CFG->forced_plugin_settings['assignfeedback_comments']['default'] = 1;
 // Site administration > Plugins > Assignment plugins > Feedback plugins > File feedback
 $CFG->forced_plugin_settings['assignfeedback_file']['default'] = 1;
 
+// Site administration > Plugins > Enrollments > UCLA registrar
+$CFG->forced_plugin_settings['local_ucla']['overrideenroldatabase'] = 1;
+
 // Site administration > Plugins > Enrollments > Guest access
 $CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;
 $CFG->forced_plugin_settings['enrol_guest']['status'] = 0;  // 0 is yes, 1 is no
@@ -283,13 +290,43 @@ $CFG->forced_plugin_settings['tool_ucladatasourcesync']['contact_email']='ccle-o
 
 // Site administration > Plugins > Blocks > i>clicker Moodle integrate
 $CFG->forced_plugin_settings['block_iclicker']['block_iclicker_notify_emails'] = 'ccle-operations@lists.ucla.edu';
-$CFG->block_iclicker_notify_emails = 'ccle-operations@lists.ucla.edu';  // due to bad coding, two variables exist to do the same thing 
+$CFG->block_iclicker_notify_emails = 'ccle-operations@lists.ucla.edu';  // due to bad coding, two variables exist to do the same thing
+$CFG->forced_plugin_settings['block_iclicker']['block_iclicker_enable_shortname'] = 1;
 
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'tbd';
 
 // Site administration > Plugins > Repositories > Common repository settings
 $CFG->legacyfilesinnewcourses = 1;  // enable new course to enable legacy course files
+
+// Site administration > Plugins > Local plugins > Kaltura package libraries
+$CFG->forced_plugin_settings['local_kaltura']['conn_server'] = 'ce';
+$CFG->forced_plugin_settings['local_kaltura']['uri'] = 'https://www.kaltura.com';
+$CFG->forced_plugin_settings['local_kaltura']['enable_reports'] = 1;
+$CFG->forced_plugin_settings['local_kaltura']['player'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['player_custom'] = 15205332;
+$CFG->forced_plugin_settings['local_kaltura']['assign_uploader'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['assign_uploader_custom'] = 15205342;
+$CFG->forced_plugin_settings['local_kaltura']['player_resource'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['player_resource_custom'] = 15205332;
+$CFG->forced_plugin_settings['local_kaltura']['assign_uploader_custom'] = 15205332;
+$CFG->forced_plugin_settings['local_kaltura']['player_resource_override'] = 1;
+$CFG->forced_plugin_settings['local_kaltura']['res_uploader'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['res_uploader_custom'] = 15205342;
+$CFG->forced_plugin_settings['local_kaltura']['presentation'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['presentation_custom'] = 15205352;
+$CFG->forced_plugin_settings['local_kaltura']['pres_uploader'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['pres_uploader_custom'] = 15205342;
+$CFG->forced_plugin_settings['local_kaltura']['simple_uploader'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['simple_uploader_custom'] = 15205362;
+$CFG->forced_plugin_settings['local_kaltura']['mymedia_uploader'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['mymedia_uploader_custom'] = 15205372;
+$CFG->forced_plugin_settings['local_kaltura']['mymedia_screen_recorder'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['mymedia_screen_recorder_custom'] = 15205382;
+$CFG->forced_plugin_settings['local_kaltura']['player_filter'] = 0;
+$CFG->forced_plugin_settings['local_kaltura']['player_filter_custom'] = 15205332;
+$CFG->forced_plugin_settings['local_kaltura']['enable_html5'] = 1;
+$CFG->forced_plugin_settings['local_kaltura']['mymedia_application_name'] = 'ccle-shared-stage';
 
 // Site administration > Plugins > Local plugins > UCLA configurations
 $CFG->forced_plugin_settings['local_ucla']['registrar_cache_ttl'] = 3600;   // 1 hour
@@ -401,13 +438,14 @@ $CFG->forced_plugin_settings['enrol_database']['dbtype'] = $CFG->registrar_dbtyp
 $CFG->forced_plugin_settings['enrol_database']['dbhost'] = $CFG->registrar_dbhost;
 $CFG->forced_plugin_settings['enrol_database']['dbuser'] = $CFG->registrar_dbuser;
 $CFG->forced_plugin_settings['enrol_database']['dbpass'] = $CFG->registrar_dbpass;
-$CFG->forced_plugin_settings['enrol_database']['dbname'] = $CFG->registrar_dbname;
+$CFG->forced_plugin_settings['enrol_database']['dbname'] = '';
 $CFG->forced_plugin_settings['enrol_database']['remoteenroltable'] = 'enroll2_test';
 $CFG->forced_plugin_settings['enrol_database']['remotecoursefield'] = 'termsrs';
 $CFG->forced_plugin_settings['enrol_database']['remoteuserfield'] = 'uid';
 $CFG->forced_plugin_settings['enrol_database']['remoterolefield'] = 'role';
 $CFG->forced_plugin_settings['enrol_database']['localcoursefield'] = 'id';
 $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
+$CFG->forced_plugin_settings['enrol_database']['localuserfield'] = 'idnumber';
 $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 0;    // ENROL_EXT_REMOVED_UNENROL
 
 // CCLE-2802 - Frontpage banner layout include

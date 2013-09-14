@@ -36,6 +36,10 @@ if ($showsidepre && !$showsidepost) {
     $bodyclasses[] = 'content-only';
 }
 
+if ($hasintrobanner) {
+    $bodyclasses[] = 'front-page';
+}
+
 if ($hascustommenu) {
     $bodyclasses[] = 'has_custom_menu';
 }
@@ -75,12 +79,9 @@ echo $OUTPUT->doctype() ?>
         <link href='https://fonts.googleapis.com/css?family=Lato:400,400italic,700,900' rel='stylesheet' type='text/css'>
     <?php } ?>
     <?php echo $OUTPUT->standard_head_html() ?>
-    <link rel="stylesheet" type="text/css" href="<?php echo $CFG->wwwroot . '/theme/uclashared/style/'?>blocks.css" />
+    
     <!--[if gt IE 7]>
         <link href='https://fonts.googleapis.com/css?family=Lato:400,400italic,700,900' rel='stylesheet' type='text/css'>   
-    <![endif]-->
-    <!--[if IE]>
-	<link rel="stylesheet" type="text/css" href="<?php echo $CFG->wwwroot . '/theme/uclashared/style/'?>blocks-ie.css" />
     <![endif]-->
     
 </head>
@@ -88,67 +89,45 @@ echo $OUTPUT->doctype() ?>
 <?php echo $OUTPUT->standard_top_of_body_html() ?>
 <div id="page">
 <?php if ($hasheading || $hasnavbar) { ?>
-    <div id="page-header" class="env-<?php echo $envflag ?>">
-        <?php if ($hasheading) { ?>
-        <div class="headermain">
-            <div id="uclalogo">
-                <?php echo $OUTPUT->logo('ucla_ccle_logo', 'theme') ?>
+    <header id="page-header" class="env-<?php echo $envflag ?>">
+        <div class="">
+            <div class="col-sm-6 header-logo">
+                <?php echo $OUTPUT->logo('ucla-logo', 'theme') ?>
+            </div>
+            <div class="col-sm-6 header-login">
+                <div class="header-links" >
+                <?php
+                    if ($haslogininfo) {
+                        echo $OUTPUT->login_info();
+                    }
+                ?>
+                </div>
+                <div class="weeks-display" >
+                    <?php echo $OUTPUT->weeks_display() ?>
+                </div>
+            </div>
+            <div class="header-login-frontpage col-sm-6" >
+                <?php echo $OUTPUT->help_feedback_link() ?>
+                <a class="login" href="<?php echo get_login_url() ?>">Login</a>
             </div>
         </div>
-	<div class="headermenu"><?php
-            if ($haslogininfo) {
-                echo $OUTPUT->login_info();
-            }
+        
+    </header>
+ 
+<?php } ?>
 
-            if ($showcontrolpanel) { ?>
-            <div id="control-panel">
-            <?php echo $OUTPUT->control_panel_button() ?>
-            </div>
-            <div id="weeks-display" class="weeks-display-with-control-panel">
-            <?php echo $OUTPUT->weeks_display() ?>
-            </div>
-            <?php
-
-            } else {
-
-            ?>
-            <div id="weeks-display" class="weeks-display">
-            <?php echo $OUTPUT->weeks_display() ?>
-            </div>
-            <?php
-
-            }
-
-            ?>
-
-            <?php
-            if (!empty($PAGE->layout_options['langmenu'])) {
-                echo $OUTPUT->lang_menu();
-            }
-
-            echo $PAGE->headingmenu
-        ?>
-        </div>
-<div id="sublogo">
-            <?php
-                echo $OUTPUT->sublogo();
-            ?>
-            </div>
-
-        <?php } ?>
-        <?php if ($hascustommenu) { ?>
-        <div id="custommenu"><?php echo $custommenu; ?></div>
-        <?php } ?>
-        <?php if($hasintrobanner) { ?>
-        <div class="introbanner" ></div>
-        <?php } ?>
-        <?php if ($hasnavbar) { ?>
-            <div class="navbar clearfix">
-                <div class="breadcrumb"><?php echo $OUTPUT->navbar(); ?></div>
-                <div class="navbutton"> <?php echo $PAGE->button; ?></div>
+<?php if ($hasnavbar && !$hasintrobanner) { ?>
+<div class="navbar clearfix">
+    <div class="breadcrumb"><?php echo $OUTPUT->navbar(); ?></div>
+    <div class="controls" >
+        <div class="navbutton navbar-control"> <?php echo $PAGE->button; ?></div>
+        <?php if ($showcontrolpanel) { ?>
+            <div class="control-panel navbar-control">
+                <?php echo $OUTPUT->control_panel_button() ?>
             </div>
         <?php } ?>
     </div>
+</div>
 <?php } ?>
 <!-- END OF HEADER -->
 

@@ -43,14 +43,18 @@ class moodlesimplepie_testcase extends basic_testcase {
     const INVALIDURL = 'http://download.moodle.org/unittest/rsstest-which-doesnt-exist.xml';
     # This tinyurl redirects to th rsstest.xml file
     const REDIRECTURL = 'http://tinyurl.com/lvyslv';
+    # The number of seconds tests should wait for the server to respond (high to prevent false positives).
+    const TIMEOUT = 10;
 
     function setUp() {
         moodle_simplepie::reset_cache();
     }
 
     function test_getfeed() {
-        $feed = new moodle_simplepie(self::VALIDURL);
-
+        $feed = new moodle_simplepie();
+        $feed->set_timeout(self::TIMEOUT);
+        $feed->set_feed_url(self::VALIDURL);
+        $feed->init();
         $this->assertInstanceOf('moodle_simplepie', $feed);
 
         $this->assertNull($feed->error(), "Failed to load the sample RSS file. Please check your proxy settings in Moodle. %s");
@@ -66,7 +70,7 @@ class moodlesimplepie_testcase extends basic_testcase {
         $this->assertEquals($feed->get_copyright(), '&amp;#169; 2007 moodle');
         $this->assertEquals($feed->get_image_url(), 'http://moodle.org/pix/i/rsssitelogo.gif');
         $this->assertEquals($feed->get_image_title(), 'moodle');
-        $this->assertEquals($feed->get_image_link(), 'http://moodle.org');
+        $this->assertEquals($feed->get_image_link(), 'http://moodle.org/');
         $this->assertEquals($feed->get_image_width(), '140');
         $this->assertEquals($feed->get_image_height(), '35');
 
@@ -92,6 +96,7 @@ Google will pay students US$100 for every three tasks they successfully complete
 <br />
 You can find out all the details on the <a href="http://code.google.com/p/google-highly-open-participation-moodle/">Moodle/GHOP contest site</a>.</p></p>
 EOD;
+        $description = purify_html($description);
         $this->assertEquals($itemone->get_description(), $description);
 
 
@@ -108,7 +113,10 @@ EOD;
      * Test retrieving a url which doesn't exist
      */
     function test_failurl() {
-        $feed = @new moodle_simplepie(self::INVALIDURL); // we do not want this in php error log
+        $feed = new moodle_simplepie();
+        $feed->set_timeout(self::TIMEOUT);
+        $feed->set_feed_url(self::INVALIDURL);
+        @$feed->init(); // We do not want this in php error log.
 
         $this->assertNotEmpty($feed->error());
     }
@@ -135,7 +143,10 @@ EOD;
     function test_redirect() {
         global $CFG;
 
-        $feed = new moodle_simplepie(self::REDIRECTURL);
+        $feed = new moodle_simplepie();
+        $feed->set_timeout(self::TIMEOUT);
+        $feed->set_feed_url(self::REDIRECTURL);
+        $feed->init();
 
         $this->assertNull($feed->error());
         $this->assertEquals($feed->get_title(), 'Moodle News');

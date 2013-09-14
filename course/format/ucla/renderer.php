@@ -25,7 +25,7 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->dirroot.'/course/format/renderer.php');
+require_once($CFG->dirroot.'/course/format/topics/renderer.php');
 require_once($CFG->dirroot . '/course/format/ucla/lib.php');
 require_once($CFG->dirroot.'/local/publicprivate/lib.php');
 
@@ -35,7 +35,7 @@ require_once($CFG->dirroot.'/local/publicprivate/lib.php');
  * @copyright 2012 UC Regents
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class format_ucla_renderer extends format_section_renderer_base {
+class format_ucla_renderer extends format_topics_renderer {
     // course info, may contain reginfo
     private $courseinfo = array();
     
@@ -68,10 +68,10 @@ class format_ucla_renderer extends format_section_renderer_base {
      *
      * @param moodle_page $page
      * @param string $target one of rendering target constants
-     */    
-    function __construct($page, $target) {
+     */
+    public function __construct(moodle_page $page, $target) {
         parent::__construct($page, $target);
-       
+
         // Build required forums for the UCLA format
         $forum_new = forum_get_course_forum($page->course->id, 'news');
         $forum_gen = forum_get_course_forum($page->course->id, 'general');       
@@ -83,10 +83,10 @@ class format_ucla_renderer extends format_section_renderer_base {
         $this->parse_courseinfo();
         
         // get instructors, if any
-        $this->instructors = ucla_format_display_instructors($page->course);
+        $this->instructors = course_get_format($page->course)->display_instructors();
         
         // save course object
-        $this->course =& $page->course;
+        $this->course = course_get_format($page->course)->get_course();
         
         // save context object
         $this->context =& $page->context;        
@@ -98,24 +98,12 @@ class format_ucla_renderer extends format_section_renderer_base {
                                  'subheading' => get_string('subheading', 'format_ucla'));     
         
         $this->noeditingicons = get_user_preferences('noeditingicons', 1);
-   }    
-
-    /**
-     * Generate the closing container html for a list of sections
-     * @return string HTML to output.
-     */
-    protected function end_section_list() {
-        return html_writer::end_tag('ul');
+        
+        // Use the public/private renderer.  This will permit us to override the
+        // way we render course modules
+        $this->courserenderer = $this->page->get_renderer('local_publicprivate');
     }
     
-    /**
-     * Generate the title for this section page
-     * @return string the page title
-     */
-    protected function page_title() {
-        return get_string('topicoutline');
-    }
-
     /**
      * Calls ucla_format_notices event and sees if any notices are returned.
      * Expects notices to be returned in an array of HTML content. Just displays
@@ -125,7 +113,7 @@ class format_ucla_renderer extends format_section_renderer_base {
      *
      * @param int sectionnum            Section being displayed
      */
-    public function print_external_notices($sectionnum) {
+    public function print_external_notices($sectionnum, $course) {
         global $OUTPUT, $PAGE, $USER;
 
         // maybe some external notice system is redirecting back with a message
@@ -135,13 +123,16 @@ class format_ucla_renderer extends format_section_renderer_base {
          * 1) user is on landing page
          * 2) user is on show_all and section is 0
          */
-        $course_prefs = new ucla_course_prefs($this->course->id);
-        $landing_page = $course_prefs->get_preference('landing_page');
-        $sectionon = ucla_format_figure_section($this->course, $course_prefs);
-        if (($landing_page != $sectionnum) &&
-                ($sectionon == UCLA_FORMAT_DISPLAY_ALL && $sectionnum != 0)) {
+        $format = course_get_format($course);
+        $prefs = $format->get_format_options();
+        
+        if (isset($prefs['landing_page']) && $prefs['landing_page'] != $sectionnum) {
             return;
         }
+        if ($sectionnum != 0 && $format->figure_section() === $format::UCLA_FORMAT_DISPLAY_ALL) {
+            return;
+        }
+
 
         // Provide following information to event:
         //      userid, course, user_is_editing, roles, term (if any), notices
@@ -177,7 +168,7 @@ class format_ucla_renderer extends format_section_renderer_base {
 //            }
         }
     }
-
+    
     /**
      * Output the html for the page header. For SRS courses will display 
      * reginfo content. Also displays public/private message if user is not 
@@ -236,13 +227,14 @@ class format_ucla_renderer extends format_section_renderer_base {
         $heading_text = '';
         if (!empty($termtext)) {
             $heading_text = $termtext . ' - ' . $regcoursetext . ' - ' . $inst_text;
-            $heading_text = html_writer::tag('div', $heading_text, array('class' => 'course-meta'));
-        }        
+            $heading_text = html_writer::tag('div', $heading_text, array('class' => 'site-meta'));
+        }
+        
+        echo $OUTPUT->heading($this->course->fullname, 1, 'site-title');
+        echo $heading_text;
+        echo html_writer::tag('span', '', array('class' => 'site-title-divider'));
         
         // display page header
-        echo $OUTPUT->heading($heading_text . $this->course->fullname, 2, 'headingblock');
-
-        // display notices
 
         // Handle cancelled classes
         if (is_course_cancelled($this->courseinfo)) {
@@ -259,17 +251,6 @@ class format_ucla_renderer extends format_section_renderer_base {
         }
     }
     
-    /**
-     * Include our custom ajax overwriters to convert icons to text. This needs 
-     * to be printed after the headers, but before the footers.
-     */
-    public function print_js() {
-        global $PAGE;
-        if (ajaxenabled() && $PAGE->user_is_editing()) {
-            echo html_writer::script(false, new moodle_url('/course/format/ucla/module_override.js'));
-        }        
-    }
-
     /**
      * Output the html for a multiple section page.
      * 
@@ -302,11 +283,17 @@ class format_ucla_renderer extends format_section_renderer_base {
         $thissection = $sections[0];
         unset($sections[0]);
         // do not display section summary/header info for section 0
-        echo $this->section_header($thissection, $course, true);
+        echo $this->section_header($thissection, $course, false);
 
-        print_section($course, $thissection, $mods, $modnamesused, true);
+//        print_section($course, $thissection, $mods, $modnamesused, true);
+//        $courserenderer = $PAGE->get_renderer('core', 'course'); 
+        echo $this->courserenderer->course_section_cm_list($course, $thissection);
+        
         if ($PAGE->user_is_editing()) {
-            print_section_add_menus($course, 0, $modnames);
+//            print_section_add_menus($course, 0, $modnames);
+//            $courserenderer = $PAGE->get_renderer('core', 'course'); 
+            $output = $this->courserenderer->course_section_add_cm_control($course, 0); 
+            echo $output; // if $return argument in print_section_add_menus() set to false
         }
         echo $this->section_footer();
 
@@ -316,7 +303,7 @@ class format_ucla_renderer extends format_section_renderer_base {
                 $thissection = $sections[$section];
             } else {
                 // This will create a course section if it doesn't exist..
-                $thissection = get_course_section($section, $course->id);
+                $thissection = get_fast_modinfo($course->id)->get_section_info($section);
 
                 // The returned section is only a bare database object rather than
                 // a section_info object - we will need at least the uservisible
@@ -344,9 +331,15 @@ class format_ucla_renderer extends format_section_renderer_base {
             // always show section content, even if editing is off
             echo $this->section_header($thissection, $course, false);
             if ($thissection->uservisible) {
-                print_section($course, $thissection, $mods, $modnamesused);
+//                print_section($course, $thissection, $mods, $modnamesused);
+//                $courserenderer = $PAGE->get_renderer('core', 'course'); 
+                echo $this->courserenderer->course_section_cm_list($course, $thissection);
+       
                 if ($PAGE->user_is_editing()) {
-                    print_section_add_menus($course, $section, $modnames);
+//                    print_section_add_menus($course, $section, $modnames);
+//                    $courserenderer = $PAGE->get_renderer('core', 'course'); 
+                    $output = $this->courserenderer->course_section_add_cm_control($course, $section); 
+                    echo $output;
                 }
             }
             echo $this->section_footer();
@@ -396,7 +389,7 @@ class format_ucla_renderer extends format_section_renderer_base {
         }
 
     }
-
+    
     /**
      * Output html for content that belong in section 0, such as course 
      * description, final location, registrar links and the office hours block.
@@ -481,7 +474,7 @@ class format_ucla_renderer extends format_section_renderer_base {
                 'id' => $this->course->id,
             );
 
-            $link_options = array('title' => $streditsummary);
+            $link_options = array('title' => $streditsummary, 'class' => 'edit_course_summary');
 
             $moodle_url = new moodle_url('edit.php', $url_options);
 
@@ -520,32 +513,29 @@ class format_ucla_renderer extends format_section_renderer_base {
     }
     
     /**
-     * Output the html for a single section page.
-     *
-     * Copied from base class method with following differences:
-     *  - print section 0 related stuff
-     *  - hiding navigation arrows
+     * Output the html for a single section page .
      *
      * @param stdClass $course The course entry from DB
-     * @param array $sections The course_sections entries from the DB
-     * @param array $mods used for print_section()
-     * @param array $modnames used for print_section()
-     * @param array $modnamesused used for print_section()
+     * @param array $sections (argument not used)
+     * @param array $mods (argument not used)
+     * @param array $modnames (argument not used)
+     * @param array $modnamesused (argument not used)
      * @param int $displaysection The section number in the course which is being displayed
      */
     public function print_single_section_page($course, $sections, $mods, $modnames, $modnamesused, $displaysection) {
         global $PAGE;
-        // Can we view the section in question?
-        $context = context_course::instance($course->id);
-        $canviewhidden = has_capability('moodle/course:viewhiddensections', $context);
 
-        if (!isset($sections[$displaysection])) {
+        $modinfo = get_fast_modinfo($course);
+//        $course = course_get_format($course)->get_course();
+
+        // Can we view the section in question?
+        if (!($sectioninfo = $modinfo->get_section_info($displaysection))) {
             // This section doesn't exist
             print_error('unknowncoursesection', 'error', null, $course->fullname);
             return;
         }
 
-        if (!$sections[$displaysection]->visible && !$canviewhidden) {
+        if (!$sectioninfo->uservisible) {
             if (!$course->hiddensections) {
                 echo $this->start_section_list();
                 echo $this->section_hidden($displaysection);
@@ -554,158 +544,92 @@ class format_ucla_renderer extends format_section_renderer_base {
             // Can't view this section.
             return;
         }
-        
+
         // Copy activity clipboard..
         echo $this->course_activity_clipboard($course, $displaysection);
+        $thissection = $modinfo->get_section_info(0);
+//        if ($thissection->summary or !empty($modinfo->sections[0]) or $PAGE->user_is_editing()) {
+//            echo $this->start_section_list();
+//            echo $this->section_header($thissection, $course, true, $displaysection);
+//            echo $this->courserenderer->course_section_cm_list($course, $thissection, $displaysection);
+//            echo $this->courserenderer->course_section_add_cm_control($course, 0, $displaysection);
+//            echo $this->section_footer();
+//            echo $this->end_section_list();
+//        }
 
         // Start single-section div
         echo html_writer::start_tag('div', array('class' => 'single-section'));
-        
-//        // Title with section navigation links.
-//        $sectionnavlinks = $this->get_nav_links($course, $sections, $displaysection);
+
+        // The requested section page.
+        $thissection = $modinfo->get_section_info($displaysection);
+
+        // Title with section navigation links.
+//        $sectionnavlinks = $this->get_nav_links($course, $modinfo->get_section_info_all(), $displaysection);
 //        $sectiontitle = '';
-//        $sectiontitle .= html_writer::start_tag('div', array('class' => 'section-navigation header sectionheader'));
+//        $sectiontitle .= html_writer::start_tag('div', array('class' => 'section-navigation header headingblock'));
 //        $sectiontitle .= html_writer::tag('span', $sectionnavlinks['previous'], array('class' => 'mdl-left'));
 //        $sectiontitle .= html_writer::tag('span', $sectionnavlinks['next'], array('class' => 'mdl-right'));
-//        // Title attributes
+        // Title attributes
 //        $titleattr = 'mdl-align title';
-//        if (!$sections[$displaysection]->visible) {
+//        if (!$thissection->visible) {
 //            $titleattr .= ' dimmed_text';
 //        }
-//        $sectiontitle .= html_writer::tag('div', get_section_name($course, $sections[$displaysection]), array('class' => $titleattr));
+//        $sectiontitle .= html_writer::tag('div', get_section_name($course, $displaysection), array('class' => $titleattr));
 //        $sectiontitle .= html_writer::end_tag('div');
 //        echo $sectiontitle;
 
         // Now the list of sections..
         echo $this->start_section_list();
 
-        // The requested section page.
-        $thissection = $sections[$displaysection];
-        echo $this->section_header($thissection, $course, true);
+        echo $this->section_header($thissection, $course, true, $displaysection);
         // Show completion help icon.
         $completioninfo = new completion_info($course);
         echo $completioninfo->display_help_icon();
 
-        print_section($course, $thissection, $mods, $modnamesused, true, '100%', false, $displaysection);
-        if ($PAGE->user_is_editing()) {
-            print_section_add_menus($course, $displaysection, $modnames, false, false, $displaysection);
-        }
+        echo $this->courserenderer->course_section_cm_list($course, $thissection, $displaysection);
+        echo $this->courserenderer->course_section_add_cm_control($course, $displaysection, $displaysection);
         echo $this->section_footer();
         echo $this->end_section_list();
 
-//        // Display section bottom navigation.
+        // Display section bottom navigation.
 //        $sectionbottomnav = '';
 //        $sectionbottomnav .= html_writer::start_tag('div', array('class' => 'section-navigation mdl-bottom'));
 //        $sectionbottomnav .= html_writer::tag('span', $sectionnavlinks['previous'], array('class' => 'mdl-left'));
 //        $sectionbottomnav .= html_writer::tag('span', $sectionnavlinks['next'], array('class' => 'mdl-right'));
+//        $sectionbottomnav .= html_writer::tag('div', $this->section_nav_selection($course, $sections, $displaysection),
+//            array('class' => 'mdl-align'));
 //        $sectionbottomnav .= html_writer::end_tag('div');
 //        echo $sectionbottomnav;
 
-        // close single-section div.
+        // Close single-section div.
         echo html_writer::end_tag('div');
-    }    
-    
-    /**
-     * Generate the edit controls of a section
-     * 
-     * Copied from base class method with following differences:
-     *  - removed section highlighter
-     *  - adding ability to edit/show/hide section 
-     *
-     * @param stdClass $course The course entry from DB
-     * @param stdClass $section The course_section entry from DB
-     * @param bool $onsectionpage true if being printed on a section page
-     * @return array of links with edit controls
-     */
+    }
+
     protected function section_edit_controls($course, $section, $onsectionpage = false) {
-        global $OUTPUT, $PAGE;
+        global $PAGE;
 
         if (!$PAGE->user_is_editing()) {
             return array();
         }
-
-        $controls = array();
-
-        /// Edit title
-        $url = new moodle_url('/course/editsection.php', array('id'=>$section->id));
         
-        if ($onsectionpage) {
-            $url->param('sectionreturn', 1);
-        }
-
-        $str = get_string('editsectiontitle', 'format_ucla');
-        $img_options = array('class' => 'small-icon edit', 'alt' => $str);
-
-        $innards = new pix_icon('t/edit', $str, 'moodle', $img_options);
-        $control = new action_link($url, $innards, null, array('title' => $str));
-
-        // Add 'edit title' icon
-        $controls[] = html_writer::tag(
-                'span', $OUTPUT->render($control), array('class' => 'safecontrol')
-            );
+        $controls = parent::section_edit_controls($course, $section, $onsectionpage);
         
-        /// Show/hide
-        if ($onsectionpage) {
-            $baseurl = course_get_url($course, $section->section);
-        } else {
-            $baseurl = course_get_url($course);
-        }
-        $baseurl->param('sesskey', sesskey());
-
-        $url = clone($baseurl);
-        if ($section->visible) { // Show the hide/show eye.
-            $strhidefromothers = get_string('hidefromothers', 'format_'.$course->format);
-            $url->param('hide', $section->section);
-            $str = $strhidefromothers;
-            $img_options = array('class' => 'iconsmall hide', 'alt' => $str);
-            $img = 'i/hide';
-            $class = 'editing_showhide';
-        } else {
-            $strshowfromothers = get_string('showfromothers', 'format_'.$course->format);
-            $url->param('show',  $section->section);
-            $str = $strshowfromothers;
-            $img_options = array('class' => 'iconsmall hide', 'alt' => $str);
-            $img = 'i/show';
-            $class = 'editing_showhide';
-        }
+        // We're expecting section 'hightlight' and 'hide', but we want 
+        // to override 'highlight' for 'section edit'.
+        $url = new moodle_url('/course/editsection.php', 
+                array('id'=> $section->id, 'sr' => $section->section));
         
-        $innards = new pix_icon($img, $str, 'moodle', $img_options);
-        $control = new action_link($url, $innards, null, array('title' => $str, 'class' => $class));
+        $controls[0] = html_writer::link($url, html_writer::empty_tag('img', 
+                    array('src' => $this->output->pix_url('t/edit'),
+                        'class' => 'icon edit', 
+                        'alt' => get_string('editsectiontitle', 'format_ucla'))
+                        ),
+                    array('title' => get_string('editsectiontitle', 'format_ucla'), 
+                        'class' => 'editing_section'));
 
-        $controls[] = html_writer::tag(
-                'span', $OUTPUT->render_action_link($control), array('class' => 'edit_section_showhide')
-            );
-
-        // add move icons (dragdown.js removes these icons later)
-        if (!$onsectionpage) {
-            $url = clone($baseurl);
-            if ($section->section > 1) { // Add a arrow to move section up.
-                $url->param('section', $section->section);
-                $url->param('move', -1);
-                $strmoveup = get_string('moveup');
-
-                $controls[] = html_writer::link($url,
-                    html_writer::empty_tag('img', array('src' => $this->output->pix_url('t/up'),
-                    'class' => 'icon up', 'alt' => $strmoveup)),
-                    array('title' => $strmoveup, 'class' => 'moveup'));
-            }
-
-            $url = clone($baseurl);
-            if ($section->section < $course->numsections) { // Add a arrow to move section down.
-                $url->param('section', $section->section);
-                $url->param('move', 1);
-                $strmovedown =  get_string('movedown');
-
-                $controls[] = html_writer::link($url,
-                    html_writer::empty_tag('img', array('src' => $this->output->pix_url('t/down'),
-                    'class' => 'icon down', 'alt' => $strmovedown)),
-                    array('title' => $strmovedown, 'class' => 'movedown'));
-            }
-        }        
-        
         return $controls;
     }
-
+ 
     /**
      * Generate the display of the header part of a section before
      * course modules are included
@@ -731,7 +655,7 @@ class format_ucla_renderer extends format_section_renderer_base {
             // Only in the non-general sections.
             if (!$section->visible) {
                 $sectionstyle = ' hidden';
-            } else if ($this->is_section_current($section, $course)) {
+            } else if (course_get_format($course)->is_section_current($section) ) {
                 $sectionstyle = ' current';
             }
         }
@@ -745,7 +669,7 @@ class format_ucla_renderer extends format_section_renderer_base {
             'class' => 'section main clearfix'.$sectionstyle));
 
         // print any external notices
-        $this->print_external_notices($section->section);
+        $this->print_external_notices($section->section, $course);
 
         // For site info, instead of printing section title/summary, just 
         // print site info releated stuff instead
@@ -782,68 +706,18 @@ class format_ucla_renderer extends format_section_renderer_base {
         }
 
         return $o;
-    }    
-
+    }
+    
     /**
-     * Generate the section title
-     *
-     * Copied from base class method with following differences:
-     *  - Does not generate link
+     * Creates the UCLA format classes, sets up editing icons pref.
      * 
-     * @param stdClass $section The course_section entry from DB
-     * @param stdClass $course The course entry from DB
-     * @return string HTML to output.
-     */
-    public function section_title($section, $course) {
-        $title = get_section_name($course, $section);
-
-        // If section is not visible.. append '(hidden)'
-        $hidden = '';
-        if(empty($section->visible)) {
-            $hidden = html_writer::tag('span', '(' . get_string('hidden', 'calendar') . ')',
-                    array('class' => 'hidden'));
-        }
-        
-        // make section title a permalink
-        $moodle_url = new moodle_url('view.php',array('id' => $course->id,
-            'sectionid' => $section->id));
-        return html_writer::link($moodle_url,$title) . $hidden;
-    }   
-   
-    /**
-     * Generate the starting container html for a list of sections
-     * @return string HTML to output.
+     * @return html
      */
     protected function start_section_list() {
-        return html_writer::start_tag('ul', array('class' => 'topics'));
-    }    
-
-    /**
-     * Generate the header html of a stealth section
-     * 
-     * Copied from base class method with following differences:
-     *  - includes support for editing text instead of icons
-     *
-     * @param int $sectionno The section number in the coruse which is being dsiplayed
-     * @return string HTML to output.
-     */
-    protected function stealth_section_header($sectionno) {
-        // Apply section edit style
-        $sectionstyle = '';
-        if($this->noeditingicons) {
-            $sectionstyle .= ' text-icons';
-        }        
-        
-        $o = '';
-        $o.= html_writer::start_tag('li', array('id' => 'section-'.$sectionno, 'class' => "section main clearfix orphaned hidden$sectionstyle"));
-        $o.= html_writer::tag('div', '', array('class' => 'left side'));
-        $o.= html_writer::tag('div', '', array('class' => 'right side'));
-        $o.= html_writer::start_tag('div', array('class' => 'content'));
-        $o.= $this->output->heading(get_string('orphanedactivities'), 3, 'sectionname');
-        return $o;
-    }    
-    
-    // PRIVATE METHODS \\
+        $noeditingicons = get_user_preferences('noeditingicons', 1);
+        $classes = $noeditingicons ? 'ucla-format text-icons' : 'ucla-format';
+        return html_writer::start_tag('ul', array('class' => $classes));
+    } 
 
     /**
      * Generates JIT links for given section.
@@ -854,20 +728,32 @@ class format_ucla_renderer extends format_section_renderer_base {
      */
     private function get_jit_links($section) {
         $ret_val = html_writer::start_tag('div',
-                array('class' => 'jit_links'));
+                array('class' => 'jit-links '));
 
         foreach ($this->jit_links as $jit_type => $jit_string) {
             $link = new moodle_url('/blocks/ucla_easyupload/upload.php',
                     array('course_id' => $this->course->id,
                           'type' => $jit_type,
                           'section' => $section));
-            $ret_val .= html_writer::link($link, $jit_string);
+            $ret_val .= html_writer::link($link, $jit_string, array('class' => ''));
         }
 
         $ret_val .= html_writer::end_tag('div');        
         return $ret_val;
     }
-            
+
+    /**
+     * Generate the section title with permament section link
+     *
+     * @param stdClass $section The course_section entry from DB
+     * @param stdClass $course The course entry from DB
+     * @return string HTML to output.
+     */
+    public function section_title($section, $course) {
+        $title = get_section_name($course, $section);
+        $url = new moodle_url('/course/view.php', array('id' => $course->id, 'sectionid' => $section->id));
+        return html_writer::link($url, $title);;
+    }
     
     /**
      * If courseinfo is not empty, then will parse its contents into user 
@@ -908,45 +794,6 @@ class format_ucla_renderer extends format_section_renderer_base {
         }
         
         $this->term = $theterm; // save term for course being displayed
-    }    
-    
-    /**
-     * Load YUI module that overrides eidt move icon -> text
-     * 
-     * @global type $PAGE 
-     */
-    public function override_js() {
-        global $PAGE;
-        
-        $strishidden      = '(' . get_string('hidden', 'calendar') . ')';
-        $strmovealt         = get_string('movealt', 'format_ucla');
-        $pp_make_private = get_string('publicprivatemakeprivate','local_publicprivate');
-        $pp_make_public = get_string('publicprivatemakepublic','local_publicprivate');
-        $pp_private_material = get_string('publicprivategroupingname','local_publicprivate');
-        
-        $noeditingicons = get_user_preferences('noeditingicons', 1);
-
-        $noeditingicons = empty($noeditingicons) ? false : true;
-
-        $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_resource_toolbox',
-                array(array(
-                    'noeditingicon' => $noeditingicons,
-                    'makeprivate' => $pp_make_private,
-                    'makepublic' => $pp_make_public,
-                    'privatematerial' => $pp_private_material,
-                )), null, true);
-        
-        $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_toolbox',
-                array(array(
-                    'noeditingicon' => $noeditingicons,
-                )), null, true);
-
-        $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init',
-                array(array(
-                    'noeditingicon' => $noeditingicons,
-                    'hidden' => $strishidden,
-                    'movealt' => $strmovealt,
-                )), null, true);
-
     }
+    
 }

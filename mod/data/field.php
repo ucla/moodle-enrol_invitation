@@ -88,7 +88,7 @@ if ($id) {
 
 require_login($course, true, $cm);
 
-$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+$context = context_module::instance($cm->id);
 require_capability('mod/data:managetemplates', $context);
 
 /************************************
@@ -240,11 +240,11 @@ switch ($mode) {
 /// Print the browsing interface
 
 ///get the list of possible fields (plugins)
-$directories = get_list_of_plugins('mod/data/field/');
+$plugins = get_plugin_list('datafield');
 $menufield = array();
 
-foreach ($directories as $directory){
-    $menufield[$directory] = get_string($directory,'data');    //get from language files
+foreach ($plugins as $plugin=>$fulldir){
+    $menufield[$plugin] = get_string('pluginname', 'datafield_'.$plugin);    //get from language files
 }
 asort($menufield);    //sort in alphabetical order
 $PAGE->set_title(get_string('course') . ': ' . $course->fullname);
@@ -305,10 +305,9 @@ if (($mode == 'new') && (!empty($newtype)) && confirm_sesskey()) {          /// 
 
 
     echo '<div class="fieldadd">';
-    echo '<label for="fieldform_jump">'.get_string('newfield','data').'</label>';
+    echo '<label for="fieldform_jump">'.get_string('newfield','data').$OUTPUT->help_icon('newfield', 'data').'</label>';
     $popupurl = $CFG->wwwroot.'/mod/data/field.php?d='.$data->id.'&mode=new&sesskey='.  sesskey();
     echo $OUTPUT->single_select(new moodle_url($popupurl), 'newtype', $menufield, null, array(''=>'choosedots'), 'fieldform');
-    echo $OUTPUT->help_icon('newfield', 'data');
     echo '</div>';
 
     echo '<div class="sortdefault">';

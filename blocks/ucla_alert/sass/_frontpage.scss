@@ -1,0 +1,64 @@
+
+block_ucla_alert.block.block-ucla-alert.ucla-alert,
+.frontpage-alert {
+    
+    .header-box {
+        border-bottom: 1px solid #ddd;
+        border-top: 8px solid $alert-green;
+        padding: 4px 0;
+        
+        .header-title {
+            @include ccle-typography-h3;
+        }
+        .header-subtitle {
+            @include ccle-typography-h6;
+            color: #666;
+        }
+        + .box-boundary {
+            padding: 4px 0;
+            
+            .box-title {
+                font-weight: bold;
+                text-transform: uppercase;
+                border-bottom: 1px solid #eee;
+                padding: 2px 0;
+                margin-bottom: 2px;
+            }
+        }
+        
+        // Generate alert colors for the header
+        @each $color in $alert-colors {
+            $name:  nth($color, 1);
+            $val:   nth($color, 2);
+            
+            &.alert-header-#{$name} {
+                border-top-color: #{$val};
+            }
+        }
+    }
+    
+    >.box-boundary .box-section-title {
+        @include ccle-typography-h4;
+        
+        border-top: 2px solid #ddd;
+        border-bottom: 1px solid #ddd;
+        padding: 4px 0;
+        margin-bottom: 8px;
+        
+        ~ .box-boundary {
+            .box-title {
+                font-weight: bold;
+                text-transform: uppercase;
+                border-bottom: 1px solid #eee;
+                padding: 2px 0;
+                margin-bottom: 2px;
+            }
+            
+            .box-link {
+                border-left: 4px solid $alert-blue;
+                padding-left: 4px;
+                margin: 2px 0;
+            }
+        }
+    }
+}

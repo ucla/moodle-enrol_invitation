@@ -65,16 +65,16 @@ class repository_coursefiles extends repository {
         if (!empty($encodedpath)) {
             $params = unserialize(base64_decode($encodedpath));
             if (is_array($params)) {
-                $filepath  = is_null($params['filepath']) ? NULL : clean_param($params['filepath'], PARAM_PATH);;
+                $filepath  = is_null($params['filepath']) ? NULL : clean_param($params['filepath'], PARAM_PATH);
                 $filename  = is_null($params['filename']) ? NULL : clean_param($params['filename'], PARAM_FILE);
-                $context = get_context_instance_by_id(clean_param($params['contextid'], PARAM_INT));
+                $context = context::instance_by_id(clean_param($params['contextid'], PARAM_INT));
             }
         } else {
             $filename = null;
             $filepath = null;
             list($context, $course, $cm) = get_context_info_array($this->context->id);
             $courseid = is_object($course) ? $course->id : SITEID;
-            $context = get_context_instance(CONTEXT_COURSE, $courseid);
+            $context = context_course::instance($courseid);
         }
 
         if ($fileinfo = $browser->get_file_info($context, $component, $filearea, $itemid, $filepath, $filename)) {
@@ -155,10 +155,10 @@ class repository_coursefiles extends repository {
         $contextid  = clean_param($params['contextid'], PARAM_INT);
         $fileitemid = clean_param($params['itemid'], PARAM_INT);
         $filename = clean_param($params['filename'], PARAM_FILE);
-        $filepath = clean_param($params['filepath'], PARAM_PATH);;
+        $filepath = clean_param($params['filepath'], PARAM_PATH);
         $filearea = clean_param($params['filearea'], PARAM_AREA);
         $component = clean_param($params['component'], PARAM_COMPONENT);
-        $context = get_context_instance_by_id($contextid);
+        $context = context::instance_by_id($contextid);
 
         $file_info = $browser->get_file_info($context, $component, $filearea, $fileitemid, $filepath, $filename);
         return $file_info->get_url();
@@ -215,5 +215,14 @@ class repository_coursefiles extends repository {
     public function get_reference_file_lifetime($ref) {
         // this should be realtime
         return 0;
+    }
+
+    /**
+     * Is this repository accessing private data?
+     *
+     * @return bool
+     */
+    public function contains_private_data() {
+        return false;
     }
 }

@@ -19,19 +19,16 @@
  *
  * This plugin synchronises enrolment and roles with external database table.
  *
- * @package    enrol
- * @subpackage database
+ * @package    enrol_database
  * @copyright  2010 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/local/ucla/lib.php');
-require_once($CFG->dirroot .'/user/lib.php');
-// BEGIN UCLA MOD: CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't lose grading data  
-require_once($CFG->libdir .'/gradelib.php');
-// END UCLA MOD: CCLE-2824
+// START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+require_once($CFG->dirroot . '/local/ucla/classes/local_ucla_enrollment_helper.php');
+// END UCLA MOD: CCLE-4061
 
 /**
  * Database enrolment plugin implementation.
@@ -39,10 +36,20 @@ require_once($CFG->libdir .'/gradelib.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class enrol_database_plugin extends enrol_plugin {
+    // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+    /**
+     * Returns data needed to support the UCLA course tables and map data to
+     * what the enrol_database expects.
+     * 
+     * @var local_ucla_enrollment_helper
+     */
+    public $enrollmenthelper = null;    
+    // END UCLA MOD: CCLE-4061
+
     /**
      * Is it possible to delete enrol instance via standard UI?
      *
-     * @param object $instance
+     * @param stdClass $instance
      * @return bool
      */
     public function instance_deleteable($instance) {
@@ -75,7 +82,7 @@ class enrol_database_plugin extends enrol_plugin {
     }
 
     /**
-     * Gets an array of the user enrolment actions
+     * Gets an array of the user enrolment actions.
      *
      * @param course_enrolment_manager $manager
      * @param stdClass $ue A user enrolment object
@@ -95,75 +102,38 @@ class enrol_database_plugin extends enrol_plugin {
     }
 
     /**
-     *  Function to translate the stored procedures results to Moodle 
-     *  user results (named after the stored procedure).
-     **/
-    public function translate_ccle_roster_class($reg) {
-        $names = explode(',', trim($reg['full_name_person']));
-
-        if (empty($names)) {
-            // no name?!
-            mtrace('WARNING: Found user with no name from class roster: '. print_r($reg, true));    
-            $names[0] = '';
-            $firstmiddle = array('');
-        } else if (empty($names[1])) {
-            // No first name, they must be a rock star
-            $firstmiddle = array('');
-        } else {
-            $firstmiddle = explode(' ', trim($names[1]));
-        }
-
-        return array(
-            $this->get_config('remoteuserfield') => $reg['stu_id'],
-            'firstname' => $firstmiddle[0],
-            'lastname'  => $names[0],
-            'email'     => $reg['ss_email_addr'],
-            'username'  => $this->normalize_bolid($reg['bolid'])
-        );
-    }
-
-    /**
-     *  Function to translate the stored procedures results to Moodle 
-     *  user results (named after the stored procedure).
-     **/
-    public function translate_ccle_course_instructorsget($reg) {
-        return array(
-            $this->get_config('remoteuserfield') => $reg['ucla_id'],
-            'firstname' => $reg['first_name_person'],
-            'lastname'  => $reg['last_name_person'],
-            'email'     => $reg['ursa_email'],
-            'username'  => $this->normalize_bolid($reg['bolid'])
-        );
-    }
-
-    public function normalize_bolid($bolid) {
-        if (!empty($bolid)) {
-            return $bolid . '@ucla.edu';
-        }
-
-        return '';
-    }    
-    
-    /**
      * Forces synchronisation of user enrolments with external database,
      * does not create new courses.
      *
-     * @param object $user user record
+     * @param stdClass $user user record
      * @return void
      */
     public function sync_user_enrolments($user) {
         global $CFG, $DB;
 
-        // we do not create courses here intentionally because it requires full sync and is slow
+        // We do not create courses here intentionally because it requires full sync and is slow.
         if (!$this->get_config('dbtype') or !$this->get_config('remoteenroltable') or !$this->get_config('remotecoursefield') or !$this->get_config('remoteuserfield')) {
             return;
         }
 
+        // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+        // See if we are using UCLA specific changes to database enrollment.
+        $overrideenroldatabase = get_config('local_ucla', 'overrideenroldatabase');
+        if ($overrideenroldatabase && !isset($this->enrollmenthelper)) {
+            $trace = new null_progress_trace();
+            $this->enrollmenthelper = new local_ucla_enrollment_helper($trace, $this);
+        }
+        // END UCLA MOD: CCLE-4061
+
         $table            = $this->get_config('remoteenroltable');
-        $coursefield      = strtolower($this->get_config('remotecoursefield'));
-        $userfield        = strtolower($this->get_config('remoteuserfield'));
-        $rolefield        = strtolower($this->get_config('remoterolefield'));
-        $subjfield        = strtolower($this->get_config('remotesubjfield'));
+        $coursefield      = trim($this->get_config('remotecoursefield'));
+        $userfield        = trim($this->get_config('remoteuserfield'));
+        $rolefield        = trim($this->get_config('remoterolefield'));
+
+        // Lowercased versions - necessary because we normalise the resultset with array_change_key_case().
+        $coursefield_l    = strtolower($coursefield);
+        $userfield_l      = strtolower($userfield);
+        $rolefield_l      = strtolower($rolefield);
 
         $localrolefield   = $this->get_config('localrolefield');
         $localuserfield   = $this->get_config('localuserfield');
@@ -183,26 +153,25 @@ class enrol_database_plugin extends enrol_plugin {
             $user = $DB->get_record('user', array('id'=>$user->id));
         }
 
-        if (empty($user->{$localuserfield})) {
-            //debugging('MOODLE_ENROL_DATABASE: Cannot do login-time enrolment for ' . fullname($user));
-            return;
-        }
-
-        // create roles mapping
+        // Create roles mapping.
         $allroles = get_all_roles();
         if (!isset($allroles[$defaultrole])) {
             $defaultrole = 0;
+        }
+        $roles = array();
+        foreach ($allroles as $role) {
+            $roles[$role->$localrolefield] = $role->id;
         }
 
         $enrols = array();
         $instances = array();
 
         if (!$extdb = $this->db_init()) {
-            // can not connect to database, sorry
+            // Can not connect to database, sorry.
             return;
         }
 
-        // read remote enrols and create instances
+        // Read remote enrols and create instances.
         $sql = $this->db_get_sql($table, array($userfield=>$user->$localuserfield), array(), false);
 
         if ($rs = $extdb->Execute($sql)) {
@@ -211,43 +180,35 @@ class enrol_database_plugin extends enrol_plugin {
                     $fields = array_change_key_case($fields, CASE_LOWER);
                     $fields = $this->db_decode($fields);
 
-                    if (empty($fields[$coursefield])) {
-                        // missing course info
+                    if (empty($fields[$coursefield_l])) {
+                        // Missing course info.
                         continue;
                     }
-                    
-                    // START UCLA MODIFICATION CCLE-2275: Enrolment - View 
-                    // Map term-srs to our entry in the requests table
-                    list($term, $srs) = explode('-', $fields[$coursefield]);
-
-                    $localcourseid = ucla_map_termsrs_to_courseid($term, $srs);
-                    if (!$localcourseid) {
+                    // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+                    //if (!$course = $DB->get_record('course', array($localcoursefield=>$fields[$coursefield_l]), 'id,visible')) {
+                    if (!$overrideenroldatabase && (!$course = $DB->get_record('course', array($localcoursefield=>$fields[$coursefield_l]), 'id,visible'))) {
+                        continue;
+                    } else if ($overrideenroldatabase && (!$course = $this->enrollmenthelper->get_course($fields[$coursefield_l]))) {
                         continue;
                     }
-
-                    if (!$course = $DB->get_record('course', array($localcoursefield=>$localcourseid), 'id,visible')) {
-                        continue;
-                    }
-
+                    // END UCLA MOD: CCLE-4061
                     if (!$course->visible and $ignorehidden) {
                         continue;
                     }
 
-                    if (empty($fields[$rolefield])) {
+                    // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+                    //if (empty($fields[$rolefield_l]) or !isset($roles[$fields[$rolefield_l]])) {
+                    if ($overrideenroldatabase) {
+                        $roleid = $this->enrollmenthelper->get_role($fields[$rolefield_l], $fields['subj_area']);
+                    } else if (empty($fields[$rolefield_l]) or !isset($roles[$fields[$rolefield_l]])) {
+                    // END UCLA MOD: CCLE-4061
                         if (!$defaultrole) {
-                            // role is mandatory
+                            // Role is mandatory.
                             continue;
                         }
                         $roleid = $defaultrole;
                     } else {
-                        // Map a Registrar-provided role to a local moodle role
-                        try {
-                            $roleid = get_moodlerole($fields[$rolefield], $fields['subj_area']);
-                        } catch (moodle_exception $me) {
-                            mtrace('could not get mapping for ' . $user->{$localuserfield} 
-                                . ' ' . $fields[$rolefield] . ' ' . $course->shortname);
-                            continue;
-                        }
+                        $roleid = $roles[$fields[$rolefield_l]];
                     }
 
                     if (empty($enrols[$course->id])) {
@@ -267,49 +228,49 @@ class enrol_database_plugin extends enrol_plugin {
             $rs->Close();
             $extdb->Close();
         } else {
-            // bad luck, something is wrong with the db connection
+            // Bad luck, something is wrong with the db connection.
             $extdb->Close();
             return;
         }
 
-        // enrol user into courses and sync roles
+        // Enrol user into courses and sync roles.
         foreach ($enrols as $courseid => $roles) {
             if (!isset($instances[$courseid])) {
-                // ignored
+                // Ignored.
                 continue;
             }
             $instance = $instances[$courseid];
 
             if ($e = $DB->get_record('user_enrolments', array('userid'=>$user->id, 'enrolid'=>$instance->id))) {
-                // reenable enrolment when previously disable enrolment refreshed
+                // Reenable enrolment when previously disable enrolment refreshed.
                 if ($e->status == ENROL_USER_SUSPENDED) {
                     $this->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE);
                 }
             } else {
                 $roleid = reset($roles);
                 $this->enrol_user($instance, $user->id, $roleid, 0, 0, ENROL_USER_ACTIVE);
-                // BEGIN UCLA MOD: CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't lose grading data        
-                // attempt to recover grades for a newly assigned user
-                if ($CFG->recovergradesdefault) {
-                    grade_recover_history_grades($user->id, $instance->courseid);
-                }                
-                // END UCLA MOD: CCLE-2824
             }
 
-            if (!$context = get_context_instance(CONTEXT_COURSE, $instance->courseid)) {
-                //weird
+            if (!$context = context_course::instance($instance->courseid, IGNORE_MISSING)) {
+                // Weird.
                 continue;
             }
             $current = $DB->get_records('role_assignments', array('contextid'=>$context->id, 'userid'=>$user->id, 'component'=>'enrol_database', 'itemid'=>$instance->id), '', 'id, roleid');
 
             $existing = array();
             foreach ($current as $r) {
+                // START UCLA MOD: CCLE-3603 - TA vanished overnight
+                // Temporarily do not unenroll any users from login time enrollment.
+                if ($overrideenroldatabase) {
+                    continue;
+                }
+                // END UCLA MOD: CCLE-3603
                 if (in_array($r->roleid, $roles)) {
                     $existing[$r->roleid] = $r->roleid;
                 } else {
                     role_unassign($r->roleid, $user->id, $context->id, 'enrol_database', $instance->id);
                 }
-            }            
+            }
             foreach ($roles as $rid) {
                 if (!isset($existing[$rid])) {
                     role_assign($rid, $user->id, $context->id, 'enrol_database', $instance->id);
@@ -317,7 +278,14 @@ class enrol_database_plugin extends enrol_plugin {
             }
         }
 
-        // unenrol as necessary
+        // START UCLA MOD: CCLE-3603 - TA vanished overnight
+        // Temporarily do not unenroll any users from login time enrollment.
+        if ($overrideenroldatabase) {
+            return;
+        }
+        // END UCLA MOD: CCLE-3603
+
+        // Unenrol as necessary.
         $sql = "SELECT e.*, c.visible AS cvisible, ue.status AS ustatus
                   FROM {enrol} e
                   JOIN {user_enrolments} ue ON ue.enrolid = e.id
@@ -329,86 +297,111 @@ class enrol_database_plugin extends enrol_plugin {
                 continue;
             }
 
-            if (!$context = get_context_instance(CONTEXT_COURSE, $instance->courseid)) {
-                //weird
+            if (!$context = context_course::instance($instance->courseid, IGNORE_MISSING)) {
+                // Very weird.
                 continue;
             }
 
             if (!empty($enrols[$instance->courseid])) {
-                // we want this user enrolled
+                // We want this user enrolled.
                 continue;
             }
-            // START UCLA MOD CCLE-3603
-            // Temporarily disabling this code to prevent O2 (TAs) from 
-            // being unenroled.
 
-            // deal with enrolments removed from external table
-//            if ($unenrolaction == ENROL_EXT_REMOVED_UNENROL) {
-//                // unenrol
-//                $this->unenrol_user($instance, $user->id);
-//
-//            } else if ($unenrolaction == ENROL_EXT_REMOVED_KEEP) {
-//                // keep - only adding enrolments
-//
-//            } else if ($unenrolaction == ENROL_EXT_REMOVED_SUSPEND or $unenrolaction == ENROL_EXT_REMOVED_SUSPENDNOROLES) {
-//                // disable
-//                if ($instance->ustatus != ENROL_USER_SUSPENDED) {
-//                    $this->update_user_enrol($instance, $user->id, ENROL_USER_SUSPENDED);
-//                }
-//                if ($unenrolaction == ENROL_EXT_REMOVED_SUSPENDNOROLES) {
-//                    role_unassign_all(array('contextid'=>$context->id, 'userid'=>$user->id, 'component'=>'enrol_database', 'itemid'=>$instance->id));
-//                }
-//            }
-            // END UCLA MOD CCLE-3603
+            // Deal with enrolments removed from external table
+            if ($unenrolaction == ENROL_EXT_REMOVED_UNENROL) {
+                $this->unenrol_user($instance, $user->id);
+
+            } else if ($unenrolaction == ENROL_EXT_REMOVED_KEEP) {
+                // Keep - only adding enrolments.
+
+            } else if ($unenrolaction == ENROL_EXT_REMOVED_SUSPEND or $unenrolaction == ENROL_EXT_REMOVED_SUSPENDNOROLES) {
+                // Suspend users.
+                if ($instance->ustatus != ENROL_USER_SUSPENDED) {
+                    $this->update_user_enrol($instance, $user->id, ENROL_USER_SUSPENDED);
+                }
+                if ($unenrolaction == ENROL_EXT_REMOVED_SUSPENDNOROLES) {
+                    role_unassign_all(array('contextid'=>$context->id, 'userid'=>$user->id, 'component'=>'enrol_database', 'itemid'=>$instance->id));
+                }
+            }
         }
         $rs->close();
-
-        // START UCLA MOD: Events for login-time enrolment
-        $edata = new object();
-        $edata->user = $user;
-        $edata->enrols = $enrols;
-        events_trigger('sync_user_enrolments_finished', $edata);
-        // END UCLA MOD
     }
 
     /**
      * Forces synchronisation of all enrolments with external database.
      *
-     * @param bool $verbose
-     * @param Array $terms - if null, then all terms. if empty() then no terms.
-     * @param int $singlecourse - if null, then ignored, otherwise the course.id 
-     *      of the course you with to prepopulate.
+     * @param progress_trace $trace
+     * @param null|int $onecourse limit sync to one course only (used primarily in restore)
      * @return int 0 means success, 1 db connect failure, 2 db read failure
      */
-    public function sync_enrolments($verbose = false, $terms = null, $singlecourse = null) {
+    public function sync_enrolments(progress_trace $trace, $onecourse = null) {
         global $CFG, $DB;
 
-        // we do not create courses here intentionally because it requires full sync and is slow
-        if (!$this->get_config('dbtype') or !$this->get_config('remoteenroltable') or !$this->get_config('remotecoursefield') or !$this->get_config('remoteuserfield')) {
-            if ($verbose) {
-                mtrace('User enrolment synchronisation skipped.');
+        // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+        // See if we are using UCLA specific changes to database enrollment.
+        $overrideenroldatabase = get_config('local_ucla', 'overrideenroldatabase');
+
+        // We are overloading the $onecourse parameter to be an array that
+        // contains the list of terms to process or a courseid.
+        if ($overrideenroldatabase) {
+            if (empty($onecourse)) {
+                $trace->output('No terms or courseid specified.');
+                $trace->finished();
+                return 0;
             }
+            try {
+                // When we unit test, we will set this helper to a mocked one.
+                if (!isset($this->enrollmenthelper)) {
+                    $this->enrollmenthelper = new local_ucla_enrollment_helper(
+                            $trace, $this, $onecourse);
+                } else {
+                    $this->enrollmenthelper->set_run_parameter($onecourse);
+                }
+                // We only care if $onecourse is an int, else if an array of
+                // terms, we already told the enrollment helper what terms we
+                // are processing, so unset it.
+                if (is_array($onecourse)) {
+                    $onecourse = null;
+                }
+            } catch (Exception $e) {
+                $trace->output($e->getMessage());
+                $trace->finished();
+                return 0;                
+            }
+        }
+        // END UCLA MOD: CCLE-4061
+
+        // We do not create courses here intentionally because it requires full sync and is slow.
+        if (!$this->get_config('dbtype') or !$this->get_config('remoteenroltable') or !$this->get_config('remotecoursefield') or !$this->get_config('remoteuserfield')) {
+            $trace->output('User enrolment synchronisation skipped.');
+            $trace->finished();
             return 0;
         }
 
-        if ($verbose) {
-            mtrace('Starting user enrolment synchronisation...');
-        }
+        $trace->output('Starting user enrolment synchronisation...');
 
-        if (!$extdb = $this->db_init()) {
-            mtrace('Error while communicating with external enrolment database');
+        // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+        //if (!$extdb = $this->db_init()) {
+        if (!$overrideenroldatabase && !$extdb = $this->db_init()) {
+        // END UCLA MOD: CCLE-4061
+            $trace->output('Error while communicating with external enrolment database');
+            $trace->finished();
             return 1;
         }
 
-        // we may need a lot of memory here
+        // We may need a lot of memory here.
         @set_time_limit(0);
         raise_memory_limit(MEMORY_HUGE);
 
-        // second step is to sync instances and users
         $table            = $this->get_config('remoteenroltable');
-        $coursefield      = strtolower($this->get_config('remotecoursefield'));
-        $userfield        = strtolower($this->get_config('remoteuserfield'));
-        $rolefield        = strtolower($this->get_config('remoterolefield'));
+        $coursefield      = trim($this->get_config('remotecoursefield'));
+        $userfield        = trim($this->get_config('remoteuserfield'));
+        $rolefield        = trim($this->get_config('remoterolefield'));
+
+        // Lowercased versions - necessary because we normalise the resultset with array_change_key_case().
+        $coursefield_l    = strtolower($coursefield);
+        $userfield_l      = strtolower($userfield);
+        $rolefield_l      = strtolower($rolefield);
 
         $localrolefield   = $this->get_config('localrolefield');
         $localuserfield   = $this->get_config('localuserfield');
@@ -417,7 +410,7 @@ class enrol_database_plugin extends enrol_plugin {
         $unenrolaction    = $this->get_config('unenrolaction');
         $defaultrole      = $this->get_config('defaultrole');
 
-        // create roles mapping
+        // Create roles mapping.
         $allroles = get_all_roles();
         if (!isset($allroles[$defaultrole])) {
             $defaultrole = 0;
@@ -427,300 +420,143 @@ class enrol_database_plugin extends enrol_plugin {
             $roles[$role->$localrolefield] = $role->id;
         }
 
-        /** UCLA MODIFIATION CCLE-2275: Disabling core moodle sync
-        // get a list of courses to be synced that are in external table
-        $externalcourses = array();
-        $sql = $this->db_get_sql($table, array(), array($coursefield), true);
-        if ($rs = $extdb->Execute($sql)) {
-            if (!$rs->EOF) {
-                while ($mapping = $rs->FetchRow()) {
-                    $mapping = reset($mapping);
-                    $mapping = $this->db_decode($mapping);
-                    if (empty($mapping)) {
-                        // invalid mapping
-                        continue;
-                    }
-                    $externalcourses[$mapping] = true;
-                }
+        if ($onecourse) {
+            $sql = "SELECT c.id, c.visible, c.$localcoursefield AS mapping, c.shortname, e.id AS enrolid
+                      FROM {course} c
+                 LEFT JOIN {enrol} e ON (e.courseid = c.id AND e.enrol = 'database')
+                     WHERE c.id = :id";
+            if (!$course = $DB->get_record_sql($sql, array('id'=>$onecourse))) {
+                // Course does not exist, nothing to sync.
+                return 0;
             }
-            $rs->Close();
+            if (empty($course->mapping)) {
+                // We can not map to this course, sorry.
+                return 0;
+            }
+            if (empty($course->enrolid)) {
+                $course->enrolid = $this->add_instance($course);
+            }
+            $existing = array($course->mapping=>$course);
+
+            // Feel free to unenrol everybody, no safety tricks here.
+            $preventfullunenrol = false;
+            // Course being restored are always hidden, we have to ignore the setting here.
+            $ignorehidden = false;
+
         } else {
-            mtrace('Error reading data from the external enrolment table');
-            $extdb->Close();
-            return 2;
-        }
-        // END UCLA MODIFICATION CCLE-2275    **/
-
-        // UCLA MODIFICATION CCLE-2275: Prepop uses different data
-        // sources
-        ucla_require_registrar();
-
-        if ($terms === null) {
-            if ($singlecourse === null) {
-                if ($verbose) {
-                    mtrace("Working for all terms.");
+            // Get a list of courses to be synced that are in external table.
+            $externalcourses = array();
+            $sql = $this->db_get_sql($table, array(), array($coursefield), true);
+            // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+            //if ($rs = $extdb->Execute($sql)) {
+            if ($overrideenroldatabase) {
+                $externalcourses = $this->enrollmenthelper->get_external_enrollment_courses();
+            } else if ($rs = $extdb->Execute($sql)) {
+            // END UCLA MOD: CCLE-4061
+                if (!$rs->EOF) {
+                    while ($mapping = $rs->FetchRow()) {
+                        $mapping = reset($mapping);
+                        $mapping = $this->db_decode($mapping);
+                        if (empty($mapping)) {
+                            // invalid mapping
+                            continue;
+                        }
+                        $externalcourses[$mapping] = true;
+                    }
                 }
-
-                // No single course was provided, and no term was provided
-                $courses = $DB->get_records('ucla_request_classes');
-                $course_indexed = index_ucla_course_requests($courses, 'courseid');
-                unset($courses);
+                $rs->Close();
             } else {
-                if ($verbose) {
-                    mtrace("Working for single course $singlecourse");
-                }
-
-                // Get a single course 
-                $courses = ucla_get_course_info($singlecourse);
-
-                $course_set = array();
-                foreach ($courses as $courseinfo) {
-                    $tbicourse = new stdclass();
-
-                    $tbicourse->department = $courseinfo->subj_area;
-                    $tbicourse->courseid = $singlecourse;
-                    $tbicourse->term = $courseinfo->term;
-                    $tbicourse->srs = $courseinfo->srs;
-                    
-                    $course_set[] = $tbicourse;
-                }
-
-                $course_indexed = array($singlecourse => $course_set);
+                $trace->output('Error reading data from the external enrolment table');
+                $extdb->Close();
+                return 2;
             }
-        } else if (!empty($terms)) {
-            if ($verbose) {
-                mtrace("Working for " . implode(' ', $terms));
+            $preventfullunenrol = empty($externalcourses);
+            if ($preventfullunenrol and $unenrolaction == ENROL_EXT_REMOVED_UNENROL) {
+                $trace->output('Preventing unenrolment of all current users, because it might result in major data loss, there has to be at least one record in external enrol table, sorry.', 1);
             }
 
-            $course_indexed = ucla_get_courses_by_terms($terms);
+            // First find all existing courses with enrol instance.
+            $existing = array();
+            $sql = "SELECT c.id, c.visible, c.$localcoursefield AS mapping, e.id AS enrolid, c.shortname
+                      FROM {course} c
+                      JOIN {enrol} e ON (e.courseid = c.id AND e.enrol = 'database')";
+            $rs = $DB->get_recordset_sql($sql); // Watch out for idnumber duplicates.
+            foreach ($rs as $course) {
+                if (empty($course->mapping)) {
+                    continue;
+                }
+                $existing[$course->mapping] = $course;
+                unset($externalcourses[$course->mapping]);
+            }
+            $rs->close();
+
+            // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+            // Yes, this is duplicating work above, but we only want courses for
+            // a certain term.
+            if ($overrideenroldatabase) {
+                unset($existing);
+                $existing = $this->enrollmenthelper->get_existing_courses();
+            }
+            // END UCLA MOD: CCLE-4061
+
+            // Add necessary enrol instances that are not present yet.
+            $params = array();
+            $localnotempty = "";
+            if ($localcoursefield !== 'id') {
+                $localnotempty =  "AND c.$localcoursefield <> :lcfe";
+                $params['lcfe'] = '';
+            }
+            $sql = "SELECT c.id, c.visible, c.$localcoursefield AS mapping, c.shortname
+                      FROM {course} c
+                 LEFT JOIN {enrol} e ON (e.courseid = c.id AND e.enrol = 'database')
+                     WHERE e.id IS NULL $localnotempty";
+            $rs = $DB->get_recordset_sql($sql, $params);
+            foreach ($rs as $course) {
+                if (empty($course->mapping)) {
+                    continue;
+                }
+                if (!isset($externalcourses[$course->mapping])) {
+                    // Course not synced or duplicate.
+                    continue;
+                }
+                $course->enrolid = $this->add_instance($course);
+                $existing[$course->mapping] = $course;
+                unset($externalcourses[$course->mapping]);
+            }
+            $rs->close();
+
+            // Print list of missing courses.
+            if ($externalcourses) {
+                $list = implode(', ', array_keys($externalcourses));
+                $trace->output("error: following courses do not exist - $list", 1);
+                unset($list);
+            }
+
+            // Free memory.
+            unset($externalcourses);
+
+            $ignorehidden = $this->get_config('ignorehiddencourses');
         }
 
-        if (empty($course_indexed)) {
-            return 0;
-        }
-
-        $enrolment_info = array();
-
-
-        foreach ($course_indexed as $courseid => $set) {
-            $externalcourses[$courseid] = true;
-            $failed_users = array();
-
-            foreach ($set as $course) {
-                $regdata = array($course->term, $course->srs);
-
-                $subjarea = $course->department;
-                $localmap = $course->courseid;
-
-                // grab the instructors... from a different data source
-                $results = registrar_query::run_registrar_query(
-                    'ccle_courseinstructorsget', $regdata, false
-                );
-
-                $instrs = $results[registrar_query::query_results];
-                foreach ($results[registrar_query::failed_outputs] as $failed) {
-                    $failed_users[] = $failed;
-                }
-
-                $otherroles = array();
-
-                
-                // Need to create mapping of role code to primary/secondary
-                // sections
-                foreach ($instrs as $index => $instructor) {
-                    // if srs is different than parameters given for 
-                    // ccle_courseinstructorsget, then it is a secondary srs
-                    $section_type = 'primary';
-                    if ($instructor['srs'] != $course->srs) {
-                        $section_type = 'secondary';
-                    }
-                    
-                    $pc = $instructor['role'];
-                    $otherroles[$section_type][] = $pc;
-                    $instrs[$index]['prof_codes'][$section_type][] = $pc;
-                }
-
-                // Now we need to save the roles per course
-                // TODO what should happen if in a crosslisted course a 
-                // professor gets two different roles?
-                $instructorcount = 0;
-                foreach ($instrs as $instructor) {
-                    // No need to enrol "THE STAFF" or "TA"
-                    if (is_dummy_ucla_user($instructor['ucla_id'])) {
-                        continue;
-                    }
-
-                    $user = $this->translate_ccle_course_instructorsget(
-                        $instructor
-                    );
-
-                    try {
-                        $role_mapping = role_mapping(
-                            $instructor['prof_codes'],
-                            $otherroles,
-                            $subjarea
-                        );
-                    } catch (moodle_exception $me) {
-                        // Print error?
-                        mtrace('could not get good mapping for ' . print_r($instructor, true));
-                        continue;
-                    }
-                    
-                    $user[$rolefield] = $roles[$role_mapping];
-
-                    $enrolment_info[$localmap][] = $user;
-                    $instructorcount++;
-                }
-
-                // grab the roster... from a different data source
-                $results = registrar_query::run_registrar_query(
-                    'ccle_roster_class', $regdata, false
-                );
-
-                $roster = $results[registrar_query::query_results];
-                foreach ($results[registrar_query::failed_outputs] as $failed) {
-                    $failed_users[] = $failed;
-                }
-                    
-                $studentcount = 0;
-                foreach ($roster as $student) {
-                    // Do something to make it into a friendly format for the
-                    // next section...
-                    $studentpr = 
-                        get_student_pseudorole($student['enrl_stat_cd']);
-
-                    if ($studentpr === false) {
-                        continue;
-                    }
-                    
-                    $user = $this->translate_ccle_roster_class($student);
-
-                    try {
-                        $moodlerole = get_moodlerole($studentpr, $subjarea);
-                    } catch (moodle_exception $me) {
-                        mtrace('could not get mapping for student: ' . $studentpr 
-                            . ' [' . $student['enrl_stat_cd'] . ']');
-                        continue;
-                    }
-
-                    $user[$rolefield] = $roles[$moodlerole];
-
-                    $enrolment_info[$localmap][] = $user;
-                    $studentcount++;
-                }
-
-                if ($verbose) {
-                    mtrace("Fetching data for course $courseid: " . $course->term 
-                        . ' ' . $course->srs . " $instructorcount instructors $studentcount students");
-                }
-            }
-
-            // Notify someone of users without a logonid 
-            if (!empty($failed_users)) {
-                foreach ($failed_users as $failed) {
-                    mtrace("Bad data from Registrar: " . print_r($failed, true));
-                }
-            }
-        }
-
-        // END CCLE-2275: Fetch users and limit courses to run sync on.
-
-        $preventfullunenrol = empty($externalcourses);
-        if ($preventfullunenrol and $unenrolaction == ENROL_EXT_REMOVED_UNENROL) {
-            mtrace('  Preventing unenrolment of all current users, because it might result in major data loss, there has to be at least one record in external enrol table, sorry.');
-        }
-
-        // first find all existing courses with enrol instance
-        $existing = array();
-        $sql = "SELECT c.id, c.visible, c.$localcoursefield AS mapping, e.id AS enrolid, c.shortname
-                  FROM {course} c
-                  JOIN {enrol} e ON (e.courseid = c.id AND e.enrol = 'database')";
-        $rs = $DB->get_recordset_sql($sql); // watch out for idnumber duplicates
-        foreach ($rs as $course) {
-            if (empty($course->mapping)) {
-                continue;
-            }
-            $existing[$course->mapping] = $course;
-        }
-        $rs->close();
-
-        // add necessary enrol instances that are not present yet
-        $params = array();
-        $localnotempty = "";
-        if ($localcoursefield !== 'id') {
-            $localnotempty =  "AND c.$localcoursefield <> :lcfe";
-            $params['lcfe'] = $DB->sql_empty();
-        }
-        $sql = "SELECT c.id, c.visible, c.$localcoursefield AS mapping, c.shortname
-                  FROM {course} c
-             LEFT JOIN {enrol} e ON (e.courseid = c.id AND e.enrol = 'database')
-                 WHERE e.id IS NULL $localnotempty";
-        $rs = $DB->get_recordset_sql($sql, $params);
-        foreach ($rs as $course) {
-            if (empty($course->mapping)) {
-                continue;
-            }
-            if (!isset($externalcourses[$course->mapping])) {
-                // course not synced
-                continue;
-            }
-            if (isset($existing[$course->mapping])) {
-                // some duplicate, sorry
-                continue;
-            }
-            $course->enrolid = $this->add_instance($course);
-            $existing[$course->mapping] = $course;
-        }
-        $rs->close();
-
-        // free memory
-        unset($externalcourses);
-
-        // sync enrolments
-        $ignorehidden = $this->get_config('ignorehiddencourses');
+        // Sync user enrolments.
         $sqlfields = array($userfield);
         if ($rolefield) {
             $sqlfields[] = $rolefield;
         }
-        
-        // UCLA MOD CCLE-2924: Update user data with prepop.
-        $user_caches = array();
-
-        // These are fields that are arbitrarily updated.
-        // THe auth plugins are not usable in determining what fields to update
-        $updateuserfields = array('firstname', 'lastname', 'email');
-
-        // This configuration value comes in days, so multiply
-        // This value is in seconds, or is false which is 0, meaning instantly/always
-        // 86400 == 60 * 60 * 24 (seconds in a day)
-        $minuserupdatewait = $this->get_config('minuserupdatewaitdays') * 86400;
-       
-        // This may cause seconds/minutes of disparity
-        $currtime = time();
-
         foreach ($existing as $course) {
-            // CCLE-2275: Ignoring courses that are not selected to be
-            // synchronized (such as courses in other terms)
-            if (!isset($enrolment_info[$course->mapping])) {
-                continue;
-            }
-            // End Modification CCLE-2275
-
             if ($ignorehidden and !$course->visible) {
                 continue;
             }
             if (!$instance = $DB->get_record('enrol', array('id'=>$course->enrolid))) {
-                continue; //weird
+                continue; // Weird!
             }
-            $context = get_context_instance(CONTEXT_COURSE, $course->id);
+            $context = context_course::instance($course->id);
 
-
-            // get current list of enrolled users with their roles
+            // Get current list of enrolled users with their roles.
             $current_roles  = array();
             $current_status = array();
             $user_mapping   = array();
-
-            $sql = "SELECT u.$localuserfield AS mapping, ue.status, ue.userid, ra.roleid
+            $sql = "SELECT u.$localuserfield AS mapping, u.id, ue.status, ue.userid, ra.roleid
                       FROM {user} u
                       JOIN {user_enrolments} ue ON (ue.userid = u.id AND ue.enrolid = :enrolid)
                       JOIN {role_assignments} ra ON (ra.userid = u.id AND ra.itemid = ue.enrolid AND ra.component = 'enrol_database')
@@ -734,307 +570,145 @@ class enrol_database_plugin extends enrol_plugin {
             foreach ($rs as $ue) {
                 $current_roles[$ue->userid][$ue->roleid] = $ue->roleid;
                 $current_status[$ue->userid] = $ue->status;
-
-                // This is for UNEX students
-                if (!empty($ue->mapping)) {
-                    $user_mapping[$ue->mapping] = $ue->userid;
-                }
+                $user_mapping[$ue->mapping] = $ue->userid;
             }
             $rs->close();
 
-            // get list of users that need to be enrolled and their roles
+            // Get list of users that need to be enrolled and their roles.
             $requested_roles = array();
-
-            // START UCLA MODIFICATION CCLE-2275: Prepopulate (ucla tinkering)
-            $defaultusersearch = array();
-            
-            if ($localuserfield === 'username') {
-                $defaultusersearch['mnethostid'] = $CFG->mnet_localhost_id; 
-                $defaultusersearch['deleted'] = 0;
-            }
-
-            if (!empty($enrolment_info[$course->mapping])) {
-                foreach ($enrolment_info[$course->mapping] as $fields) {
-                    $usersearch = $defaultusersearch;
-
-                    $fields = array_change_key_case($fields, CASE_LOWER);
-                    if (!empty($fields[$userfield])) {
-                        $mapping = $fields[$userfield];
-                    } else {
-                        $mapping = false;
+            $sql = $this->db_get_sql($table, array($coursefield=>$course->mapping), $sqlfields);
+            // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+            //if ($rs = $extdb->Execute($sql)) {
+            if ($overrideenroldatabase) {
+                $requested_roles = $this->enrollmenthelper->get_requested_roles($course);
+            } else if ($rs = $extdb->Execute($sql)) {
+            // END UCLA MOD: CCLE-4061
+                if (!$rs->EOF) {
+                    $usersearch = array('deleted' => 0);
+                    if ($localuserfield === 'username') {
+                        $usersearch['mnethostid'] = $CFG->mnet_localhost_id;
                     }
-
-                    // If the inital query to load all users does not contain a refernce
-                    // to the user we are looking for, but we have a match in $mapping 
-                    if ($mapping && empty($user_mapping[$mapping])) {
-                        // Find the user from our database
-                        $sqlparams = array();
-                        $sqlbuilder = array();
-                        foreach ($usersearch as $f => $v) {
-                            $sqlbuilder[] = "$f = ?";
-                            $sqlparams[] = $v;
-                        }
-
-                        $searchstr = "$localuserfield = ?";
-                        $sqlparams[] = $mapping;
-
-                        $sqlbuilder[] = $searchstr;
-                        $usersql = implode(' AND ', $sqlbuilder);
-
-                        $user = $DB->get_record_select('user', $usersql, $sqlparams, 
-                            "id, $localuserfield", IGNORE_MULTIPLE);
-
-                        if (!$user) {
-                            // UCLA MODIFICATION CCLE-2275: Pre-populate needs
-                            // to create users that do not exist.
-                            // user does not exist or was deleted
-                            // Stolen from user/editadvanced.php
-                            $user = new stdclass();
-                            $user->confirmed = 1;
-                            $user->timecreated = time();
-                            $user->auth = 'shibboleth';
-                            $user->mnethostid = $CFG->mnet_localhost_id;
-
-                            // This will fill in user fields with stored procedure
-                            // data such as firstname lastname
-                            foreach ($fields as $k => $v) {
-                                if ($k == $userfield) {
-                                    $user->{$localuserfield} = $v;
-                                } else {
-                                    $user->{$k} = $v;
-                                }
-                            }
-
-                            if (empty($fields['username'])) {
-                                if ($verbose) {
-                                    mtrace('# Cannot create user - no '
-                                        . 'username [' . $fields['uid'] 
-                                        . '] [' . fullname((object)$fields) 
-                                        . ']');
-                                }
-                                continue;
-                            }
-
-                            try {
-                                $user->id = user_create_user($user);
-                            } catch (dml_exception $e) {
-                                mtrace("Skipping enrollments for "   
-                                    . $user->username);
-                                mtrace($e->debuginfo);
-                                continue;
-                            }
-
-                            $user_cache[$user->id] = $user;
-                            
-                            if ($verbose) {
-                                mtrace('. Created new user ' . $user->id
-                                    . ' [' . $mapping . '] [' . $user->username . ']');
-                            }
-                        }
-                        
-                        $userid = $user->id;
-
-                        // Update our local DB with new identifying information
-                        // since we either only came from user field or fallback
-                        // field
-                        $needsupdate = false;
-                        if (!empty($mapping) && empty($user->{$localuserfield})) {
-                            $user->{$localuserfield} = $mapping;
-                            mtrace("Updating user $userid: $localuserfield $mapping");
-                            $needsupdate = true;
-                        }
-
-                        if ($needsupdate) {
-                            $DB->update_record('user', $user);
-                        }
-
-                        if (!empty($mapping)) {
-                            $user_mapping[$mapping] = $userid;
-                        }
-                    } else {
-                        // Don't use fallback
-                        $userid = $user_mapping[$mapping];
-                    }
-
-                    // CCLE-2924: Update users: Match the user and update information if needed.
-                    if (!isset($user_cache[$userid])) {
-                        $user_cache[$userid] = $DB->get_record('user', array('id' => $userid));
-                    }
-
-                    // This clone might not be necessary, but this is useful for debugging purposes...
-                    $userinfo = clone($user_cache[$userid]);
-                    $needsupdate = false;
-
-                    $updatedebugstr = '';
-
-                    // Go through updater fields and sync with registrar
-                    foreach ($updateuserfields as $updateuserfield) {
-                        if (!empty($fields[$updateuserfield]) && $userinfo->{$updateuserfield} != $fields[$updateuserfield]) {
-                            if (!empty($updatedebugstr)) {
-                                $updatedebugstr .= "\n";
-                            }
-
-                            $updatedebugstr .= "Updating user $userid data: "
-                                . "$updateuserfield [{$userinfo->{$updateuserfield}}] "
-                                . "=> [{$fields[$updateuserfield]}]";
-
-                            $userinfo->{$updateuserfield} = $fields[$updateuserfield];
-
-                            $needsupdate = true;
-                        }
-                    }
-
-                    if ($needsupdate) {
-                        if ($currtime - $userinfo->lastaccess > $minuserupdatewait) {
-                            if ($verbose) {
-                                mtrace($updatedebugstr);
-                            }
-
-                            unset($userinfo->password); // we aren't updating a user's password
-                            user_update_user($userinfo);
-
-                            // If the clone() is not above, then this line is not necessary
-                            $user_cache[$userid] = $userinfo;
-                        }  else if ($verbose) {
-                            // If the clone() is not above, this debugging message won't work
-                            $origuserinfo = $user_cache[$userid];
-
-                            $userstr = fullname($origuserinfo) . ' ' . $origuserinfo->email;
-                            $remoteuserstr = fullname($userinfo) . ' ' . $userinfo->email;
-
-                            mtrace('User data (' . $userstr 
-                                . ') does not match externaldb (' . $remoteuserstr 
-                                . '), but ignoring (minuserupdatewaitdays)');
-                        }
-                    }
-
-                    // Since we cloned, we want to clear memory
-                    unset($userinfo);
-
-                    if (empty($fields[$rolefield]) or !isset($roles[$fields[$rolefield]])) {
-                        if (!$defaultrole) {
-                            // role is mandatory
+                    while ($fields = $rs->FetchRow()) {
+                        $fields = array_change_key_case($fields, CASE_LOWER);
+                        if (empty($fields[$userfield_l])) {
+                            $trace->output("error: skipping user without mandatory $localuserfield in course '$course->mapping'", 1);
                             continue;
                         }
-                        $roleid = $defaultrole;
-                    } else {
-                        $roleid = $roles[$fields[$rolefield]];
-                    }
+                        $mapping = $fields[$userfield_l];
+                        if (!isset($user_mapping[$mapping])) {
+                            $usersearch[$localuserfield] = $mapping;
+                            if (!$user = $DB->get_record('user', $usersearch, 'id', IGNORE_MULTIPLE)) {
+                                $trace->output("error: skipping unknown user $localuserfield '$mapping' in course '$course->mapping'", 1);
+                                continue;
+                            }
+                            $user_mapping[$mapping] = $user->id;
+                            $userid = $user->id;
+                        } else {
+                            $userid = $user_mapping[$mapping];
+                        }
+                        if (empty($fields[$rolefield_l]) or !isset($roles[$fields[$rolefield_l]])) {
+                            if (!$defaultrole) {
+                                $trace->output("error: skipping user '$userid' in course '$course->mapping' - missing course and default role", 1);
+                                continue;
+                            }
+                            $roleid = $defaultrole;
+                        } else {
+                            $roleid = $roles[$fields[$rolefield_l]];
+                        }
 
-                    $requested_roles[$userid][$roleid] = $roleid;
+                        $requested_roles[$userid][$roleid] = $roleid;
+                    }
                 }
                 $rs->Close();
             } else {
-                mtrace("  error: skipping course '$course->mapping' - could not match with external database");
+                $trace->output("error: skipping course '$course->mapping' - could not match with external database", 1);
                 continue;
             }
             unset($user_mapping);
 
-            // enrol all users and sync roles
+            // Enrol all users and sync roles.
             foreach ($requested_roles as $userid=>$userroles) {
                 foreach ($userroles as $roleid) {
                     if (empty($current_roles[$userid])) {
                         $this->enrol_user($instance, $userid, $roleid, 0, 0, ENROL_USER_ACTIVE);
                         $current_roles[$userid][$roleid] = $roleid;
                         $current_status[$userid] = ENROL_USER_ACTIVE;
-                        if ($verbose) {
-                            mtrace("  enrolling: $userid ==> $course->shortname as ".$allroles[$roleid]->shortname);
-                        }
-                        // BEGIN UCLA MOD: CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't lose grading data        
-                        // attempt to recover grades for a newly assigned user
-                        if ($CFG->recovergradesdefault) {                            
-                            $recovered_grades = grade_recover_history_grades($userid, $course->id);
-                            if ($recovered_grades && $verbose) {
-                                mtrace("  recovered grades: $userid ==> $course->shortname");
-                            }
-                        }                
-                        // END UCLA MOD: CCLE-2824                        
+                        $trace->output("enrolling: $userid ==> $course->shortname as ".$allroles[$roleid]->shortname, 1);
                     }
                 }
 
-                // assign extra roles
+                // Assign extra roles.
                 foreach ($userroles as $roleid) {
                     if (empty($current_roles[$userid][$roleid])) {
                         role_assign($roleid, $userid, $context->id, 'enrol_database', $instance->id);
                         $current_roles[$userid][$roleid] = $roleid;
-                        if ($verbose) {
-                            mtrace("  assigning roles: $userid ==> $course->shortname as ".$allroles[$roleid]->shortname);
-                        }
+                        $trace->output("assigning roles: $userid ==> $course->shortname as ".$allroles[$roleid]->shortname, 1);
                     }
                 }
 
-                // unassign removed roles
+                // Unassign removed roles.
                 foreach($current_roles[$userid] as $cr) {
                     if (empty($userroles[$cr])) {
                         role_unassign($cr, $userid, $context->id, 'enrol_database', $instance->id);
                         unset($current_roles[$userid][$cr]);
-                        if ($verbose) {
-                            mtrace("  unsassigning roles: $userid ==> $course->shortname");
-                        }
+                        $trace->output("unsassigning roles: $userid ==> $course->shortname", 1);
                     }
                 }
 
-                // reenable enrolment when previously disable enrolment refreshed
+                // Reenable enrolment when previously disable enrolment refreshed.
                 if ($current_status[$userid] == ENROL_USER_SUSPENDED) {
                     $this->update_user_enrol($instance, $userid, ENROL_USER_ACTIVE);
-                    if ($verbose) {
-                        mtrace("  unsuspending: $userid ==> $course->shortname");
-                    }
+                    $trace->output("unsuspending: $userid ==> $course->shortname", 1);
                 }
             }
 
-            // deal with enrolments removed from external table
+            // Deal with enrolments removed from external table.
             if ($unenrolaction == ENROL_EXT_REMOVED_UNENROL) {
                 if (!$preventfullunenrol) {
-                    // unenrol
+                    // Unenrol.
                     foreach ($current_status as $userid=>$status) {
                         if (isset($requested_roles[$userid])) {
                             continue;
                         }
                         $this->unenrol_user($instance, $userid);
-                        if ($verbose) {
-                            mtrace("  unenrolling: $userid ==> $course->shortname");
-                        }
+                        $trace->output("unenrolling: $userid ==> $course->shortname", 1);
                     }
                 }
 
             } else if ($unenrolaction == ENROL_EXT_REMOVED_KEEP) {
-                // keep - only adding enrolments
+                // Keep - only adding enrolments.
 
             } else if ($unenrolaction == ENROL_EXT_REMOVED_SUSPEND or $unenrolaction == ENROL_EXT_REMOVED_SUSPENDNOROLES) {
-                // disable
+                // Suspend enrolments.
                 foreach ($current_status as $userid=>$status) {
                     if (isset($requested_roles[$userid])) {
                         continue;
                     }
                     if ($status != ENROL_USER_SUSPENDED) {
                         $this->update_user_enrol($instance, $userid, ENROL_USER_SUSPENDED);
-                        if ($verbose) {
-                            mtrace("  suspending: $userid ==> $course->shortname");
-                        }
+                        $trace->output("suspending: $userid ==> $course->shortname", 1);
                     }
                     if ($unenrolaction == ENROL_EXT_REMOVED_SUSPENDNOROLES) {
                         role_unassign_all(array('contextid'=>$context->id, 'userid'=>$userid, 'component'=>'enrol_database', 'itemid'=>$instance->id));
-                        if ($verbose) {
-                            mtrace("  unsassigning all roles: $userid ==> $course->shortname");
-                        }
+                        $trace->output("unsassigning all roles: $userid ==> $course->shortname", 1);
                     }
                 }
             }
         }
 
-        // close db connection
-        $extdb->Close();
-
-        if ($verbose) {
-            mtrace('...user enrolment synchronisation finished.');
+        // Close db connection.
+        // START UCLA MOD: CCLE-4061 - Reimplement pre-pop enrollment
+        //$extdb->Close();
+        if (!$overrideenroldatabase) {
+            $extdb->Close();
+        } else {
+            // Trigger event to notify of recent enrollment changes.
+            $this->enrollmenthelper->trigger_sync_enrolments_event($existing);
         }
+        // END UCLA MOD: CCLE-4061
 
-        // START UCLA MOD: adding event to prepop 
-        $edata = new object();
-        $edata->courses = $course_indexed;
-        events_trigger('sync_enrolments_finished', $edata);
-        // END UCLA MOD
+        $trace->output('...user enrolment synchronisation finished.');
+        $trace->finished();
 
         return 0;
     }
@@ -1045,41 +719,52 @@ class enrol_database_plugin extends enrol_plugin {
      * First it creates new courses if necessary, then
      * enrols and unenrols users.
      *
-     * @param bool $verbose
+     * @param progress_trace $trace
      * @return int 0 means success, 1 db connect failure, 4 db read failure
      */
-    public function sync_courses($verbose = false) {
+    public function sync_courses(progress_trace $trace) {
         global $CFG, $DB;
 
-        // make sure we sync either enrolments or courses
+        // Make sure we sync either enrolments or courses.
         if (!$this->get_config('dbtype') or !$this->get_config('newcoursetable') or !$this->get_config('newcoursefullname') or !$this->get_config('newcourseshortname')) {
-            if ($verbose) {
-                mtrace('Course synchronisation skipped.');
-            }
+            $trace->output('Course synchronisation skipped.');
+            $trace->finished();
             return 0;
         }
 
-        if ($verbose) {
-            mtrace('Starting course synchronisation...');
-        }
+        $trace->output('Starting course synchronisation...');
 
-        // we may need a lot of memory here
+        // We may need a lot of memory here.
         @set_time_limit(0);
         raise_memory_limit(MEMORY_HUGE);
 
         if (!$extdb = $this->db_init()) {
-            mtrace('Error while communicating with external enrolment database');
+            $trace->output('Error while communicating with external enrolment database');
+            $trace->finished();
             return 1;
         }
 
-        // first create new courses
         $table     = $this->get_config('newcoursetable');
-        $fullname  = strtolower($this->get_config('newcoursefullname'));
-        $shortname = strtolower($this->get_config('newcourseshortname'));
-        $idnumber  = strtolower($this->get_config('newcourseidnumber'));
-        $category  = strtolower($this->get_config('newcoursecategory'));
+        $fullname  = trim($this->get_config('newcoursefullname'));
+        $shortname = trim($this->get_config('newcourseshortname'));
+        $idnumber  = trim($this->get_config('newcourseidnumber'));
+        $category  = trim($this->get_config('newcoursecategory'));
+
+        // Lowercased versions - necessary because we normalise the resultset with array_change_key_case().
+        $fullname_l  = strtolower($fullname);
+        $shortname_l = strtolower($shortname);
+        $idnumber_l  = strtolower($idnumber);
+        $category_l  = strtolower($category);
 
         $localcategoryfield = $this->get_config('localcategoryfield', 'id');
+        $defaultcategory    = $this->get_config('defaultcategory');
+
+        if (!$DB->record_exists('course_categories', array('id'=>$defaultcategory))) {
+            $trace->output("default course category does not exist!", 1);
+            $categories = $DB->get_records('course_categories', array(), 'sortorder', 'id', 0, 1);
+            $first = reset($categories);
+            $defaultcategory = $first->id;
+        }
 
         $sqlfields = array($fullname, $shortname);
         if ($category) {
@@ -1095,60 +780,64 @@ class enrol_database_plugin extends enrol_plugin {
                 while ($fields = $rs->FetchRow()) {
                     $fields = array_change_key_case($fields, CASE_LOWER);
                     $fields = $this->db_decode($fields);
-                    if (empty($fields[$shortname]) or empty($fields[$fullname])) {
-                        if ($verbose) {
-                            mtrace('  error: invalid external course record, shortname and fullname are mandatory: ' . json_encode($fields)); // hopefully every geek can read JS, right?
-                        }
+                    if (empty($fields[$shortname_l]) or empty($fields[$fullname_l])) {
+                        $trace->output('error: invalid external course record, shortname and fullname are mandatory: ' . json_encode($fields), 1); // Hopefully every geek can read JS, right?
                         continue;
                     }
-                    if ($DB->record_exists('course', array('shortname'=>$fields[$shortname]))) {
-                        // already exists
+                    if ($DB->record_exists('course', array('shortname'=>$fields[$shortname_l]))) {
+                        // Already exists, skip.
                         continue;
                     }
-                    // allow empty idnumber but not duplicates
-                    if ($idnumber and $fields[$idnumber] !== '' and $fields[$idnumber] !== null and $DB->record_exists('course', array('idnumber'=>$fields[$idnumber]))) {
-                        if ($verbose) {
-                            mtrace('  error: duplicate idnumber, can not create course: '.$fields[$shortname].' ['.$fields[$idnumber].']');
-                        }
-                        continue;
-                    }
-                    if ($category and !$coursecategory = $DB->get_record('course_categories', array($localcategoryfield=>$fields[$category]), 'id')) {
-                        if ($verbose) {
-                            mtrace('  error: invalid category '.$localcategoryfield.', can not create course: '.$fields[$shortname]);
-                        }
+                    // Allow empty idnumber but not duplicates.
+                    if ($idnumber and $fields[$idnumber_l] !== '' and $fields[$idnumber_l] !== null and $DB->record_exists('course', array('idnumber'=>$fields[$idnumber_l]))) {
+                        $trace->output('error: duplicate idnumber, can not create course: '.$fields[$shortname_l].' ['.$fields[$idnumber_l].']', 1);
                         continue;
                     }
                     $course = new stdClass();
-                    $course->fullname  = $fields[$fullname];
-                    $course->shortname = $fields[$shortname];
-                    $course->idnumber  = $idnumber ? $fields[$idnumber] : '';
-                    $course->category  = $category ? $coursecategory->id : NULL;
+                    $course->fullname  = $fields[$fullname_l];
+                    $course->shortname = $fields[$shortname_l];
+                    $course->idnumber  = $idnumber ? $fields[$idnumber_l] : '';
+                    if ($category) {
+                        if (empty($fields[$category_l])) {
+                            // Empty category means use default.
+                            $course->category = $defaultcategory;
+                        } else if ($coursecategory = $DB->get_record('course_categories', array($localcategoryfield=>$fields[$category_l]), 'id')) {
+                            // Yay, correctly specified category!
+                            $course->category = $coursecategory->id;
+                            unset($coursecategory);
+                        } else {
+                            // Bad luck, better not continue because unwanted ppl might get access to course in different category.
+                            $trace->output('error: invalid category '.$localcategoryfield.', can not create course: '.$fields[$shortname_l], 1);
+                            continue;
+                        }
+                    } else {
+                        $course->category = $defaultcategory;
+                    }
                     $createcourses[] = $course;
                 }
             }
             $rs->Close();
         } else {
-            mtrace('Error reading data from the external course table');
             $extdb->Close();
+            $trace->output('Error reading data from the external course table');
+            $trace->finished();
             return 4;
         }
         if ($createcourses) {
             require_once("$CFG->dirroot/course/lib.php");
 
             $templatecourse = $this->get_config('templatecourse');
-            $defaultcategory = $this->get_config('defaultcategory');
 
             $template = false;
             if ($templatecourse) {
                 if ($template = $DB->get_record('course', array('shortname'=>$templatecourse))) {
+                    $template = fullclone(course_get_format($template)->get_course());
                     unset($template->id);
                     unset($template->fullname);
                     unset($template->shortname);
                     unset($template->idnumber);
                 } else {
-                    if ($verbose) {
-                        mtrace("  can not find template for new course!");
-                    }
+                    $trace->output("can not find template for new course!", 1);
                 }
             }
             if (!$template) {
@@ -1157,8 +846,6 @@ class enrol_database_plugin extends enrol_plugin {
                 $template->summary        = '';
                 $template->summaryformat  = FORMAT_HTML;
                 $template->format         = $courseconfig->format;
-                $template->numsections    = $courseconfig->numsections;
-                $template->hiddensections = $courseconfig->hiddensections;
                 $template->newsitems      = $courseconfig->newsitems;
                 $template->showgrades     = $courseconfig->showgrades;
                 $template->showreports    = $courseconfig->showreports;
@@ -1169,51 +856,36 @@ class enrol_database_plugin extends enrol_plugin {
                 $template->lang           = $courseconfig->lang;
                 $template->groupmodeforce = $courseconfig->groupmodeforce;
             }
-            if (!$DB->record_exists('course_categories', array('id'=>$defaultcategory))) {
-                if ($verbose) {
-                    mtrace("  default course category does not exist!");
-                }
-                $categories = $DB->get_records('course_categories', array(), 'sortorder', 'id', 0, 1);
-                $first = reset($categories);
-                $defaultcategory = $first->id;
-            }
 
             foreach ($createcourses as $fields) {
                 $newcourse = clone($template);
                 $newcourse->fullname  = $fields->fullname;
                 $newcourse->shortname = $fields->shortname;
                 $newcourse->idnumber  = $fields->idnumber;
-                $newcourse->category  = $fields->category ? $fields->category : $defaultcategory;
+                $newcourse->category  = $fields->category;
 
                 // Detect duplicate data once again, above we can not find duplicates
                 // in external data using DB collation rules...
                 if ($DB->record_exists('course', array('shortname' => $newcourse->shortname))) {
-                    if ($verbose) {
-                        mtrace("  can not insert new course, duplicate shortname detected: ".$newcourse->shortname);
-                    }
+                    $trace->output("can not insert new course, duplicate shortname detected: ".$newcourse->shortname, 1);
                     continue;
                 } else if (!empty($newcourse->idnumber) and $DB->record_exists('course', array('idnumber' => $newcourse->idnumber))) {
-                    if ($verbose) {
-                        mtrace("  can not insert new course, duplicate idnumber detected: ".$newcourse->idnumber);
-                    }
+                    $trace->output("can not insert new course, duplicate idnumber detected: ".$newcourse->idnumber, 1);
                     continue;
                 }
                 $c = create_course($newcourse);
-                if ($verbose) {
-                    mtrace("  creating course: $c->id, $c->fullname, $c->shortname, $c->idnumber, $c->category");
-                }
+                $trace->output("creating course: $c->id, $c->fullname, $c->shortname, $c->idnumber, $c->category", 1);
             }
 
             unset($createcourses);
             unset($template);
         }
 
-        // close db connection
+        // Close db connection.
         $extdb->Close();
 
-        if ($verbose) {
-            mtrace('...course synchronisation finished.');
-        }
+        $trace->output('...course synchronisation finished.');
+        $trace->finished();
 
         return 0;
     }
@@ -1249,14 +921,14 @@ class enrol_database_plugin extends enrol_plugin {
 
         require_once($CFG->libdir.'/adodb/adodb.inc.php');
 
-        // Connect to the external database (forcing new connection)
+        // Connect to the external database (forcing new connection).
         $extdb = ADONewConnection($this->get_config('dbtype'));
         if ($this->get_config('debugdb')) {
             $extdb->debug = true;
-            ob_start(); //start output buffer to allow later use of the page headers
+            ob_start(); // Start output buffer to allow later use of the page headers.
         }
 
-        // the dbtype my contain the new connection URL, so make sure we are not connected yet
+        // The dbtype my contain the new connection URL, so make sure we are not connected yet.
         if (!$extdb->IsConnected()) {
             $result = $extdb->Connect($this->get_config('dbhost'), $this->get_config('dbuser'), $this->get_config('dbpass'), $this->get_config('dbname'), true);
             if (!$result) {
@@ -1272,7 +944,7 @@ class enrol_database_plugin extends enrol_plugin {
     }
 
     protected function db_addslashes($text) {
-        // using custom made function for now
+        // Use custom made function for now - it is better to not rely on adodb or php defaults.
         if ($this->get_config('dbsybasequoting')) {
             $text = str_replace('\\', '\\\\', $text);
             $text = str_replace(array('\'', '"', "\0"), array('\\\'', '\\"', '\\0'), $text);
@@ -1311,5 +983,69 @@ class enrol_database_plugin extends enrol_plugin {
             return textlib::convert($text, $dbenc, 'utf-8');
         }
     }
-}
 
+    /**
+     * Automatic enrol sync executed during restore.
+     * @param stdClass $course course record
+     */
+    public function restore_sync_course($course) {
+        $trace = new null_progress_trace();
+        $this->sync_enrolments($trace, $course->id);
+    }
+
+    /**
+     * Restore instance and map settings.
+     *
+     * @param restore_enrolments_structure_step $step
+     * @param stdClass $data
+     * @param stdClass $course
+     * @param int $oldid
+     */
+    public function restore_instance(restore_enrolments_structure_step $step, stdClass $data, $course, $oldid) {
+        global $DB;
+
+        if ($instance = $DB->get_record('enrol', array('courseid'=>$course->id, 'enrol'=>$this->get_name()))) {
+            $instanceid = $instance->id;
+        } else {
+            $instanceid = $this->add_instance($course);
+        }
+        $step->set_mapping('enrol', $oldid, $instanceid);
+    }
+
+    /**
+     * Restore user enrolment.
+     *
+     * @param restore_enrolments_structure_step $step
+     * @param stdClass $data
+     * @param stdClass $instance
+     * @param int $oldinstancestatus
+     * @param int $userid
+     */
+    public function restore_user_enrolment(restore_enrolments_structure_step $step, $data, $instance, $userid, $oldinstancestatus) {
+        global $DB;
+
+        if ($this->get_config('unenrolaction') == ENROL_EXT_REMOVED_UNENROL) {
+            // Enrolments were already synchronised in restore_instance(), we do not want any suspended leftovers.
+            return;
+        }
+        if (!$DB->record_exists('user_enrolments', array('enrolid'=>$instance->id, 'userid'=>$userid))) {
+            $this->enrol_user($instance, $userid, null, 0, 0, ENROL_USER_SUSPENDED);
+        }
+    }
+
+    /**
+     * Restore role assignment.
+     *
+     * @param stdClass $instance
+     * @param int $roleid
+     * @param int $userid
+     * @param int $contextid
+     */
+    public function restore_role_assignment($instance, $roleid, $userid, $contextid) {
+        if ($this->get_config('unenrolaction') == ENROL_EXT_REMOVED_UNENROL or $this->get_config('unenrolaction') == ENROL_EXT_REMOVED_SUSPENDNOROLES) {
+            // Role assignments were already synchronised in restore_instance(), we do not want any leftovers.
+            return;
+        }
+        role_assign($roleid, $userid, $contextid, 'enrol_'.$this->get_name(), $instance->id);
+    }
+}
