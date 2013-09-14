@@ -28,9 +28,9 @@
 // Core CSS
 // -------------------
 @import "type";
+@import "form";
 @import "buttons";
 @import "tables";
-@import "form";
 @import "bootstrap/lib/grid";
 
 
@@ -49,7 +49,7 @@
 
 @import "bootstrap/lib/button-groups";
 @import "bootstrap/lib/input-groups";
-@import "bootstrap/lib/breadcrumbs";
+@import "breadcrumbs";
 @import "bootstrap/lib/wells";
 @import "bootstrap/lib/badges";
 

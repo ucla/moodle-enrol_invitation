@@ -37,7 +37,7 @@ $PAGE->requires->yui_module('moodle-block_ucla_search-search', 'M.ucla_search.in
     <!--front page content-->
     <div class="col-md-8 frontpage-content" >
         <div class="row">
-            <div class="col-xs-12 visible-lg" style="height: 100px"></div>
+            <div class="col-xs-12 visible-md visible-lg" style="height: 100px"></div>
         </div>
         <div class="row frontpage-search">
             <div class="col-xs-12">

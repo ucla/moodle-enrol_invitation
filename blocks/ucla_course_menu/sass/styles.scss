@@ -53,6 +53,12 @@
     @extend .block_tree;
 }
 
+// Hide the header for site menu
+.block.block_ucla_course_menu:not(.block_ucla_browseby) {
+    .header {
+        display: none;
+    }
+}
 // UCLA course menu specific styles
 .block.block_ucla_course_menu {
     text-align: center;
@@ -61,10 +67,6 @@
         padding: 0;   
     }
     
-    .header {
-        display:none;
-    }
-
     .block_tree {
         text-align: left;
         .active_tree_node {font-weight: bold}
@@ -81,6 +83,15 @@
         a:hover {
             text-decoration: none;
         }
+        
+/*        &.module-elements-section li {
+            background-color: #fafcfc;
+            border-left-color: #ceecf5;
+            
+            .leaf:after {
+                color: #ceecf5;
+            }
+        }*/
     }
     
     

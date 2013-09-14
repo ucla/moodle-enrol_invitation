@@ -1,9 +1,9 @@
 /* line 9, sass/styles.scss */
 .block_tree .type_structure, .block .list .type_structure, .block_tree .type_custom, .block .list .type_custom, .block_tree .type_activity, .block .list .type_activity {
   border: 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #eeeeee;
   padding: 0 0;
-  border-left: 4px solid #F9F9F9;
+  border-left: 4px solid #f9f9f9;
   display: block;
 }
 /* line 17, sass/styles.scss */
@@ -27,7 +27,7 @@
   color: #aaa;
   padding: 0 4px;
   display: inline-block;
-  border: 1px solid #ccc;
+  border: 1px solid #cccccc;
   font-weight: normal;
   vertical-align: middle;
   font-size: 1.2rem;
@@ -50,34 +50,43 @@
 }
 /* line 41, sass/styles.scss */
 .block_tree .type_structure.current_branch .tree_item, .block .list .type_structure.current_branch .tree_item, .block_tree .type_custom.current_branch .tree_item, .block .list .type_custom.current_branch .tree_item, .block_tree .type_activity.current_branch .tree_item, .block .list .type_activity.current_branch .tree_item {
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #dddddd;
 }
 /* line 46, sass/styles.scss */
 .block_tree .type_structure:hover, .block .list .type_structure:hover, .block_tree .type_custom:hover, .block .list .type_custom:hover, .block_tree .type_activity:hover, .block .list .type_activity:hover {
   border-left-color: #4168a1;
 }
 
-/* line 57, sass/styles.scss */
+/* line 58, sass/styles.scss */
+.block.block_ucla_course_menu:not(.block_ucla_browseby) .header {
+  display: none;
+}
+
+/* line 63, sass/styles.scss */
 .block.block_ucla_course_menu {
   text-align: center;
 }
-/* line 60, sass/styles.scss */
+/* line 66, sass/styles.scss */
 .block.block_ucla_course_menu .content {
   padding: 0;
 }
-/* line 64, sass/styles.scss */
-.block.block_ucla_course_menu .header {
-  display: none;
-}
-/* line 68, sass/styles.scss */
+/* line 70, sass/styles.scss */
 .block.block_ucla_course_menu .block_tree, .block.block_ucla_course_menu .list {
   text-align: left;
+  /*        &.module-elements-section li {
+              background-color: #fafcfc;
+              border-left-color: #ceecf5;
+              
+              .leaf:after {
+                  color: #ceecf5;
+              }
+          }*/
 }
-/* line 70, sass/styles.scss */
+/* line 72, sass/styles.scss */
 .block.block_ucla_course_menu .block_tree .active_tree_node, .block.block_ucla_course_menu .list .active_tree_node {
   font-weight: bold;
 }
-/* line 73, sass/styles.scss */
+/* line 75, sass/styles.scss */
 .block.block_ucla_course_menu .block_tree a, .block.block_ucla_course_menu .list a, .block.block_ucla_course_menu .block_tree a:link, .block.block_ucla_course_menu .list a:link, .block.block_ucla_course_menu .block_tree a:visited, .block.block_ucla_course_menu .list a:visited {
   color: #0072b1;
   line-height: 3.5rem;
@@ -85,17 +94,17 @@
   display: inline-block;
   width: 90%;
 }
-/* line 81, sass/styles.scss */
+/* line 83, sass/styles.scss */
 .block.block_ucla_course_menu .block_tree a:hover, .block.block_ucla_course_menu .list a:hover {
   text-decoration: none;
 }
-/* line 89, sass/styles.scss */
+/* line 100, sass/styles.scss */
 .block.block_ucla_course_menu .item_with_icon .tree_item.leaf {
   display: inline-block;
   width: 100%;
   padding: 0 8px;
 }
-/* line 94, sass/styles.scss */
+/* line 105, sass/styles.scss */
 .block.block_ucla_course_menu .item_with_icon .leaf:after {
   position: relative;
   top: 1px;
@@ -111,7 +120,7 @@
   line-height: 3.2rem;
   vertical-align: middle;
 }
-/* line 102, sass/styles.scss */
+/* line 113, sass/styles.scss */
 .block.block_ucla_course_menu .item_with_icon.current_branch .leaf:after {
   position: relative;
   top: 1px;
@@ -127,11 +136,11 @@
   line-height: 3.2rem;
   vertical-align: middle;
 }
-/* line 113, sass/styles.scss */
+/* line 124, sass/styles.scss */
 .block.block_ucla_course_menu li.type_structure:hover {
   background-color: #fcfcfc;
 }
-/* line 117, sass/styles.scss */
+/* line 128, sass/styles.scss */
 .block.block_ucla_course_menu li.type_structure {
   background-color: #F9F9F9;
 }

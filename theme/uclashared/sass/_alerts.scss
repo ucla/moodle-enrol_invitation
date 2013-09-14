@@ -16,7 +16,7 @@
     @include border-radius(0);
     
     // Adjust for smaller screens
-    @include respond-bs(sm) {
+    @include respond-at(sm) {
         // Adjust box to fill in all screen space
         margin: 20px 0;
         
@@ -28,6 +28,7 @@
     }
 }
 
+// @todo: change these hex values to $vars
 .alert-info {
     border-left: 4px solid #3A87AD;
 }
@@ -46,6 +47,13 @@
 
 .alert-success {
     border-left: 4px solid #468847;
+}
+
+// Define a login alert box
+.alert-login {
+    .continuebutton {
+        margin-top: 8px;
+    }
 }
 
 // Only style alerts for main course content
@@ -71,10 +79,10 @@
         @extend .alert;
         @extend .alert-warning;
         
-                #tool_uclacourserequestor & {
-                    @extend .alert-success;
-                    
-                }
+        #tool_uclacourserequestor & {
+            @extend .alert-success;
+
+        }
     }
 }
 
@@ -95,6 +103,11 @@
 
 #uclacourserequestor_notice {
     color: #394A6E;
+}
+
+.adminwarning {
+    @extend .alert;
+    @extend .alert-warning;
 }
 
 // Syllabus alertbox

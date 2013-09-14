@@ -3,25 +3,34 @@
 // --------------------------------------------------
 
 
+//
+// Frontpage banner area
+// --------------------------------------------------
+
 .frontpage-banner {
     background: url([[pix:theme|ccle-banner-1]]) no-repeat;
-    background-position: 70% 10%;
-    height: 1000px;
-    border-right: 1px solid #ddd;
-        
-    @include respond-to(tablets) {
-        height: 300px;
-        
-        .frontpage-shared-server {
-            .shared-server-list {
-                display: none;
-            }
-            li {
-                float: left;
-                display: inline;
-                width: 30%;
-            }
-        }
+    background-position: 80% 25%;
+    height: 200px;
+
+    @include respond-at(tablet) {
+        height: 200px;
+        background-position: 70% 30%;
+    }
+    @include respond-at(desktop) {
+        height: 1000px;
+        background-position: 80% 10%;
+        border-right: 1px solid #ddd;
+    }
+}
+
+//
+// Frontpage content -- contains search, browseby, alerts..
+// --------------------------------------------------
+
+.frontpage-content {
+    @include respond-at(desktop) {
+        overflow: auto;
+        height: 1000px;
     }
 }
 
@@ -32,17 +41,32 @@
     color: white;
     padding-left: 16px;
     background-color: #444;
-    opacity: 0.8;
-    
+    opacity: 0.75;
     width: 100%;
+    
+    display: none;
     
     .server-link {
         cursor: pointer;
     }
     .shared-server-list {
-        display: block;
+        display: none;
         color: #ddd;
-        li {list-style: none};
+        height: 100px;
+        li {
+            list-style: none; 
+            float: left;
+            width: 30%;
+        };
+    }
+    
+    @include respond-at(desktop) {
+        .shared-server-list {
+            display: block;
+            li {
+                width: 80%;
+            }
+        }
     }
 }
 
@@ -87,8 +111,12 @@
     margin-bottom: 20px;
 }
 
-////
-// structural fixes for the frontpage layout
+//
+// Structural fixes for the frontpage layout
+//      This lets us hide the blocks and display our 
+//      own content.
+//      @todo: this is not accessible -- need to fix
+// --------------------------------------------------
 .frontpage-layout + br {
     display: none;
 }
