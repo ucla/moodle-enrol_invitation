@@ -72,20 +72,25 @@
 
 .frontpage-navigation {
     margin-bottom: 20px;
+}
+
+.frontpage-help-feedback,
+.frontpage-login-and,
+.frontpage-browseby {
+    margin-left: 0;
     
-    button {
-        display: inline-block;
-        white-space: normal;
-        width: 90%;
+    li {list-style: none;}
+    .glyphicon {margin-right: 4px;}
+    
+    .btn {
         text-align: left;
-        
-        @include respond-to(tablets) {
-            width: auto;
-        }
     }
     
-    h3 {
-        /*border-bottom: 1px solid #333;*/
+    @include respond-at(tablet) {
+        li {display: inline;}
+        .btn {
+            white-space: inherit;
+        }
     }
 }
 
