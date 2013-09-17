@@ -772,7 +772,7 @@ function get_courses_search($searchterms, $sort = 'fullname ASC', $page = 0, $re
     // BEGIN UCLA MOD CCLE-3948
     // Add registrar summary/description to corse info.
     
-    $reg_join = ' LEFT JOIN {ucla_reg_classinfo} AS urci ON c.shortname =
+    $reg_join = ' JOIN {ucla_reg_classinfo} AS urci ON c.shortname =
         CONCAT(urci.term, "-", urci.subj_area, urci.coursenum, "-", urci.sectnum) ';
     $reg_select = ', urci.crs_desc AS reg_desc, urci.crs_summary AS reg_summary';
 
