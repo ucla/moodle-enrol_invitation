@@ -51,79 +51,68 @@ $PAGE->requires->yui_module('moodle-block_ucla_search-search', 'M.ucla_search.in
             <div class="col-lg-10 col-lg-offset-1">
                 <div class="row">
                     <div class="col-lg-4">
-                            <div class="">
-                                <h3>
-                                    <!--<span class="glyphicon glyphicon-book "></span>-->
-                                    Browse CCLE
-                                </h3>
-                                <div>
-                                    <div class="btn-group">
-                                        <?php
-                                            $types = browseby_handler_factory::get_available_types();
-                                            foreach ($types as $type) {
-                                                $chevron = html_writer::tag('span', '', 
-                                                        array('class' => 'glyphicon glyphicon-chevron-right'));
-                                                $innercontent = $chevron .
-                                                        get_string('link_'.$type, 'block_ucla_browseby');
-                                                $link = html_writer::link(
-                                                        new moodle_url('blocks/ucla_browseby/view.php', array('type' => $type)),
-                                                        $innercontent);
-                                                echo html_writer::tag('button',
-                                                        $link, array('class' => 'btn btn-link', 'type' => 'button'));
-                                            }
-                                        ?>
-                                    </div>
-                                </div>
-                            </div>
+                        <h3>
+                            <!--<span class="glyphicon glyphicon-book "></span>-->
+                            Browse CCLE
+                        </h3>
+                        <ul class="frontpage-browseby">
+                            <?php
+                                $types = browseby_handler_factory::get_available_types();
+                                foreach ($types as $type) {
+                                    $chevron = html_writer::tag('span', '', 
+                                            array('class' => 'glyphicon glyphicon-chevron-right'));
+                                    $innercontent = $chevron .
+                                            get_string('link_'.$type, 'block_ucla_browseby');
+                                    $link = html_writer::link(
+                                            new moodle_url('blocks/ucla_browseby/view.php', array('type' => $type)),
+                                            $innercontent,
+                                            array('class' => 'btn btn-link'));
+                                    echo html_writer::tag('li', $link);
+                                }
+                            ?>
+                        </ul>
 
                     </div>
                     <div class="col-lg-4">
-                        <div class="">
-                                <h3>
-                                    <!--<span class="glyphicon glyphicon-log-in pull-left"></span>-->
-                                    Login and ...
-                                </h3>
-                                <div>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-link">
-                                            <a target="_blank" href="https://archive.ccle.ucla.edu/">
-                                                <span class="glyphicon glyphicon-chevron-right"></span>
-                                                View sites created prior to Summer 2012
-                                            </a>
-                                        </button>
-                                        <button type="button" class="btn btn-link" >
-                                            <a target="_blank" href="<?php echo new moodle_url('/course/request.php');?>">
-                                                <span class="glyphicon glyphicon-chevron-right"></span>
-                                                Request a collaboration site
-                                            </a>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                        <h3>
+                            <!--<span class="glyphicon glyphicon-log-in pull-left"></span>-->
+                            Login and ...
+                        </h3>
+                        <ul class="frontpage-login-and">
+                            <li>
+                                <a target="_blank" href="https://archive.ccle.ucla.edu/" class="btn btn-link">
+                                    <span class="glyphicon glyphicon-chevron-right"></span>
+                                    View sites created prior to Summer 2012
+                                </a>
+                            </li>
+                            <li>
+                                <a target="_blank" href="<?php echo new moodle_url('/course/request.php');?>" class="btn btn-link">
+                                    <span class="glyphicon glyphicon-chevron-right"></span>
+                                    Request a collaboration site
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                     <div class="col-lg-4">
-                        <div>
-                            <h3>
-                                <!--<span class="glyphicon glyphicon-question-sign"></span>-->
-                                Help & Feedback
-                            </h3>
-                            <div>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-link">
-                                        <a href="<?php echo new moodle_url('/blocks/ucla_help/index.php');?>">
-                                            <span class="glyphicon glyphicon-chevron-right"></span>
-                                            Submit a help request
-                                        </a>
-                                    </button>
-                                    <button type="button" class="btn btn-link">
-                                        <a target="_blank" href="https://docs.ccle.ucla.edu">
-                                            <span class="glyphicon glyphicon-chevron-right"></span>
-                                            View self-help articles
-                                        </a>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        <h3>
+                            <!--<span class="glyphicon glyphicon-question-sign"></span>-->
+                            Help & Feedback
+                        </h3>
+                        <ul class="frontpage-help-feedback">
+                            <li>
+                                <a href="<?php echo new moodle_url('/blocks/ucla_help/index.php');?>" class="btn btn-link">
+                                    <span class="glyphicon glyphicon-chevron-right"></span>
+                                    Submit a help request
+                                </a>
+                            </li>
+                            <li>
+                                <a target="_blank" href="https://docs.ccle.ucla.edu" class="btn btn-link">
+                                    <span class="glyphicon glyphicon-chevron-right"></span>
+                                    View self-help articles
+                                </a>
+                            </li>
+                        </ul>
+
                     </div>
                 </div>
             </div>
