@@ -747,6 +747,10 @@ function get_courses_search($searchterms, $sort = 'fullname ASC', $page = 0, $re
     $collab_and = "AND (si.type IS NULL OR (si.type NOT LIKE 'test' AND si.type NOT LIKE 'private'))";
     $collab_select = ', si.courseid as collabcheck';
     $rest_limit = '';
+    // CCLE-3948: Add registrar summary/description to corse info
+    $reg_join = ' JOIN {ucla_reg_classinfo} AS urci ON c.shortname =
+            CONCAT(urci.term, "-", urci.subj_area, urci.coursenum, "-", urci.sectnum) ';
+    $reg_select = ', urci.crs_desc AS reg_desc, urci.crs_summary AS reg_summary';
     
     // Limit sql query results 
     if(!empty($otherargs)) {
@@ -759,24 +763,20 @@ function get_courses_search($searchterms, $sort = 'fullname ASC', $page = 0, $re
         $collab_join = 'JOIN {ucla_siteindicator} si ON c.id = si.courseid';
         $collab_and = "AND si.type NOT LIKE 'test' AND si.type NOT LIKE 'private'";
         $collab_select = ', si.courseid as collabcheck';
+        $reg_join = '';
+        $reg_select = '';
 
     } else if (!empty($course) && empty($collab)) {
         // Search only course sites
         $collab_join = 'LEFT JOIN {ucla_siteindicator} AS si ON si.courseid = c.id ';
         $collab_and = 'AND si.id IS NULL';
         $collab_select = ', si.courseid as collabcheck';
-
+        
+        $reg_join = ' JOIN {ucla_reg_classinfo} AS urci ON c.shortname =
+            CONCAT(urci.term, "-", urci.subj_area, urci.coursenum, "-", urci.sectnum) ';
+        $reg_select = ', urci.crs_desc AS reg_desc, urci.crs_summary AS reg_summary';
     }
     // END UCLA MOD CCLE-2309
-
-    // BEGIN UCLA MOD CCLE-3948
-    // Add registrar summary/description to corse info.
-    
-    $reg_join = ' JOIN {ucla_reg_classinfo} AS urci ON c.shortname =
-        CONCAT(urci.term, "-", urci.subj_area, urci.coursenum, "-", urci.sectnum) ';
-    $reg_select = ', urci.crs_desc AS reg_desc, urci.crs_summary AS reg_summary';
-
-    // END UCLA MOD CCLE-3948
 
     if ($DB->sql_regex_supported()) {
         $REGEXP    = $DB->sql_regex(true);
@@ -788,19 +788,26 @@ function get_courses_search($searchterms, $sort = 'fullname ASC', $page = 0, $re
     $i = 0;
 
     // Thanks Oracle for your non-ansi concat and type limits in coalesce. MDL-29912
+
     // BEGIN UCLA MOD CCLE-3948
     // Adding the registrar info to the concat list of fields to be searched on.
     if ($DB->get_dbfamily() == 'oracle') {
-        // $concat = "(c.summary|| ' ' || c.fullname || ' ' || c.idnumber || ' ' || c.shortname)";
-        $concat = "(c.summary|| ' ' || c.fullname || ' ' || c.idnumber || ' ' || c.shortname || ' ' || urci.crs_desc || ' ' || urci.crs_summary)";
+        if (empty($reg_join)) {
+            $concat = "(c.summary|| ' ' || c.fullname || ' ' || c.idnumber || ' ' || c.shortname)";
+        } else {
+            $concat = "(c.summary|| ' ' || c.fullname || ' ' || c.idnumber || ' ' || c.shortname || ' ' || urci.crs_desc || ' ' || urci.crs_summary)";
+        }
     } else {
-        // $concat = $DB->sql_concat("COALESCE(c.summary, '')", "' '", 'c.fullname', "' '", 'c.idnumber', "' '", 'c.shortname');
-        $concat = $DB->sql_concat("COALESCE(c.summary, '')", "' '",
+        if (empty($reg_join)) {
+            $concat = $DB->sql_concat("COALESCE(c.summary, '')", "' '", 'c.fullname', "' '", 'c.idnumber', "' '", 'c.shortname');
+        } else {
+            $concat = $DB->sql_concat("COALESCE(c.summary, '')", "' '",
                                   'c.fullname', "' '",
                                   'c.idnumber', "' '",
                                   'c.shortname', "' '",
                                   "COALESCE(urci.crs_desc, '')", "' '",
                                   "COALESCE(urci.crs_summary, '')");
+        }
     }
     // END UCLA MOD CCLE-3948
 
