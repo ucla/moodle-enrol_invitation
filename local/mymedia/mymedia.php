@@ -46,7 +46,11 @@ $PAGE->set_url('/local/mymedia/mymedia.php');
 $PAGE->set_course($SITE);
 
 $PAGE->set_pagetype('mymedia-index');
-$PAGE->set_pagelayout('frontpage');
+// START UCLA MOD CCLE-2842
+// Set the course layout instead of the frontpage.
+//$PAGE->set_pagelayout('frontpage');
+$PAGE->set_pagelayout('course');
+// END UCLA MOD CCLE-2842
 $PAGE->set_title($header);
 $PAGE->set_heading($header);
 $PAGE->add_body_class('mymedia-index');
