@@ -8,8 +8,12 @@ if ($hassiteconfig
  or has_capability('moodle/course:create', $systemcontext)
  or has_capability('moodle/site:approvecourse', $systemcontext)) { // speedup for non-admins, add all caps used on this page
 
+    // START UCLA MOD: CCLE-3773 - Manager limited should be able to delete courses for their own categories
+//    $ADMIN->add('courses', new admin_externalpage('coursemgmt', new lang_string('coursemgmt', 'admin'), $CFG->wwwroot . '/course/manage.php',
+//            array('moodle/category:manage', 'moodle/course:create')));
     $ADMIN->add('courses', new admin_externalpage('coursemgmt', new lang_string('coursemgmt', 'admin'), $CFG->wwwroot . '/course/manage.php',
-            array('moodle/category:manage', 'moodle/course:create')));
+            array('moodle/category:manage', 'moodle/course:create', 'local/ucla:browsecourses')));
+    // END UCLA MOD: CCLE-3773
 
     // Course Default Settings Page.
     // NOTE: these settings must be applied after all other settings because they depend on them.
