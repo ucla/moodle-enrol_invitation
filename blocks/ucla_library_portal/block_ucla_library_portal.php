@@ -23,8 +23,14 @@ class block_ucla_library_portal extends block_base {
 
     /**
      * Use UCLA Course menu block hook
+     * 
+     * @param array $courseinfo     An array from the ucla_course_menu block
+     *                              with a 'course' index with a course object.
+     *                              
+     * @return array $ret_val       Nodes that will be displayed in the menu.
      */
-    public static function get_navigation_nodes($course) {
+    public static function get_navigation_nodes($courseinfo) {
+        $course = $courseinfo['course'];
         $ret_val = array();
         // check to see if course is non-srs
         if (is_collab_site($course)) {
