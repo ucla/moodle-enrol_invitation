@@ -734,7 +734,18 @@ function get_courses_search($searchterms, $sort = 'fullname ASC', $page = 0, $re
     global $CFG, $DB;
     
     // START UCLA MOD CCLE-2309
-    /// Collaboration join conditions
+    /// Collaboration join conditions:
+    //      We have 4 cases to cover:
+    //       
+    //     1 [x] collab [x] course
+    //     2 [x] collab [ ] course
+    //     3 [ ] collab [x] course
+    //     4 [ ] collab [ ] course
+    //
+    //      Case 1 & 4 are treated the same
+    //
+    // To start, assume case 1 & 4:
+    
     $collab = null;
     $course = null;
     
@@ -747,16 +758,20 @@ function get_courses_search($searchterms, $sort = 'fullname ASC', $page = 0, $re
     $collab_and = "AND (si.type IS NULL OR (si.type NOT LIKE 'test' AND si.type NOT LIKE 'private'))";
     $collab_select = ', si.courseid as collabcheck';
     $rest_limit = '';
-    // CCLE-3948: Add registrar summary/description to corse info
-    $reg_join = ' JOIN {ucla_reg_classinfo} AS urci ON c.shortname =
-            CONCAT(urci.term, "-", urci.subj_area, urci.coursenum, "-", urci.sectnum) ';
-    $reg_select = ', urci.crs_desc AS reg_desc, urci.crs_summary AS reg_summary';
+    // CCLE-3948: Add registrar summary/description to corse info.
+    // In this case (1), we don't want to include the ucla_reg_classinfo 
+    // because we cannot do a JOIN conditon on all tables and get back collaboration
+    // site entries.  We can do a LEFT JOIN on this table, but this is painfully slow,
+    // so we exclude the registrar table for now.
+    $reg_join = '';
+    $reg_select = '';
     
     // Limit sql query results 
     if(!empty($otherargs)) {
         $rest_limit = 'LIMIT ' . $recordsperpage;
     }
 
+    // Handle case 2:
     if(empty($course) && !empty($collab)) {
         // Search only collab sites
 
@@ -766,12 +781,14 @@ function get_courses_search($searchterms, $sort = 'fullname ASC', $page = 0, $re
         $reg_join = '';
         $reg_select = '';
 
+    // Handle case 3:
     } else if (!empty($course) && empty($collab)) {
         // Search only course sites
         $collab_join = 'LEFT JOIN {ucla_siteindicator} AS si ON si.courseid = c.id ';
         $collab_and = 'AND si.id IS NULL';
         $collab_select = ', si.courseid as collabcheck';
-        
+        // Since we don't join on collab table, it's safe to join on 
+        // registrar table.
         $reg_join = ' JOIN {ucla_reg_classinfo} AS urci ON c.shortname =
             CONCAT(urci.term, "-", urci.subj_area, urci.coursenum, "-", urci.sectnum) ';
         $reg_select = ', urci.crs_desc AS reg_desc, urci.crs_summary AS reg_summary';
