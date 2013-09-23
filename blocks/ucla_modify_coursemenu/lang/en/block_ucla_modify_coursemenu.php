@@ -28,3 +28,4 @@ $string['tbdel'] = 'To delete:';
 $string['deleteconfirm'] = 'Delete content';
 
 $string['successmodify'] = 'The sections have been successfully updated.';
+$string['failuremodify'] = 'There was an error writing records to the database. Your modifications were not saved.';

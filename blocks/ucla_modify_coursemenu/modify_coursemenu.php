@@ -64,6 +64,7 @@ foreach ($allsections as $k => $section) {
     $s->section = $section->section;
     $s->visible = $section->visible;
     $s->course = $section->course;
+    $s->sequence = $section->sequence;
 
     $sections[$k] = $s;
 }
@@ -289,8 +290,7 @@ if ($modify_coursemenu_form->is_cancelled()) {
                 );
 
             foreach ($cminfos as $cminstance) {
-                list($cmcontent, $instancename) = 
-                    get_print_section_cm_text($cminstance, $course);
+                $instancename = $cminstance->get_formatted_name();
 
                 $sectionhtml .= html_writer::tag(
                         'li',
@@ -405,61 +405,93 @@ if ($passthrudata || $verifydata) {
             $deletesectionids);
     }
 
+    // Sections that were modified.
     $newsections = $passthrudata->sections;
-
-    // We need to shift existing course sections
-    $newcoursenumsections = $passthrudata->coursenumsections;
-    $oldcoursenumsections = course_get_format($course)->get_format_options()['numsections'];
-
-    if ($newcoursenumsections > $oldcoursenumsections) {
-        $numsectiondiff = $newcoursenumsections - $oldcoursenumsections;
-        $sectionshift = $oldcoursenumsections + 1;
-
-        // Section objects could've been manipulated
-        $allsectionskeys = array_keys($allsections);
-        $cursectionnum = reset($allsectionskeys);
-
-        while ($cursectionnum !== false) {
-            if ($cursectionnum > $oldcoursenumsections) {
-                $cursection = $allsections[$cursectionnum];
-                $cursection->section = $cursection->section + $numsectiondiff;
-                $newsections[$cursection->section] = $cursection;
+    
+    // Get all sections so that we have a reference of previous state.
+    $originalsections = array();
+    $sectionrecords = $DB->get_records('course_sections', array('course' => $courseid));
+    // Set to be keyed by ID
+    foreach ($sectionrecords as $r) {
+        $originalsections[$r->id] = $r;
+    }
+        
+    // Keep IDs of records that will be modified
+    $updatedrecords = array();
+    
+    // Try the update with a transaction so that we can rollback if we fail.
+    $moodletransaction = $DB->start_delegated_transaction();
+    
+    try {
+        
+        // Begin updating.  This will try to do two things:
+        //  1. Rearrange sections
+        //  2. Create new sections
+        foreach($newsections as $section) {
+            // Skip 'Site info' section
+            if ($section->section == 0) {
+                continue;
             }
 
-            $cursectionnum = next($allsectionskeys);
+            // Course/section pair is a unique index, and thus needs to be checked for duplicates
+            $course_section_pair = array('course' => $section->course, 'section' => $section->section);
+
+            // Modify section # to be negative that we don't get index key collisions.
+            $section->section = -$section->section;
+
+            // Conditions:
+            //  A missing section ID => we have a new section
+            //      In this case, we check if the record already exists,
+            //      if so, then we update it with the new section info
+            //      else we create a new record with section info.
+            //
+            //  If we have a section ID, then we are only updating the section record.
+            //
+            if (!isset($section->id)) {
+                if ($record = $DB->get_record('course_sections', $course_section_pair)) {
+                    $section->id = $record->id;
+                    $DB->update_record('course_sections', $section);
+                    $updatedrecords[] = $section->id;
+                } else {
+                    $newid = $DB->insert_record('course_sections', $section);
+                    $updatedrecords[] = $newid;
+                }
+            } else {
+                $DB->update_record('course_sections', $section);
+                $updatedrecords[] = $section->id;
+            }
+        }
+
+        // After we've organized our sections, we need to fix section #s.
+        // We saved the modified record ids, so that we don't touch anything else.
+        $sections = $DB->get_records_list('course_sections', 'id', $updatedrecords);
+
+        foreach ($sections as $s) {
+            // Fix section #
+            $s->section = -$s->section;
+            $DB->update_record('course_sections', $s);
+
+            // Set section content visibility ONLY if section has content
+            // and its visibility was updated.
+            if (!empty($s->sequence) && $originalsections[$s->id]->visible != $s->visible) {
+                set_section_visible($courseid, $s->section, $s->visible);
+            }
+        }
+
+    } catch (Exception $e) {
+        // We hit an exception, rollback.
+        try {
+            // Rolling back a transaction will rethrow the error. We want to
+            // display a more user friendly message.
+            $DB->rollback_delegated_transaction($moodletransaction, $e);
+        } catch (Exception $e) {
+            print_error('failuremodify', 'block_ucla_modify_coursemenu');
         }
     }
     
-    // Update db entries to reflect changes in sections
-    // Each time we update/insert a section, we check if the course/section pair
-    // already exists, and if so, assign that db record a temporary section number
-    // Then update/insert the new record
-    // Using the largest positive value that can be stored in an int, minus 1
-    $temp_num = 2147483646; // 2147483647-1
-    foreach($newsections as $section) {
-        // Skip 'Site info' section
-        if ($section->section == 0) {
-            continue;
-        }
-        
-        // Course/section pair is a unique index, and thus needs to be checked for duplicates
-        $course_section_pair = array('course' => $section->course, 'section' => $section->section);
-        
-        if (!isset($section->id)) {
-            if ($DB->record_exists('course_sections', $course_section_pair)) {
-                $DB->set_field('course_sections', 'section', $temp_num, $course_section_pair);
-                $temp_num--;
-            }
-            $DB->insert_record('course_sections', $section);
-        } else {
-            if ($DB->record_exists('course_sections', $course_section_pair)) {
-                $DB->set_field('course_sections', 'section', $temp_num, $course_section_pair);
-                $temp_num--;
-            }
-            $DB->update_record('course_sections', $section);
-        }
-    }
-
+    // We finished successfully, commit transaction.
+    $DB->commit_delegated_transaction($moodletransaction);
+    
     // Update the landing page
     course_get_format($courseid)->update_course_format_options(
             array('landing_page'=> $passthrudata->landingpage));
@@ -467,7 +499,7 @@ if ($passthrudata || $verifydata) {
     // Update the course numsections
     course_get_format($courseid)->update_course_format_options(
             array('numsections'=> $passthrudata->coursenumsections));
-    
+
     // Get the new values for sectioncache and modinfo
     // Maybe there is a better way?
     unset($course->sectioncache);
