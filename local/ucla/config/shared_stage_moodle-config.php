@@ -254,6 +254,9 @@ $CFG->forced_plugin_settings['url']['display'] = 3; // RESOURCELIB_DISPLAY_NEW
 // Site administration > Plugins > Assignment plugins > Submission plugins > File submissions
 $CFG->forced_plugin_settings['assignsubmission_file']['maxbytes'] = 10485760;
 
+// Site administration > Plugins > Assignment plugins > Feedback plugins > Feedback PoodLL
+$CFG->forced_plugin_settings['assignfeedback_poodll']['default'] = 0;
+
 // Site administration > Plugins > Assignment plugins > Feedback plugins > Feedback comments
 $CFG->forced_plugin_settings['assignfeedback_comments']['default'] = 1;
 
@@ -295,6 +298,9 @@ $CFG->forced_plugin_settings['block_iclicker']['block_iclicker_enable_shortname'
 
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'tbd';
+
+// Site administration > Plugins > Filters > PoodLL Filter
+$CFG->filter_poodll_download_media_ok = '1';
 
 // Site administration > Plugins > Repositories > Common repository settings
 $CFG->legacyfilesinnewcourses = 1;  // enable new course to enable legacy course files
