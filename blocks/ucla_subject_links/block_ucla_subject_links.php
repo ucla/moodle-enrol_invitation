@@ -76,11 +76,14 @@ class block_ucla_subject_links extends block_base {
 
     public static function get_subject_areas($course) {
         $subjname = array();
+        $patterns = array();
+        $patterns[0] = '/-\s/';
+        $patterns[1] = '/\s/';
         $courseinfo = ucla_get_course_info($course->id);
         if (!empty($courseinfo)) {
             foreach ($courseinfo as $cinfo) {
                 $subject = $cinfo->subj_area;
-                $subject = preg_replace('/-\s/', '', $subject);
+                $subject = preg_replace($patterns, '', $subject);
                 $subject = strtoupper($subject); 
                 if (!in_array($subject, $subjname) && 
                         file_exists(self::get_location().$subject.'/index.htm')) {
