@@ -456,6 +456,37 @@ class course_edit_form extends moodleform {
                         'addcourseformatoptionshere');
             }
         }
+
+        // START UCLA MOD: CCLE-4230 - Instructors can change format from UCLA
+        if ($courseid = $mform->getElementValue('id')) {
+            $context = context_course::instance($courseid);
+
+            // Lock down ability for non-admins to change course format,
+            // language, and file upload size.
+            if (!empty($context) &&
+                !has_capability('local/ucla:editadvancedcoursesettings', $context)) {
+                $lockdown = array('format', 'lang', 'maxbytes');
+                foreach ($lockdown as $elementname) {
+                    $element = $mform->getElement($elementname);
+                    // Unfortunately, if an element cannot be found, it doesn't
+                    // throw an exception. Instead, QuickForm will print
+                    // debugging messages and return an HTML_QuickForm_Error
+                    // object.
+                    if (get_class($element) == 'HTML_QuickForm_Error') {
+                        continue;
+                    }
+                    $element->freeze();
+                }
+            }
+
+            // Lock down abilty to change themes. Should allow themes to be
+            // changed to uclasharedcourse theme, if user has capability.
+            // Enable that type of ability when we reimplement CCLE-2315 for
+            // Moodle 2.5.
+            $element = $mform->getElement('theme');
+            $element->freeze();
+        }
+        // END UCLA MOD: CCLE-4230
     }
 
 /// perform some extra moodle validation

@@ -343,7 +343,7 @@ $CFG->allowcoursethemes = 1;
 
 // Site administration > Appearance > Navigation
 $CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
-$CFG->navlinkcoursesections = 1; // CCLE-3031 - Section Titles breadcrumbs aren't links
+$CFG->navshowcategories = 0;
 
 // Site administration > Appearance > Courses
 $CFG->courselistshortnames = 1;

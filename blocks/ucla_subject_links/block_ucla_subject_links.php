@@ -28,8 +28,14 @@ class block_ucla_subject_links extends block_base {
 
     /**
      * Use UCLA Course menu block hook
+     * 
+     * @param array $courseinfo     An array from the ucla_course_menu block
+     *                              with a 'course' index with a course object.
+     *                              
+     * @return array $nodes         Nodes that will be displayed in the menu.
      */
-    public static function get_navigation_nodes($course) {
+    public static function get_navigation_nodes($courseinfo) {
+        $course = $courseinfo['course'];
         $subjname = self::get_subject_areas($course);
         $nodes = array();
         if (!empty($subjname)) {

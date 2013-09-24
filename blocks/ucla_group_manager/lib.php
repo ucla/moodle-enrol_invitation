@@ -58,11 +58,7 @@ class ucla_group_manager {
      * @return array
      */
     public function query_registrar($sp, $request_arr, $filter) {
-        $results = registrar_query::run_registrar_query($sp, $request_arr, $filter);
-        if (isset($results[registrar_query::query_results])) {
-            return $results[registrar_query::query_results];
-        }
-        return array();
+        return registrar_query::run_registrar_query($sp, $request_arr, $filter);
     }
 
     /**
@@ -98,9 +94,6 @@ class ucla_group_manager {
 
             echo "* " . make_idnumber($reqarr) . " has " . count($sections) 
                 . " sections\n";
-            if (empty($sections)) {
-                continue;
-            }
 
             // Check this roster against section rosters to look for
             // stragglers
@@ -157,7 +150,7 @@ class ucla_group_manager {
 
                 // Filter out students that have dropped course.
                 foreach ($sectionroster as $student) {
-                    if ($student['enrol_stat_cd'] != 'D' && $student['enrol_stat_cd'] != 'C') {
+                    if ($student['enrl_stat_cd'] != 'D' && $student['enrl_stat_cd'] != 'C') {
                         $indexedsectionroster[] = $this->enrollment_helper->translate_ccle_roster_class($student);
                     }
                 }

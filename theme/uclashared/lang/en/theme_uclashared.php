@@ -52,6 +52,7 @@ $string['setting_title_logo_sub_text'] = 'Text under logo';
 $string['setting_desc_logo_sub_text'] = 'This is the text displayed under the UCLA | CCLE logo. I.E. Social Sciences Computing.';
 $string['setting_default_logo_sub_text'] = 
 '<ul>
+    <li><span>Arts & Architecture</span></li>
     <li><span>Chemistry & Biochemistry</span></li>
     <li><span>Computer Science</span></li>
     <li><span>Dentistry</span></li>
@@ -66,7 +67,6 @@ $string['setting_default_logo_sub_text'] =
     <li><span>Physics & Astronomy</span></li>
     <li><span>Public Affairs</span></li>
     <li><span>Public Health</span></li>
-    <li><span>World Arts & Architecture</span></li>
 </ul>';
 
 $string['setting_title_logo_sub_dropdown'] = 'Dropdown javascript';
