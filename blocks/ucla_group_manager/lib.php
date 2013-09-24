@@ -105,8 +105,9 @@ class ucla_group_manager {
 
             $indexedrequestroster = array();
             foreach ($requestroster as $student) {
-                $indexedrequestroster[] = 
-                    $this->enrollment_helper->translate_ccle_roster_class($student);
+                if ($student['enrl_stat_cd'] != 'D' && $student['enrl_stat_cd'] != 'C') {
+                    $indexedrequestroster[] = $this->enrollment_helper->translate_ccle_roster_class($student);
+                }
             }
             
             $reqobj = new stdclass();
