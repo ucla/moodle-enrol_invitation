@@ -130,7 +130,7 @@ class ucla_group_manager_testcase extends advanced_testcase {
             $classroster[] = array('term_cd' => $term,
                                    'stu_id' => $student->idnumber,
                                    'full_name_person' => $student->firstname.' '.$student->lastname,
-                                   'enrol_stat_cd' => 'E',
+                                   'enrl_stat_cd' => 'E',
                                    'ss_email_addr' => $student->email,
                                    'bolid' => $bol); 
         }
@@ -142,7 +142,7 @@ class ucla_group_manager_testcase extends advanced_testcase {
         $sectionrosterA[0] = array('term_cd' => $term,
                                    'stu_id' => $studentA->idnumber,
                                    'full_name_person' => $studentA->firstname.' '.$studentA->lastname,
-                                   'enrol_stat_cd' => 'E',
+                                   'enrl_stat_cd' => 'E',
                                    'ss_email_addr' => $studentA->email,
                                    'bolid' => 'studentA');
 
@@ -153,7 +153,7 @@ class ucla_group_manager_testcase extends advanced_testcase {
         $sectionrosterB[0] = array('term_cd' => $term,
                                    'stu_id' => $studentB->idnumber,
                                    'full_name_person' => $studentB->firstname.' '.$studentB->lastname,
-                                   'enrol_stat_cd' => 'E',
+                                   'enrl_stat_cd' => 'E',
                                    'ss_email_addr' => $studentB->email,
                                    'bolid' => 'studentB');
 
@@ -183,7 +183,7 @@ class ucla_group_manager_testcase extends advanced_testcase {
         $sectionrosterA[0] = array('term_cd' => $term,
                                    'stu_id' => $studentA->idnumber,
                                    'full_name_person' => $studentA->firstname.' '.$studentA->lastname,
-                                   'enrol_stat_cd' => 'D',
+                                   'enrl_stat_cd' => 'D',
                                    'ss_email_addr' => $studentA->email,
                                    'bolid' => 'studentA');
 
@@ -193,7 +193,7 @@ class ucla_group_manager_testcase extends advanced_testcase {
         $sectionrosterB[1] = array('term_cd' => $term,
                                    'stu_id' => $studentA->idnumber,
                                    'full_name_person' => $studentA->firstname.' '.$studentA->lastname,
-                                   'enrol_stat_cd' => 'E',
+                                   'enrl_stat_cd' => 'E',
                                    'ss_email_addr' => $studentA->email,
                                    'bolid' => 'studentA');
 
@@ -262,7 +262,7 @@ class ucla_group_manager_testcase extends advanced_testcase {
         $classroster[0] = array('term_cd' => $term,
                                 'stu_id' => $studentA->idnumber,
                                 'full_name_person' => $studentA->firstname.' '.$studentA->lastname,
-                                'enrol_stat_cd' => 'E',
+                                'enrl_stat_cd' => 'E',
                                 'ss_email_addr' => $studentA->email,
                                 'bolid' => 'studentA'); 
 
@@ -274,7 +274,7 @@ class ucla_group_manager_testcase extends advanced_testcase {
         $sectionrosterA[0] = array('term_cd' => $term,
                                    'stu_id' => $studentA->idnumber,
                                    'full_name_person' => $studentA->firstname.' '.$studentA->lastname,
-                                   'enrol_stat_cd' => 'E',
+                                   'enrl_stat_cd' => 'E',
                                    'ss_email_addr' => $studentA->email,
                                    'bolid' => 'studentA');
 
@@ -312,7 +312,7 @@ class ucla_group_manager_testcase extends advanced_testcase {
         $sectionrosterB[0] = array('term_cd' => $term,
                                    'stu_id' => $studentA->idnumber,
                                    'full_name_person' => $studentA->firstname.' '.$studentA->lastname,
-                                   'enrol_stat_cd' => 'E',
+                                   'enrl_stat_cd' => 'E',
                                    'ss_email_addr' => $studentA->email,
                                    'bolid' => 'studentA');
 
@@ -430,7 +430,7 @@ class ucla_group_manager_testcase extends advanced_testcase {
         $classroster1[] = array('term_cd' => $term,
                                 'stu_id' => $studentA->idnumber,
                                 'full_name_person' => $studentA->firstname.' '.$studentA->lastname,
-                                'enrol_stat_cd' => 'E',
+                                'enrl_stat_cd' => 'E',
                                 'ss_email_addr' => $studentA->email,
                                 'bolid' => 'studentA');
 
@@ -444,7 +444,7 @@ class ucla_group_manager_testcase extends advanced_testcase {
         $sectionroster1A[0] = array('term_cd' => $term,
                                     'stu_id' => $studentA->idnumber,
                                     'full_name_person' => $studentA->firstname.' '.$studentA->lastname,
-                                    'enrol_stat_cd' => 'E',
+                                    'enrl_stat_cd' => 'E',
                                     'ss_email_addr' => $studentA->email,
                                     'bolid' => 'studentA');
 
@@ -519,7 +519,7 @@ class ucla_group_manager_testcase extends advanced_testcase {
         $classroster2[0] = array('term_cd' => $term,
                                  'stu_id' => $studentA->idnumber,
                                  'full_name_person' => $studentA->firstname.' '.$studentA->lastname,
-                                 'enrol_stat_cd' => 'E',
+                                 'enrl_stat_cd' => 'E',
                                  'ss_email_addr' => $studentA->email,
                                  'bolid' => 'studentA');
 
@@ -528,7 +528,7 @@ class ucla_group_manager_testcase extends advanced_testcase {
         $sectionroster2B[0] = array('term_cd' => $term,
                                     'stu_id' => $studentA->idnumber,
                                     'full_name_person' => $studentA->firstname.' '.$studentA->lastname,
-                                    'enrol_stat_cd' => 'E',
+                                    'enrl_stat_cd' => 'E',
                                     'ss_email_addr' => $studentA->email,
                                     'bolid' => 'studentA');
 

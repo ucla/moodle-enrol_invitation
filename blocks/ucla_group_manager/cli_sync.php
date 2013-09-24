@@ -46,7 +46,8 @@ foreach ($argv as $arg) {
 
 $results = null;
 if (isset($singlecourseid)) {
-    $results = ucla_group_manager::sync_course($singlecourseid);
+    $groupmanager = new ucla_group_manager();
+    $results = $groupmanager->sync_course($singlecourseid);
 } else {
     // TODO work for selected terms
     // TODO implement future terms
