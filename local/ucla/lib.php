@@ -1649,12 +1649,12 @@ function format_displayname($displayname) {
         $retval['lastname'] .= ' ' . $names[2];
     }
 
-    // Make sure the name is properly capitalized.
+    // Make sure the name is all capitalized.
     if (!empty($retval['firstname'])) {
-        $retval['firstname'] = ucla_format_name($retval['firstname']);
+        $retval['firstname'] = textlib::strtoupper($retval['firstname']);
     }
     if (!empty($retval['lastname'])) {
-        $retval['lastname'] = ucla_format_name($retval['lastname']);
+        $retval['lastname'] = textlib::strtoupper($retval['lastname']);
     }
 
     return $retval;

@@ -20,6 +20,9 @@
  * NOTE: Names for this test are notable UCLA alummni:
  * http://en.wikipedia.org/wiki/List_of_University_of_California,_Los_Angeles_people
  *
+ * We are testing that names are returned all uppercase, because of:
+ * CCLE-4240 - Revert name formatting to all uppercase
+ *
  * @package    local_ucla
  * @category   phpunit
  * @copyright  2013 UC Regents
@@ -39,8 +42,8 @@ class format_displayname_test extends basic_testcase {
         $testcases = array('von Dassanowsky, Robert',
                            'VON Dassanowsky, Robert',
                            'VON DASSANOWSKY, ROBERT');
-        $expected = array('firstname' => 'Robert',
-                          'lastname' => 'von Dassanowsky');
+        $expected = array('firstname' => 'ROBERT',
+                          'lastname' => 'VON DASSANOWSKY');
         foreach ($testcases as $testcase) {
             $actual = format_displayname($testcase);
             $this->assertEquals($expected, $actual, 'Testcase: ' . $testcase);
@@ -54,8 +57,8 @@ class format_displayname_test extends basic_testcase {
         $testcases = array('Sharpe, William Forsyth',
                            'Sharpe  , WILLIAM Forsyth  ',
                            ' SHARPE , William Forsyth');
-        $expected = array('firstname' => 'William Forsyth',
-                          'lastname' => 'Sharpe');
+        $expected = array('firstname' => 'WILLIAM FORSYTH',
+                          'lastname' => 'SHARPE');
         foreach ($testcases as $testcase) {
             $actual = format_displayname($testcase);
             $this->assertEquals($expected, $actual, 'Testcase: ' . $testcase);
@@ -71,8 +74,8 @@ class format_displayname_test extends basic_testcase {
                            'NORTON,  Ken,   Jr.  ',
                            ' NORTON ,  Ken,   JR.  ',
                            'NORTON,  KEN,   Jr.  ');
-        $expected = array('firstname' => 'Ken',
-                          'lastname' => 'Norton Jr.');
+        $expected = array('firstname' => 'KEN',
+                          'lastname' => 'NORTON JR.');
         foreach ($testcases as $testcase) {
             $actual = format_displayname($testcase);
             $this->assertEquals($expected, $actual, 'Testcase: ' . $testcase);
@@ -83,8 +86,8 @@ class format_displayname_test extends basic_testcase {
                            'NORTON,  Ken ,   Jr  ',
                            'NORTON,  Ken,   JR  ',
                            'NORTON ,  KEN,   Jr  ');
-        $expected = array('firstname' => 'Ken',
-                          'lastname' => 'Norton Jr');
+        $expected = array('firstname' => 'KEN',
+                          'lastname' => 'NORTON JR');
         foreach ($testcases as $testcase) {
             $actual = format_displayname($testcase);
             $this->assertEquals($expected, $actual, 'Testcase: ' . $testcase);
