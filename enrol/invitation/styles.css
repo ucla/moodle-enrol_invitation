@@ -1,40 +1,39 @@
 /** General display rules **/
 
+.mform-invite .label-bstp {
+    float: left;
+    clear: left;
+    margin-bottom: 4px !important;
+}
+
+.mform-invite .label-bstp ~ span {
+    clear: left;
+    float: left;
+    display: inline-block;
+    margin-bottom: 4px;
+}
 .enrol_invitation_item_icon {
     padding-right: 5px;
 }
-
-#page-enrol-invitation-invitation .role-name {
-    font-weight: bold;
-    padding-left: 0.5em;
+.mform-invite .error > .error {
+    float: left;
+    margin-left: 0 !important;
+    margin-right: 100% !important;
+    text-transform: capitalize;
 }
 
-#page-enrol-invitation-invitation #id_email {
-    width: 50%;
+.mform-invite .error > .error:after {
+    width: 100%;
 }
 
-#page-enrol-invitation-invitation #id_subject {
-    width: 99%;
-}
-
-#page-enrol-invitation-invitation #id_message {
-    width: 99%;
-    height: 6.0em;
-}
-
-#page-enrol-invitation-invitation #fitem_id_message .helplink {
-    display: block;
-}
-
-#page-enrol-invitation-invitation .role_type_header {
-    color: #536895;
-    font-weight: bold;
-    text-transform:uppercase;
-    border-bottom: 1px dotted #536895;
-    font-size: x-small;    
+.form-invite-message,
+.form-invite-subject,
+.form-invite-email {
+    width: 99% !important;
 }
 
 #page-enrol-invitation-invitation .daysexpire_string {
     color: #444;
-    padding-left: 1.5em;
+    /*padding-left: 1.5em;*/
+    width: 100%;
 }

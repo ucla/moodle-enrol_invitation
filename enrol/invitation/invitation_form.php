@@ -65,9 +65,9 @@ class invitation_form extends moodleform {
         $label = get_string('assignrole', 'enrol_invitation');
         $role_group = array();        
         foreach ($site_roles as $role_type => $roles) {          
-            $role_type_string = html_writer::tag('span', 
+            $role_type_string = html_writer::tag('div', 
                     get_string($role_type, 'tool_uclaroles'), 
-                    array('class' => 'role_type_header'));
+                    array('class' => 'label-bstp label-primary'));
             $role_group[] = &$mform->createElement('static', 'role_type_header', 
                     '', $role_type_string);            
             
@@ -94,9 +94,9 @@ class invitation_form extends moodleform {
                     $site_type == siteindicator_manager::SITE_TYPE_TASITE) {
 
                 // Create Temporary Roles group.
-                $role_type_string = html_writer::tag('span', 
+                $role_type_string = html_writer::tag('div', 
                         get_string('tempgroup', 'enrol_invitation'),
-                        array('class' => 'role_type_header'));
+                        array('class' => 'label-bstp label-warning'));
                 $role_group[] = &$mform->createElement('static', 'role_type_header', 
                         '', $role_type_string);
                 
@@ -114,28 +114,28 @@ class invitation_form extends moodleform {
                 $daysexpire_string = html_writer::tag('span',
                         get_string('daysexpire_string', 'enrol_invitation',
                                 $daysexpire_dropdown->toHtml()),
-                        array('class' => 'daysexpire_string'));
+                        array('class' => 'well well-sm daysexpire_string'));
                 $role_group[] = &$mform->createElement('static', 
                         'daysexpire_string', '', $daysexpire_string);
             }
         }
 
-        $mform->addGroup($role_group, 'role_group', $label, 
-                html_writer::empty_tag('br'));
+        $mform->addGroup($role_group, 'role_group', $label);
         $mform->addRule('role_group', 
                 get_string('norole', 'enrol_invitation'), 'required');
         
         // email address field
         $mform->addElement('header', 'header_email', get_string('header_email', 'enrol_invitation'));        
         $mform->addElement('textarea', 'email', get_string('emailaddressnumber', 'enrol_invitation'), 
-                array('maxlength' => 1000));
+                array('maxlength' => 1000, 'class' => 'form-invite-email'));
         $mform->addRule('email', null, 'required', null, 'client');
         $mform->setType('email', PARAM_TEXT);
         // Check for correct email formating later in validation() function
         $mform->addElement('static', 'email_clarification', '', get_string('email_clarification', 'enrol_invitation'));
         
         // subject field
-        $mform->addElement('text', 'subject', get_string('subject', 'enrol_invitation'));
+        $mform->addElement('text', 'subject', get_string('subject', 'enrol_invitation'),
+                array('class' => 'form-invite-subject'));
         $mform->setType('subject', PARAM_TEXT);
         $mform->addRule('subject', get_string('required'), 'required');       
         // default subject is "Site invitation for <course title>"        
@@ -144,7 +144,8 @@ class invitation_form extends moodleform {
         $mform->setDefault('subject', $default_subject);
         
         // message field
-        $mform->addElement('textarea', 'message', get_string('message', 'enrol_invitation'));  
+        $mform->addElement('textarea', 'message', get_string('message', 'enrol_invitation'),
+                array('class' => 'form-invite-message'));  
         // put help text to show what default message invitee gets
         $mform->addHelpButton('message', 'message', 'enrol_invitation', 
                 get_string('message_help_link', 'enrol_invitation'));
@@ -183,8 +184,8 @@ class invitation_form extends moodleform {
     public function get_data() {
         $retval = parent::get_data();
 
-        // Check if user submitted daysexpire from POST.
-        if (isset($_POST['daysexpire'])) {
+        // Check if form validated, and if user submitted daysexpire from POST.
+        if (!empty($retval) && isset($_POST['daysexpire'])) {
             if (in_array($_POST['daysexpire'], self::$daysexpire_options)) {
                 // Cannot indicate to user a real error message, so just slightly
                 // ignore user setting.

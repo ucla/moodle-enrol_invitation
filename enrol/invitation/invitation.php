@@ -81,7 +81,8 @@ if ($inviteid) {
     }
 }
 
-$mform = new invitation_form(null, array('course' => $course, 'prefilled' => $prefilled));
+$mform = new invitation_form(null, array('course' => $course, 'prefilled' => $prefilled), 
+        'post', '', array('class' => 'mform-invite'));
 $mform->set_data($invitationmanager);
 
 $data = $mform->get_data();
