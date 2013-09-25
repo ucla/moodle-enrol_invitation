@@ -18,7 +18,12 @@ The question accepts several response types:
 3) MP3 Recording (doesn't require Red5)
 4) Whiteboard (draw pictures, optionally over a background)
 
+Moodle caching can affect audio/video playback reliability. To turn off text filter caching:  
+Go to: Site Administration -> Plugins -> Filters ->Common Filter Settings
+There set "Text Cache Lifetime" to "no"
+
 *Please be aware that the poodllrecording question relies on the PoodLL Filter being installed, and won't work properly otherwise*
+
 
 Good luck.
 

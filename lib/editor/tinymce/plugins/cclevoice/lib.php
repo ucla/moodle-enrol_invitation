@@ -14,21 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Version details
- *
- * @package    repository
- * @subpackage poodll
- * @copyright  2012 Justin hunt
- * @author     Justin Hunt <bitwalkerjapan@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2013051100; 
-$plugin->requires  = 2012062500; 
-$plugin->component = 'repository_poodll'; 
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '2.5.1 (Build 2013051100)';
-$plugin->dependencies = array('filter_poodll' => 2012120400);
+/**
+ * Plugin for Moodle 'CCLE voice' button.
+ *
+ * @package   tinymce_cclevoice
+ * @copyright 2013 CDH UCLA
+ * @license
+ */
+class tinymce_cclevoice extends editor_tinymce_plugin {
+    /** @var array list of buttons defined by this plugin */
+    protected $buttons = array('cclevoice');
+
+    protected function update_init_params(array &$params, context $context,
+            array $options = null) {
+
+        // Add button after 'unlink' in advancedbuttons3.
+        $this->add_button_after($params, 3, 'cclevoice', 'image');
+
+        // Add JS file, which uses default name.
+        $this->add_js_plugin($params);
+    }
+}

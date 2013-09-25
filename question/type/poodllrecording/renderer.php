@@ -164,7 +164,7 @@ class qtype_poodllrecording_format_audio_renderer extends plugin_renderer_base {
 			if($pathtofile!=""){
 				 $files = fetchSimpleAudioPlayer('auto',$pathtofile,"http",400,25);
 			}else{
-				$files = "No recording found";
+				$files = "";
 			}
 			return $files;
     }
@@ -193,10 +193,16 @@ class qtype_poodllrecording_format_audio_renderer extends plugin_renderer_base {
 		//our answerformat
 		$ret .= html_writer::empty_tag('input', array('type' => 'hidden','name' => $inputname . 'format', 'value' => 1));
 	
+		//if we already have a response, lets display so the student  can check/decide to rerecord
+		$currentresponse = $this->response_area_read_only($name, $qa, $step, $lines, $context);
+		if(!empty($currentresponse)){
+					$ret .= get_string('currentresponse', 'qtype_poodllrecording');
+					$ret .= $currentresponse;
+		}
 	
 		//the context id is the user context for a student submission
 		return $ret . fetchAudioRecorderForSubmission('swf','question',$inputid, $usercontextid ,'user','draft',$draftitemid);
-		return $ret;
+
     }
 }
 
@@ -213,10 +219,6 @@ class qtype_poodllrecording_format_mp3_renderer extends qtype_poodllrecording_fo
     protected function class_name() {
         return 'qtype_poodllrecording_mp3';
     }
-
-
-
-
 
     public function response_area_input($name, $qa, $step, $lines, $context) {
     	global $USER;
@@ -241,6 +243,12 @@ class qtype_poodllrecording_format_mp3_renderer extends qtype_poodllrecording_fo
 		//our answerformat
 		$ret .= html_writer::empty_tag('input', array('type' => 'hidden','name' => $inputname . 'format', 'value' => 1));
 	
+		//if we already have a response, lets display so the student  can check/decide to rerecord
+		$currentresponse = $this->response_area_read_only($name, $qa, $step, $lines, $context);
+		if(!empty($currentresponse)){
+					$ret .= get_string('currentresponse', 'qtype_poodllrecording');
+					$ret .= $currentresponse;
+		}
 	
 		//the context id is the user context for a student submission
 		return $ret . fetchMP3RecorderForSubmission($inputid, $usercontextid ,'user','draft',$draftitemid);
@@ -263,15 +271,22 @@ class qtype_poodllrecording_format_video_renderer extends qtype_poodllrecording_
     }
 
     public function response_area_read_only($name, $qa, $step, $lines, $context) {
-				
+			
+			$pathtofile="";
+			
 			//fetch file from storage and figure out URL
     		$storedfiles=$qa->get_last_qt_files($name,$context->id);
     		foreach ($storedfiles as $sf){
     			$pathtofile=$qa->get_response_file_url($sf);
     			break;
     		}
-
-			return fetchSimpleVideoPlayer('auto',$pathtofile,400,380,"http");
+			
+			//if we do not have a file submission, return an empty string
+			if(empty($pathtofile)){
+				return "";
+			}else{
+				return fetchSimpleVideoPlayer('auto',$pathtofile,400,380,"http");
+			}
 	
     }
 
@@ -295,6 +310,12 @@ class qtype_poodllrecording_format_video_renderer extends qtype_poodllrecording_
 		
 		$ret .= html_writer::empty_tag('input', array('type' => 'hidden','name' => $inputname . 'format', 'value' => FORMAT_PLAIN));
 
+		//if we already have a response, lets display so the student  can check/decide to rerecord
+		$currentresponse = $this->response_area_read_only($name, $qa, $step, $lines, $context);
+		if(!empty($currentresponse)){
+					$ret .= get_string('currentresponse', 'qtype_poodllrecording');
+					$ret .= $currentresponse;
+		}
        
 		//the context id is the user context id
 		return $ret . fetchVideoRecorderForSubmission('swf','question',$inputid, $usercontextid ,'user','draft',$draftitemid);
@@ -317,14 +338,21 @@ class qtype_poodllrecording_format_picture_renderer extends qtype_poodllrecordin
 
     public function response_area_read_only($name, $qa, $step, $lines, $context) {
 				
+			$pathtofile ="";
+			
 			//fetch file from storage and figure out URL
     		$storedfiles=$qa->get_last_qt_files($name,$context->id);
     		foreach ($storedfiles as $sf){
     			$pathtofile=$qa->get_response_file_url($sf);
     			break;
     		}
-
-			return "<img src=\"" . $pathtofile . "\" />";
+			
+			//if we do not have a file submission, return an empty string
+			if(empty($pathtofile)){
+				return "";
+			}else{
+				return "<img src=\"" . $pathtofile . "\" />";
+			}
 	
     }
 
@@ -391,6 +419,13 @@ class qtype_poodllrecording_format_picture_renderer extends qtype_poodllrecordin
 		//for debugging purposes we just print this out here
 		//$ret .= $imageurl . " " . $boardsize . " ";
 		
+		//if we already have a response, lets display so the student  can check/decide to rerecord
+		$currentresponse = $this->response_area_read_only($name, $qa, $step, $lines, $context);
+		if(!empty($currentresponse)){
+					$ret .= get_string('currentresponse', 'qtype_poodllrecording');
+					$ret .= $currentresponse;
+		}
+		
 		//the context id is the user context for a student submission
 		return $ret . $this->prepareWhiteboard($inputid, $usercontextid ,'user','draft',$draftitemid,$width,$height,$imageurl);
 
@@ -407,7 +442,7 @@ class qtype_poodllrecording_format_picture_renderer extends qtype_poodllrecordin
 
 }//end of class
 /**
- * An poodllrecording format renderer for poodllrecordings for simple whiteboard picture 
+ * An poodllrecording format renderer for poodllrecordings for simple snapshots
  *
  * @copyright  2012 Justin Hunt
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

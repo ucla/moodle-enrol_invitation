@@ -15,20 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details
+ * Strings for 'cclevoice' plugin.
  *
- * @package    repository
- * @subpackage poodll
- * @copyright  2012 Justin hunt
- * @author     Justin Hunt <bitwalkerjapan@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   tinymce_cclevoice
+ * @copyright 2013 CCLE UCLA
+ * @license
  */
 
-defined('MOODLE_INTERNAL') || die();
+$string['pluginname'] = 'CCLE Voice';
 
-$plugin->version   = 2013051100; 
-$plugin->requires  = 2012062500; 
-$plugin->component = 'repository_poodll'; 
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '2.5.1 (Build 2013051100)';
-$plugin->dependencies = array('filter_poodll' => 2012120400);
+/* All lang strings used from TinyMCE JavaScript code must be named 'pluginname:stringname', no need to create langs/en_dlg.js */
+$string['cclevoice:desc'] = 'CCLE Voice';
+$string['title'] = 'Insert a CCLE Voice Recording';

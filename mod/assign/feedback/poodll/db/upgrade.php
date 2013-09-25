@@ -15,20 +15,29 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details
+ * Upgrade code for the feedback_poodll module.
  *
- * @package    repository
- * @subpackage poodll
- * @copyright  2012 Justin hunt
- * @author     Justin Hunt <bitwalkerjapan@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   assignfeedback_poodll
+ * @copyright 2012 NetSpot {@link http://www.netspot.com.au}
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+/**
+ * Stub for upgrade code
+ * @param int $oldversion
+ * @return bool
+ */
+function xmldb_assignfeedback_poodll_upgrade($oldversion) {
+    // do the upgrades
+    // Moodle v2.3.0 release upgrade line
+    // Put any upgrade step following this
 
-$plugin->version   = 2013051100; 
-$plugin->requires  = 2012062500; 
-$plugin->component = 'repository_poodll'; 
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '2.5.1 (Build 2013051100)';
-$plugin->dependencies = array('filter_poodll' => 2012120400);
+
+    // Moodle v2.4.0 release upgrade line
+    // Put any upgrade step following this
+
+
+    return true;
+}
+
+
