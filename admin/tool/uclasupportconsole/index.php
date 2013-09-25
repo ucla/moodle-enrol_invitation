@@ -1653,7 +1653,7 @@ if ($consolecommand == "$title") {
             $modifiedresults = array_merge($modifiedresults, $DB->get_records_sql($sql, array('admin' => $admin)));
         }
         foreach ($modifiedresults as $result) {
-            $userurl = new moodle_url("/user/profile.php", (["id" => $result->id]));
+            $userurl = new moodle_url("/user/profile.php", array('id' => $result->id));
             $result->name = "<a href=\"".$userurl->out()."\">$result->name</a>";
         }
     } else {
@@ -1708,7 +1708,7 @@ if ($consolecommand == "$title") {
         foreach ($results as $result) {
             $modifiedrow = new object();
             $modifiedrow->id = $result->id;
-            $userurl = new moodle_url("/user/profile.php", (["id" => $result->uid]));
+            $userurl = new moodle_url("/user/profile.php", array('id' => $result->uid));
             $modifiedrow->Name = "<a href=\"".$userurl->out()."\">$result->name</a>";
             if ($contextlevelparam == CONTEXT_COURSE || $contextlevelparam == CONTEXT_COURSECAT) {
                 $modifiedrow->$contextname = "<a href=\"$CFG->wwwroot" . $contexturl . $result->$lookup . 
@@ -1735,8 +1735,8 @@ if ($consolecommand == "$title") {
     }
     
     $sectionhtml .= supportconsole_render_section_shortcut($title, $modifiedresults, array(), 
-            get_string('usersdescription', 'tool_uclasupportconsole', (object) ['role' => $roleparam, 
-                'contextlevel' => $contextlevelparam, 'component' => $componentparam]));
+            get_string('usersdescription', 'tool_uclasupportconsole', (object) array('role' => $roleparam, 
+                'contextlevel' => $contextlevelparam, 'component' => $componentparam)));
     $pageurl = new moodle_url( $PAGE->url, ['role' => $roleparam, 'component' => $componentparam, 
         'contextlevel' => $contextlevelparam, 'count' => $countparam, 'console' => $title]);
     
