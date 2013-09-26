@@ -201,6 +201,21 @@ $string['users_by_division_help'] = 'Counts the number of hits, users, ' .
         'and number of users of the entire system by term';
 $string['hits'] = 'Hits';
 $string['ratio_hits_users'] = 'Hits to Users';
+
+// Strings for gradebook usage.
+$string['gradebook_usage'] = 'Gradebook usage';
+$string['gradebook_usage_help'] = 'Counts the number of courses that have used
+    the gradebook in the following ways:
+    <ol>
+        <li>Has graded grade items.</li>
+        <li>Has overridden a grade item or grade category.</li>
+        <li>Exported grades to one of the export formats.</li>
+    </ol>';
+$string['gradeditems'] = 'Has graded items';
+$string['overriddengrades'] = 'Has overridden grades';
+$string['exportedgrades'] = 'Exported grades';
+$string['usedgradebook'] = 'Total courses using gradebook';
+$string['totalcourses'] = 'Total courses';
                                    
 // error strings
 $string['nocachedresults'] = 'No cached results found';
