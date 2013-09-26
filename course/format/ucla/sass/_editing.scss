@@ -33,6 +33,9 @@ $editing-link-color: orangered;
         @each $icon in $collection {
             .#{$icon} {
                 color: $editing-link-color;
+                // Must display as inline-block so make click-able in Safari
+                display: inline-block;
+                
                 &:after {
                     content: attr(title);
                     margin-left: 2px;
