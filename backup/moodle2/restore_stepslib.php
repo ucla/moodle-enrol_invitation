@@ -464,6 +464,12 @@ class restore_rebuild_course_cache extends restore_execution_step {
         // present in course/formats... here we check that all the sections
         // from 0 to MAX(section->section) exist, creating them if necessary
         $maxsection = $DB->get_field('course_sections', 'MAX(section)', array('course' => $this->get_courseid()));
+        // START UCLA MOD: CCLE-4225 - Restore causing crashes
+        $sitemaxsections = get_config('maxsections', 'moodlecourse');
+        if ($maxsection > $sitemaxsections) {
+            $maxsection = $sitemaxsections;
+        }
+        // END UCLA MOD: CCLE-4225
         // Iterate over all sections
         for ($i = 0; $i <= $maxsection; $i++) {
             // If the section $i doesn't exist, create it
