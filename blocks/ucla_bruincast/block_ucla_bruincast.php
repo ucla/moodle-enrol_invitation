@@ -71,14 +71,18 @@ class block_ucla_bruincast extends block_base {
                             if ($usedlink || sizeof($previouslinks) == 0) {
 
                                 if (!$atleastone) {
-                                    $nodes[] = navigation_node::create(
+                                    $node = navigation_node::create(
                                             'Bruincast ' .get_string($node_type, 'block_ucla_bruincast'), 
                                             new moodle_url($bcnodes->bruincast_url));
+                                    $node->add_class('bruincast-link');
+                                    $nodes[] = $node;
                                 }
 
                                 $atleastone = true;
                             } else {
-                                $nodes[] = navigation_node::create('Bruincast ' . $reginfo->subj_area . $reginfo->coursenum, new moodle_url($bcnodes->bruincast_url));
+                                $node = navigation_node::create('Bruincast ' . $reginfo->subj_area . $reginfo->coursenum, new moodle_url($bcnodes->bruincast_url));
+                                $node->add_class('bruincast-link');
+                                $nodes[] = $node;
                             }
 
                             $previouslinks[] = $bcnodes->bruincast_url;
@@ -98,14 +102,18 @@ class block_ucla_bruincast extends block_base {
                         if ($usedlink || sizeof($previouslinks) == 0) {
 
                             if (!$atleastone) {
-                                $nodes[] = navigation_node::create(
+                                $node = navigation_node::create(
                                         'Bruincast ' .get_string($node_type, 'block_ucla_bruincast'), 
                                         new moodle_url($bcnodes->bruincast_url));
+                                $node->add_class('bruincast-link');
+                                $nodes[] = $node;
                             }
 
                             $atleastone = true;
                         } else {
-                            $nodes[] = navigation_node::create('Bruincast ' . $reginfo->subj_area . $reginfo->coursenum, new moodle_url($bcnodes->bruincast_url));
+                            $node = navigation_node::create('Bruincast ' . $reginfo->subj_area . $reginfo->coursenum, new moodle_url($bcnodes->bruincast_url));
+                            $node->add_class('bruincast-link');
+                            $nodes[] = $node;
                         }
 
                         $previouslinks[] = $bcnodes->bruincast_url;

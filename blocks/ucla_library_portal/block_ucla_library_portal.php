@@ -37,7 +37,9 @@ class block_ucla_library_portal extends block_base {
             return $ret_val;
         }        
         $url = new moodle_url('http://www.library.ucla.edu/library-research-portal');
-        $ret_val[] = navigation_node::create(get_string('portal_name', 'block_ucla_library_portal'), $url);
+        $node = navigation_node::create(get_string('portal_name', 'block_ucla_library_portal'), $url);
+        $node->add_class('library-research-portal');
+        $ret_val[] = $node;
         return $ret_val;
     }
     
