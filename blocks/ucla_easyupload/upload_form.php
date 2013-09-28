@@ -55,7 +55,6 @@ abstract class easy_upload_form extends moodleform {
 
         $type = $this->_customdata['type'];
         $sections = $this->_customdata['sectionnames'];
-        $copyrights = $this->_customdata['copyrights'];
         $rearrange_avail = $this->_customdata['rearrange'];
 
         $defaultsection = $this->_customdata['defaultsection'];
@@ -80,7 +79,11 @@ abstract class easy_upload_form extends moodleform {
         $mform->addElement('hidden', 'default_displayname_field', 
             $this->default_displayname_field, 
             array('id' => 'id_default_displayname_field'));
-        $mform->setType('default_displayname_field', PARAM_ALPHANUM);
+        if (!empty($CFG->formatstringstriptags)) {
+            $mform->setType('default_displayname_field', PARAM_TEXT);
+        } else {
+            $mform->setType('default_displayname_field', PARAM_CLEANHTML);
+        }
 
         // Use whatever the default display type is for the site. Can be either 
         // automatic, embed, force download, etc. Look in lib/resourcelib.php 
@@ -98,35 +101,17 @@ abstract class easy_upload_form extends moodleform {
 
             $mform->addElement('text', 'name', get_string('name'),
                 array('size' => 40));
-            $mform->setType('name', PARAM_ALPHANUM);
             $mform->addRule('name', null, 'required');
             $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
+            if (!empty($CFG->formatstringstriptags)) {
+                $mform->setType('name', PARAM_TEXT);
+            } else {
+                $mform->setType('name', PARAM_CLEANHTML);
+            }
 
             $mform->addElement('editor', 'introeditor', get_string('description'), array('rows' => 3), array('maxfiles' => EDITOR_UNLIMITED_FILES,
             'noclean' => true, 'context' => $this->context, 'collapsed' => true));
         }
-
-        // add copyright selection
-       if ($type == "file"){
-            $mform->addElement('header', '', get_string('select_copyright',
-                self::associated_block));
-
-            $mform->addElement('html', html_writer::tag('label', 
-                    get_string('select_copyright_list', self::associated_block) . 
-                    ' ' . get_string('choosecopyright_helpicon', 'local_ucla'), 
-                    array('for' => 'id_license')));
-
-            // Show the copyright selector
-            $mform->addElement('select', 'license','', $copyrights);
-            $mform->addRule('license', null, 'required');
-                $mform->setDefaults(
-                    array(
-                        'license' => array(
-                            'license' => $CFG->sitedefaultlicense
-                        )
-                    )
-                );   
-       }
 
         if (class_exists('PublicPrivate_Site') && $this->allow_publicprivate) {
             if (PublicPrivate_Site::is_enabled()) {
