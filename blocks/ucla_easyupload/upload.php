@@ -9,8 +9,6 @@ require_once($CFG->dirroot . $thispath . '/block_ucla_easyupload.php');
 require_once($CFG->dirroot . $thispath . '/upload_form.php');
 
 @include_once($CFG->dirroot . '/local/publicprivate/lib/module.class.php');
-// Need to inlucde here.  License is not treated as plugin in the code
-@include_once($CFG->libdir. '/licenselib.php');
 
 global $CFG, $PAGE, $OUTPUT;
 
@@ -119,16 +117,6 @@ foreach ($modnames as $modname => $modnamestr) {
     }
 }
 
-// Prep copyrights for copyright selector
-$copyrights_result = array();
-$copyrights_result = license_manager::get_licenses(array('enabled'=>1));
-$copyrights = array();
- foreach ($copyrights_result as $copyright) {
-    $sid = $copyright->shortname;
-    $copyrights[$sid] = $copyright->fullname;
-}
-
-
 // Prep things for section selector
 $sections = $modinfo->get_section_info_all();
 $numsections = $format->get_format_options()['numsections'];
@@ -198,8 +186,6 @@ $uploadform = new $typeclass(null,
         'course' => $course, 
         // Needed for some get_string()
         'type' => $type, 
-        // Needed for copyright <SELECT>
-        'copyrights' => $copyrights,
         // Needed for the section <SELECT>
         'sectionnames' => $sectionnames,
         'defaultsection' => $defaultsection,
