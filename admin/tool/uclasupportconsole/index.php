@@ -1737,8 +1737,8 @@ if ($consolecommand == "$title") {
     $sectionhtml .= supportconsole_render_section_shortcut($title, $modifiedresults, array(), 
             get_string('usersdescription', 'tool_uclasupportconsole', (object) array('role' => $roleparam, 
                 'contextlevel' => $contextlevelparam, 'component' => $componentparam)));
-    $pageurl = new moodle_url( $PAGE->url, ['role' => $roleparam, 'component' => $componentparam, 
-        'contextlevel' => $contextlevelparam, 'count' => $countparam, 'console' => $title]);
+    $pageurl = new moodle_url( $PAGE->url, array('role' => $roleparam, 'component' => $componentparam, 
+        'contextlevel' => $contextlevelparam, 'count' => $countparam, 'console' => $title));
     
     $sectionhtml .= $OUTPUT->paging_bar($countparam, $pageparam, RESULTS_PER_PAGE, $pageurl->out());
     
