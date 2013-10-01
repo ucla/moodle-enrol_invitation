@@ -320,7 +320,7 @@ abstract class uclastats_base implements renderable {
         $workbook->send($filename);
         // adding the worksheet
         $worksheet = $workbook->add_worksheet($report_name);
-        $bold_format = new MoodleExcelFormat($workbook->pear_excel_workbook);
+        $bold_format = $workbook->add_format();
         $bold_format->set_bold(true);
 
         // add title

@@ -87,8 +87,8 @@ class active_instructor_focused extends uclastats_base {
      */
     public function query($params) {
         global $DB;
-
         $retval = array();
+
         // For now, default threshold is hardcoded to be 1.
         $threshold = 1;
 
@@ -105,7 +105,7 @@ class active_instructor_focused extends uclastats_base {
         if ($rs->valid()) {
             foreach ($rs as $course) {
                 $points = 0;
-                $division = $course->division;
+                $division = ucla_format_name($course->division, true);
                 unset($course->division);
 
                 // Initialize array for a given division.
@@ -116,21 +116,19 @@ class active_instructor_focused extends uclastats_base {
                         'totalcourses' => 0);
                 }
 
-                if ($course->visible == 1) {
-                    /* Find how out many points this course "scored". Scoring is
-                     * defined as:
-                     *
-                     * 1 point for each visible resource
-                     * 1 point for each block added
-                     * 1 points for each visible activity (not including default
-                     * Announcement and Discussion forums)
-                     * 1 point for each post by the Instructor/TA in either the
-                     * default Announcement and Discussion forums.
-                     */
-                    $points += $this->score_modules($course);
-                    $points += $this->score_blocks($course);
-                    $points += $this->score_default_forum_activity($course);
-                }
+                /* Find how out many points this course "scored". Scoring is
+                 * defined as:
+                 *
+                 * 1 point for each visible resource
+                 * 1 point for each block added
+                 * 1 points for each visible activity (not including default
+                 * Announcement and Discussion forums)
+                 * 1 point for each post by the Instructor/TA in either the
+                 * default Announcement and Discussion forums.
+                 */
+                $points += $this->score_modules($course);
+                $points += $this->score_blocks($course);
+                $points += $this->score_default_forum_activity($course);
 
                 // Update totals for divsion.
                 if ($points >= $threshold) {
@@ -235,10 +233,8 @@ class active_instructor_focused extends uclastats_base {
                         m.name
                 FROM    {course_modules} cm
                 JOIN    {modules} m ON (cm.module=m.id)
-                JOIN    {course_sections} cs ON (cm.section=cs.id)
                 WHERE   cm.course=:courseid AND
                         cm.visible=1 AND
-                        cs.visible=1 AND
                         cm.instance NOT IN (
                             SELECT  id
                             FROM    {forum}

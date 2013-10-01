@@ -19,21 +19,83 @@ require_once($CFG->dirroot . '/report/uclastats/locallib.php');
 
 class active_student_focused extends uclastats_base {
 
+//    /**
+//     * For given course, check if 80% of the students has viewed the course.
+//     *
+//     * @param object $course
+//     * @param int $enrolledstudents Array of students enrolled in course.
+//     * @param int $start            Start of term, UNIX timestamp.
+//     * @param int $end              End of term, UNIX timestamp.
+//     *
+//     * @return boolean
+//     */
+//    private function check_majority_viewed($course, $enrolledstudents, $start, $end) {
+//        global $DB;
+//
+//        $sql = "SELECT  COUNT(DISTINCT ra.userid)
+//                FROM    {course} c
+//                JOIN    {log} l ON (l.course=c.id)
+//                JOIN    {context} ct ON (
+//                            ct.instanceid=c.id AND
+//                            ct.contextlevel=50
+//                        )
+//                JOIN    {role_assignments} ra ON (ct.id=ra.contextid)
+//                JOIN    {role} r ON (ra.roleid=r.id)
+//                WHERE   c.id=? AND
+//                        l.time>? AND
+//                        l.time<? AND
+//                        ra.userid=l.userid AND
+//                        r.shortname='student' AND
+//                        l.course=c.id";
+//        $students = $DB->get_field_sql($sql, array($course->id, $start, $end));
+//
+//        if (($students/$enrolledstudents) >= 0.80) {
+//            return true;
+//        }
+//
+//        return false;
+//    }
+
     /**
-     * For given course, check if 80% of the students has viewed the course.
+     * Returns the number of users enrolled as a student for given course.
+     *
+     * @param object $course
+     *
+     * @return int
+     */
+    private function get_enrolled_students($course) {
+        global $DB;
+
+        $sql = "SELECT  COUNT(DISTINCT ra.userid)
+                FROM    {course} c
+                JOIN    {context} ct ON (
+                            ct.instanceid=c.id AND
+                            ct.contextlevel=50
+                        )
+                JOIN    {role_assignments} ra ON (ct.id=ra.contextid)
+                JOIN    {role} r ON (ra.roleid=r.id)
+                WHERE   r.shortname='student' AND
+                        c.id=:courseid";
+        return $DB->get_field_sql($sql, array('courseid' => $course->id));
+    }
+
+    /**
+     * Get all student log entries for all courses for given term.
      *
      * @param object $course
      * @param int $enrolledstudents Array of students enrolled in course.
      * @param int $start            Start of term, UNIX timestamp.
      * @param int $end              End of term, UNIX timestamp.
      *
-     * @return boolean
+     * @return array                Returns an array indexed by courseid with
+     *                              number of student log entries.
      */
-    private function check_majority_viewed($course, $enrolledstudents, $start, $end) {
+    private function get_student_course_logs($term, $start, $end) {
         global $DB;
 
-        $sql = "SELECT  DISTINCT ra.userid
-                FROM    {course} c
+        $sql = "SELECT  c.id,
+                        COUNT(DISTINCT l.id) AS count " .
+                $this->from_filtered_courses(true) . "
                 JOIN    {log} l ON (l.course=c.id)
                 JOIN    {context} ct ON (
                             ct.instanceid=c.id AND
@@ -41,20 +103,18 @@ class active_student_focused extends uclastats_base {
                         )
                 JOIN    {role_assignments} ra ON (ct.id=ra.contextid)
                 JOIN    {role} r ON (ra.roleid=r.id)
-                WHERE   c.id=? AND
-                        l.time>? AND
-                        l.time<? AND
+                WHERE   l.time>:start AND
+                        l.time<:end AND
                         ra.userid=l.userid AND
                         r.shortname='student' AND
-                        l.course=c.id AND
-                        c.visible=1";
-        $students = $DB->get_records_sql($sql, array($course->id, $start, $end));
+                        l.course=c.id
+                GROUP BY    c.id";
+        $DB->set_debug(true);
+        $logs = $DB->get_records_sql($sql, array('term' => $term,
+            'start' => $start, 'end' => $end));
+        $DB->set_debug(false);
 
-        if ((count($students)/count($enrolledstudents)) >= 0.80) {
-            return true;
-        }
-
-        return false;
+        return $logs;
     }
 
     /**
@@ -65,35 +125,12 @@ class active_student_focused extends uclastats_base {
     }
 
     /**
-     * Returns an array of userids enrolled as a student for given course.
-     * 
-     * @param object $course
-     *
-     * @return int
-     */
-    private function get_enrolled_students($course) {
-        global $DB;
-
-        $sql = "SELECT  DISTINCT ra.userid
-                FROM    {course} c
-                JOIN    {context} ct ON (
-                            ct.instanceid=c.id AND
-                            ct.contextlevel=50
-                        )
-                JOIN    {role_assignments} ra ON (ct.id=ra.contextid)
-                JOIN    {role} r ON (ra.roleid=r.id)
-                WHERE   r.shortname='student' AND
-                        c.id=:courseid";
-        return $DB->get_records_sql($sql, array('courseid' => $course->id));
-    }
-
-    /**
      * Since this query joins on the log table, it will take a long time.
      * 
      * @return boolean
      */
     public function is_high_load() {
-        return TRUE;
+        return true;
     }
 
     /**
@@ -125,10 +162,11 @@ class active_student_focused extends uclastats_base {
         $rs = $DB->get_recordset_sql($sql, $params);
 
         if ($rs->valid()) {
-
+            $studentlogs = $this->get_student_course_logs($params['term'],
+                    $terminfo['start'], $terminfo['end']);
+            
             foreach ($rs as $course) {
-                $points = 0;
-                $division = $course->division;
+                $division = ucla_format_name($course->division, true);
                 unset($course->division);
 
                 // Initialize array for a given division.
@@ -138,18 +176,20 @@ class active_student_focused extends uclastats_base {
                         'numactive' => 0, 'numinactive' => 0, 'totalcourses' => 0);
                 }
 
+                $isactive = false;
                 $enrolledstudents = $this->get_enrolled_students($course);
-
-                $isactive = FALSE;
 
                 // If there are no students, then can skip everything.
                 if (!empty($enrolledstudents)) {
-                    if ($this->check_majority_viewed($course, $enrolledstudents,
-                            $terminfo['start'], $terminfo['end'])) {
-                         $isactive = TRUE;
+//                    if ($this->check_majority_viewed($course, $enrolledstudents,
+//                            $terminfo['start'], $terminfo['end'])) {
+//                         $isactive = true;
+//                    }
+                    if (isset($studentlogs[$course->id]) && 
+                            ($studentlogs[$course->id]->count/$enrolledstudents) >= 0.80) {
+                        $isactive = true;
                     }
                 }
-
 
                 // Update totals for divsion.
                 if ($isactive) {

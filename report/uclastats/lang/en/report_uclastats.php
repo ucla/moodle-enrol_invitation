@@ -220,9 +220,9 @@ $string['totalcourses'] = 'Total courses';
                                    
 // Strings for Course activity (Instructor focused)
 $string['active_instructor_focused'] = 'Course activity (Instructor focused)';
-$string['active_instructor_focused_help'] = 'A course is determined to be active ' . 
-        'if it is visible and has visible content added to it beyond the normal ' . 
-        'course shell. This includes adding a block, module, or posting in the ' .
+$string['active_instructor_focused_help'] = 'A course is active ' . 
+        'if it has visible content added to it beyond the normal course shell. ' .
+        'This includes adding a block, module, or posting in the ' .
         'default forums. This does not include uploading a syllabus.';
 $string['numactive'] = 'Active';
 $string['numinactive'] = 'Inactive';
@@ -230,9 +230,11 @@ $string['totalcourses'] = 'Total courses';
 
 // Strings for Course activity (Student focused)
 $string['active_student_focused'] = 'Course activity (Student focused)';
-$string['active_student_focused_help'] = 'A course is determined to be active ' .
-        'if the course is visible and has at least 80% of its enrolled students ' .
-        'viewing the course at least once during the term.';
+//$string['active_student_focused_help'] = 'A course is active ' .
+//        'if it has at least 80% of its enrolled students ' .
+//        'viewing the course at least once during the term.';
+$string['active_student_focused_help'] = 'A course is active ' .
+        'if it has student log entries/number of enrolled students > 0.80';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';
