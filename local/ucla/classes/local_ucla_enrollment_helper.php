@@ -685,8 +685,8 @@ class local_ucla_enrollment_helper {
     public function translate_ccle_course_instructorsget(array $regdata) {
         return array(
             $this->remoteuserfield => trim($regdata['ucla_id']),
-            'firstname' => ucla_format_name(trim($regdata['first_name_person'])),
-            'lastname' => ucla_format_name(trim($regdata['last_name_person'])),
+            'firstname' => textlib::strtoupper(trim($regdata['first_name_person'])),
+            'lastname' => textlib::strtoupper(trim($regdata['last_name_person'])),
             'email' => trim($regdata['ursa_email']),
             'username' => $this->normalize_bolid($regdata['bolid'])
         );

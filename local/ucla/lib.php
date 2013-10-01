@@ -1628,6 +1628,9 @@ function hide_courses($term) {
 function format_displayname($displayname) {
     $retval = array('firstname' => '', 'lastname' => '');
 
+    // Make sure the name is all capitalized.
+    $displayname = textlib::strtoupper($displayname);
+
     // Expecting name in following format: LAST, FIRST MIDDLE, SUFFIX.
     $names = explode(',',  $displayname);
     // Trim every element.
@@ -1647,14 +1650,6 @@ function format_displayname($displayname) {
     // Might have a suffix.
     if (isset($names[2])) {
         $retval['lastname'] .= ' ' . $names[2];
-    }
-
-    // Make sure the name is all capitalized.
-    if (!empty($retval['firstname'])) {
-        $retval['firstname'] = textlib::strtoupper($retval['firstname']);
-    }
-    if (!empty($retval['lastname'])) {
-        $retval['lastname'] = textlib::strtoupper($retval['lastname']);
     }
 
     return $retval;
