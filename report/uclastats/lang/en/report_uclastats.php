@@ -230,11 +230,11 @@ $string['totalcourses'] = 'Total courses';
 
 // Strings for Course activity (Student focused)
 $string['active_student_focused'] = 'Course activity (Student focused)';
-//$string['active_student_focused_help'] = 'A course is active ' .
-//        'if it has at least 80% of its enrolled students ' .
-//        'viewing the course at least once during the term.';
 $string['active_student_focused_help'] = 'A course is active ' .
-        'if it has student log entries/number of enrolled students > 0.80';
+        'if it has at least 80% of its enrolled students ' .
+        'viewing the course at least once during the term.';
+//$string['active_student_focused_help'] = 'A course is active ' .
+//        'if it has student log entries/number of enrolled students > 0.80';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';
