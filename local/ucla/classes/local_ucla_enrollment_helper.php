@@ -428,7 +428,7 @@ class local_ucla_enrollment_helper {
                     );
                 } catch (moodle_exception $me) {
                     // Cannot find a good role map, so skip processing.
-                    $this->trace('Could not get good mapping for instructor: ' .
+                    $this->trace->output('Could not get good mapping for instructor: ' .
                             implode('|', $instructor), 1);
                     continue;
                 }
