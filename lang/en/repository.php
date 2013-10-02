@@ -128,10 +128,10 @@ $string['getfile'] = 'Select this file';
 $string['hidden'] = 'Hidden';
 $string['help'] = 'Help';
 $string['choosealink'] = 'Choose a link...';
-// START UCLA MOD: CCLE-2669 - Copyright Modifications
+// START UCLA MOD: CCLE-3158 - Use UCLA specific lang string for copyright help icon in filepicker
 //$string['chooselicense'] = 'Choose license';
-$string['chooselicense'] = 'Copyright status <a title="Help with Copyright Status" href="'.$CFG->wwwroot.'/help.php?component=block_ucla_easyupload&identifier=license&lang=en" target=_blank><img class="iconhelp" alt="Help with Copyright Status" src="'.$CFG->wwwroot.'/theme/image.php?theme=uclashared&image=help">';
-// END UCLA MOD: CCLE-2669
+$string['chooselicense'] = 'Copyright status <a title="Help with copyright status" href="'.$CFG->wwwroot.'/help.php?component=local_ucla&identifier=license&lang=en" target=_blank><img class="iconhelp" alt="Help with copyright status" src="'.$CFG->wwwroot.'/theme/image.php?theme=uclashared&image=help">';
+// END UCLA MOD: CCLE-3158
 $string['iconview'] = 'View as icons';
 $string['imagesize'] = '{$a->width} x {$a->height} px';
 $string['instance'] = 'instance';
