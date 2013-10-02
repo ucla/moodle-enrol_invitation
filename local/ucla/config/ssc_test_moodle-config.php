@@ -216,7 +216,7 @@ $CFG->grade_overridecat = 0;
 $CFG->langstringcache = false;
 
 // Site administration > Plugins > Activity modules > Assignment
-$CFG->assignment_maxbytes = 10485760;   // 100MB
+$CFG->assignment_maxbytes = 104857600;   // 100MB
 
 // Site administration > Plugins > Activity modules > Folder
 $CFG->forced_plugin_settings['folder']['requiremodintro'] = 0;
