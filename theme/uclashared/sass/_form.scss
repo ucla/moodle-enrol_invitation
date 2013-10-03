@@ -145,6 +145,14 @@ input[type="color"] {
     color: #999;
 }
 
+// CCLE-4268 - removing negative margin on quiz form checkboxes
+#categoryquestions {
+    .checkbox {
+        input[type="checkbox"] {
+            margin-left: 0;
+        }
+    }
+}
 
 /// hackey way to fix the add resource modal
 

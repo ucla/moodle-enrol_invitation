@@ -1026,7 +1026,12 @@ input {
   color: #999;
 }
 
-/* line 153, ../sass/_form.scss */
+/* line 151, ../sass/_form.scss */
+#categoryquestions .checkbox input[type="checkbox"] {
+  margin-left: 0;
+}
+
+/* line 161, ../sass/_form.scss */
 #chooseform .instruction,
 #chooseform .typesummary,
 .moodle-dialogue-base .moodle-dialogue .moodle-dialogue-bd {
