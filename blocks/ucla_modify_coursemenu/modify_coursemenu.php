@@ -1,6 +1,4 @@
-
 <?php
-
 /**
  *  Rearrange sections and course modules.
  *  
@@ -16,7 +14,8 @@
  *          occur, and then a success message will be displayed.
  *      If the processing states that no verification is needed, then the
  *          DB changes occur, and then a success message is displayed.
- **/
+ */
+
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot . '/course/lib.php');
 // Hm, dependent on UCLA format...
@@ -589,26 +588,25 @@ block_ucla_modify_coursemenu::js_init_code_helper(
 
 $PAGE->requires->js_init_code('M.block_ucla_modify_coursemenu.initialize()');
 
-
 set_editing_mode_button($courseviewurl);
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading($restr, 2, 'headingblock');
 
-// Give alert if there are more sections than there are numsections.
-if (local_ucla_course_section_fixer::detect_numsections($course)) {
-
-    $message = get_string('alertnumsections', 'block_ucla_modify_coursemenu');
-    $redirecturl = $PAGE->url;
-    $redirecturl->param('adjustnum', true);
-    $continue = new single_button($redirecturl, get_string('buttonnumsections', 'block_ucla_modify_coursemenu'));
-
-    $output = $OUTPUT->box_start('generalbox', 'notice');
-    $output .= html_writer::tag('p', $message);
-    $output .= html_writer::tag('div', $OUTPUT->render($continue), array('class' => 'buttons'));
-    $output .= $OUTPUT->box_end();
-    echo $output;
-}
+//// Give alert if there are more sections than there are numsections.
+//if (local_ucla_course_section_fixer::detect_numsections($course)) {
+//
+//    $message = get_string('alertnumsections', 'block_ucla_modify_coursemenu');
+//    $redirecturl = $PAGE->url;
+//    $redirecturl->param('adjustnum', true);
+//    $continue = new single_button($redirecturl, get_string('buttonnumsections', 'block_ucla_modify_coursemenu'));
+//
+//    $output = $OUTPUT->box_start('generalbox', 'notice');
+//    $output .= html_writer::tag('p', $message);
+//    $output .= html_writer::tag('div', $OUTPUT->render($continue), array('class' => 'buttons'));
+//    $output .= $OUTPUT->box_end();
+//    echo $output;
+//}
 
 // Any messages that need displaying?
 flash_display();
@@ -641,4 +639,3 @@ if ($data && !empty($sectionsnotify) && !$verifydata) {
 }
 
 echo $OUTPUT->footer();
-
