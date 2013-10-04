@@ -1,4 +1,4 @@
-/* line 29, sass/styles.scss */
+/* line 30, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_structure, .block_ucla_course_menu .block .list .type_structure, .block .block_ucla_course_menu .list .type_structure,
 .block_ucla_course_menu .block_tree .type_custom,
 .block_ucla_course_menu .block .list .type_custom,
@@ -12,7 +12,7 @@
   border-left: 4px solid #f9f9f9;
   display: block;
 }
-/* line 36, sass/styles.scss */
+/* line 37, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_structure .tree_item, .block_ucla_course_menu .block .list .type_structure .tree_item, .block .block_ucla_course_menu .list .type_structure .tree_item,
 .block_ucla_course_menu .block_tree .type_custom .tree_item,
 .block_ucla_course_menu .block .list .type_custom .tree_item,
@@ -23,7 +23,7 @@
   padding: 8px 8px;
   margin: 0;
 }
-/* line 41, sass/styles.scss */
+/* line 42, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_structure .tree_item img, .block_ucla_course_menu .block .list .type_structure .tree_item img, .block .block_ucla_course_menu .list .type_structure .tree_item img,
 .block_ucla_course_menu .block_tree .type_custom .tree_item img,
 .block_ucla_course_menu .block .list .type_custom .tree_item img,
@@ -33,7 +33,7 @@
 .block .block_ucla_course_menu .list .type_activity .tree_item img {
   display: none;
 }
-/* line 48, sass/styles.scss */
+/* line 49, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_structure .tree_item.block_ucla_course_menu_hidden a, .block_ucla_course_menu .block .list .type_structure .tree_item.block_ucla_course_menu_hidden a, .block .block_ucla_course_menu .list .type_structure .tree_item.block_ucla_course_menu_hidden a,
 .block_ucla_course_menu .block_tree .type_custom .tree_item.block_ucla_course_menu_hidden a,
 .block_ucla_course_menu .block .list .type_custom .tree_item.block_ucla_course_menu_hidden a,
@@ -43,7 +43,7 @@
 .block .block_ucla_course_menu .list .type_activity .tree_item.block_ucla_course_menu_hidden a {
   color: #aaa;
 }
-/* line 49, sass/styles.scss */
+/* line 50, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_structure .tree_item.block_ucla_course_menu_hidden a:after, .block_ucla_course_menu .block .list .type_structure .tree_item.block_ucla_course_menu_hidden a:after, .block .block_ucla_course_menu .list .type_structure .tree_item.block_ucla_course_menu_hidden a:after,
 .block_ucla_course_menu .block_tree .type_custom .tree_item.block_ucla_course_menu_hidden a:after,
 .block_ucla_course_menu .block .list .type_custom .tree_item.block_ucla_course_menu_hidden a:after,
@@ -68,7 +68,7 @@
   -o-border-radius: 4px;
   border-radius: 4px;
 }
-/* line 56, sass/styles.scss */
+/* line 57, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_structure.current_branch, .block_ucla_course_menu .block .list .type_structure.current_branch, .block .block_ucla_course_menu .list .type_structure.current_branch,
 .block_ucla_course_menu .block_tree .type_custom.current_branch,
 .block_ucla_course_menu .block .list .type_custom.current_branch,
@@ -79,7 +79,7 @@
   border-left-color: #4168a1;
   background-color: white;
 }
-/* line 60, sass/styles.scss */
+/* line 61, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_structure.current_branch a, .block_ucla_course_menu .block .list .type_structure.current_branch a, .block .block_ucla_course_menu .list .type_structure.current_branch a,
 .block_ucla_course_menu .block_tree .type_custom.current_branch a,
 .block_ucla_course_menu .block .list .type_custom.current_branch a,
@@ -89,7 +89,7 @@
 .block .block_ucla_course_menu .list .type_activity.current_branch a {
   color: #4168a1;
 }
-/* line 62, sass/styles.scss */
+/* line 63, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_structure.current_branch .tree_item, .block_ucla_course_menu .block .list .type_structure.current_branch .tree_item, .block .block_ucla_course_menu .list .type_structure.current_branch .tree_item,
 .block_ucla_course_menu .block_tree .type_custom.current_branch .tree_item,
 .block_ucla_course_menu .block .list .type_custom.current_branch .tree_item,
@@ -99,7 +99,7 @@
 .block .block_ucla_course_menu .list .type_activity.current_branch .tree_item {
   border-bottom: 1px solid #dddddd;
 }
-/* line 67, sass/styles.scss */
+/* line 68, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_structure:hover, .block_ucla_course_menu .block .list .type_structure:hover, .block .block_ucla_course_menu .list .type_structure:hover,
 .block_ucla_course_menu .block_tree .type_custom:hover,
 .block_ucla_course_menu .block .list .type_custom:hover,
@@ -109,13 +109,13 @@
 .block .block_ucla_course_menu .list .type_activity:hover {
   border-left-color: #4168a1;
 }
-/* line 76, sass/styles.scss */
+/* line 77, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_structure.item_with_icon .tree_item.leaf, .block_ucla_course_menu .block .list .type_structure.item_with_icon .tree_item.leaf, .block .block_ucla_course_menu .list .type_structure.item_with_icon .tree_item.leaf {
   display: inline-block;
   width: 100%;
   padding: 8px;
 }
-/* line 83, sass/styles.scss */
+/* line 84, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_structure.item_with_icon .leaf:after, .block_ucla_course_menu .block .list .type_structure.item_with_icon .leaf:after, .block .block_ucla_course_menu .list .type_structure.item_with_icon .leaf:after {
   position: relative;
   top: 1px;
@@ -129,8 +129,9 @@
   float: right;
   color: #ddd;
   vertical-align: middle;
+  line-height: 1.2;
 }
-/* line 91, sass/styles.scss */
+/* line 93, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_structure.item_with_icon.current_branch .leaf:after, .block_ucla_course_menu .block .list .type_structure.item_with_icon.current_branch .leaf:after, .block .block_ucla_course_menu .list .type_structure.item_with_icon.current_branch .leaf:after {
   position: relative;
   top: 1px;
@@ -144,22 +145,23 @@
   float: right;
   color: #4168a1;
   vertical-align: middle;
+  line-height: 1.2;
 }
-/* line 103, sass/styles.scss */
+/* line 106, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_custom, .block_ucla_course_menu .block .list .type_custom, .block .block_ucla_course_menu .list .type_custom,
 .block_ucla_course_menu .block_tree .type_activity,
 .block_ucla_course_menu .block .list .type_activity,
 .block .block_ucla_course_menu .list .type_activity {
   border-left: 0;
 }
-/* line 106, sass/styles.scss */
+/* line 109, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_custom .tree_item, .block_ucla_course_menu .block .list .type_custom .tree_item, .block .block_ucla_course_menu .list .type_custom .tree_item,
 .block_ucla_course_menu .block_tree .type_activity .tree_item,
 .block_ucla_course_menu .block .list .type_activity .tree_item,
 .block .block_ucla_course_menu .list .type_activity .tree_item {
   padding-right: 0;
 }
-/* line 109, sass/styles.scss */
+/* line 112, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_custom .tree_item a, .block_ucla_course_menu .block .list .type_custom .tree_item a, .block .block_ucla_course_menu .list .type_custom .tree_item a, .block_ucla_course_menu .block_tree .type_custom .tree_item a:link, .block_ucla_course_menu .block .list .type_custom .tree_item a:link, .block .block_ucla_course_menu .list .type_custom .tree_item a:link, .block_ucla_course_menu .block_tree .type_custom .tree_item a:visited, .block_ucla_course_menu .block .list .type_custom .tree_item a:visited, .block .block_ucla_course_menu .list .type_custom .tree_item a:visited,
 .block_ucla_course_menu .block_tree .type_activity .tree_item a,
 .block_ucla_course_menu .block .list .type_activity .tree_item a,
@@ -172,7 +174,7 @@
 .block .block_ucla_course_menu .list .type_activity .tree_item a:visited {
   display: inline;
 }
-/* line 116, sass/styles.scss */
+/* line 119, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_custom .leaf:before, .block_ucla_course_menu .block .list .type_custom .leaf:before, .block .block_ucla_course_menu .list .type_custom .leaf:before {
   position: relative;
   top: 1px;
@@ -186,10 +188,11 @@
   float: left;
   color: #4168a1;
   vertical-align: middle;
-  top: 4px;
+  top: 2px;
+  line-height: 1.2;
   margin-right: 4px;
 }
-/* line 121, sass/styles.scss */
+/* line 124, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_custom .library-research-portal.leaf:before, .block_ucla_course_menu .block .list .type_custom .library-research-portal.leaf:before, .block .block_ucla_course_menu .list .type_custom .library-research-portal.leaf:before {
   position: relative;
   top: 1px;
@@ -203,10 +206,11 @@
   float: left;
   color: #4168a1;
   vertical-align: middle;
-  top: 4px;
+  top: 2px;
+  line-height: 1.2;
   margin-right: 4px;
 }
-/* line 126, sass/styles.scss */
+/* line 129, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_custom .library-reserve-link.leaf:before, .block_ucla_course_menu .block .list .type_custom .library-reserve-link.leaf:before, .block .block_ucla_course_menu .list .type_custom .library-reserve-link.leaf:before {
   position: relative;
   top: 1px;
@@ -220,10 +224,11 @@
   float: left;
   color: #4168a1;
   vertical-align: middle;
-  top: 4px;
+  top: 2px;
+  line-height: 1.2;
   margin-right: 4px;
 }
-/* line 131, sass/styles.scss */
+/* line 134, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_custom .subject-area-link.leaf:before, .block_ucla_course_menu .block .list .type_custom .subject-area-link.leaf:before, .block .block_ucla_course_menu .list .type_custom .subject-area-link.leaf:before {
   position: relative;
   top: 1px;
@@ -237,10 +242,11 @@
   float: left;
   color: #4168a1;
   vertical-align: middle;
-  top: 4px;
+  top: 2px;
+  line-height: 1.2;
   margin-right: 4px;
 }
-/* line 136, sass/styles.scss */
+/* line 139, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_custom .bruincast-link.leaf:before, .block_ucla_course_menu .block .list .type_custom .bruincast-link.leaf:before, .block .block_ucla_course_menu .list .type_custom .bruincast-link.leaf:before {
   position: relative;
   top: 1px;
@@ -254,10 +260,11 @@
   float: left;
   color: #4168a1;
   vertical-align: middle;
-  top: 4px;
+  top: 2px;
+  line-height: 1.2;
   margin-right: 4px;
 }
-/* line 140, sass/styles.scss */
+/* line 143, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_custom .video-furnace-link.leaf:before, .block_ucla_course_menu .block .list .type_custom .video-furnace-link.leaf:before, .block .block_ucla_course_menu .list .type_custom .video-furnace-link.leaf:before {
   position: relative;
   top: 1px;
@@ -271,10 +278,11 @@
   float: left;
   color: #4168a1;
   vertical-align: middle;
-  top: 4px;
+  top: 2px;
+  line-height: 1.2;
   margin-right: 4px;
 }
-/* line 147, sass/styles.scss */
+/* line 150, sass/styles.scss */
 .block_ucla_course_menu .block_tree .type_activity .leaf:before, .block_ucla_course_menu .block .list .type_activity .leaf:before, .block .block_ucla_course_menu .list .type_activity .leaf:before {
   position: relative;
   top: 1px;
@@ -288,47 +296,48 @@
   float: left;
   color: #4168a1;
   vertical-align: middle;
-  top: 4px;
+  top: 2px;
+  line-height: 1.2;
   margin-right: 4px;
 }
 
-/* line 162, sass/styles.scss */
+/* line 165, sass/styles.scss */
 .block.block_ucla_course_menu:not(.block_ucla_browseby) .header {
   display: none;
 }
 
-/* line 168, sass/styles.scss */
+/* line 171, sass/styles.scss */
 .block.block_ucla_course_menu {
   text-align: center;
 }
-/* line 171, sass/styles.scss */
+/* line 174, sass/styles.scss */
 .block.block_ucla_course_menu .content {
   padding: 0;
 }
-/* line 175, sass/styles.scss */
+/* line 178, sass/styles.scss */
 .block.block_ucla_course_menu .block_tree, .block.block_ucla_course_menu .list {
   text-align: left;
 }
-/* line 177, sass/styles.scss */
+/* line 180, sass/styles.scss */
 .block.block_ucla_course_menu .block_tree .active_tree_node, .block.block_ucla_course_menu .list .active_tree_node {
   font-weight: bold;
 }
-/* line 180, sass/styles.scss */
+/* line 183, sass/styles.scss */
 .block.block_ucla_course_menu .block_tree a, .block.block_ucla_course_menu .list a, .block.block_ucla_course_menu .block_tree a:link, .block.block_ucla_course_menu .list a:link, .block.block_ucla_course_menu .block_tree a:visited, .block.block_ucla_course_menu .list a:visited {
   color: #0072b1;
   vertical-align: middle;
   display: inline-block;
   width: 90%;
 }
-/* line 187, sass/styles.scss */
+/* line 190, sass/styles.scss */
 .block.block_ucla_course_menu .block_tree a:hover, .block.block_ucla_course_menu .list a:hover {
   text-decoration: none;
 }
-/* line 195, sass/styles.scss */
+/* line 198, sass/styles.scss */
 .block.block_ucla_course_menu li.type_structure:hover {
   background-color: #fcfcfc;
 }
-/* line 199, sass/styles.scss */
+/* line 202, sass/styles.scss */
 .block.block_ucla_course_menu li.type_structure {
   background-color: #f9f9f9;
 }
