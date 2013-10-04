@@ -89,22 +89,9 @@ class total_downloads extends uclastats_base {
                  l.action = 'view'";
        
         $term_info = $this->get_term_info($params['term']);
-        
-     
-        if (is_summer_term($params['term'])) {
-        
-        // summer spans from beginning of session A 
-        // to end of session C
-            
-            $params['start'] = $term_info['start_1a'];
-            $params['end'] = $term_info['end_c'];
-            
-        } else {
-            
-            $params = array_merge($term_info,$params);
-            
-        }
-        
+        $params['start'] = $term_info['start'];
+        $params['end'] = $term_info['end'];            
+
         return $DB->get_records_sql($sql, $params);
       
     }

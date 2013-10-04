@@ -166,10 +166,6 @@ class active_student_focused extends uclastats_base {
 
         // Find start/end dates for term.
         $terminfo = $this->get_term_info($params['term']);
-        if(is_summer_term($params['term'])) {
-            $terminfo['start'] = $terminfo['start_8a'];
-            $terminfo['end'] = $terminfo['end_c'];
-        }
 
         // Get list of courseids for a given term by division.
         $sql = "SELECT  c.*,

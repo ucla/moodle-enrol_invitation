@@ -143,7 +143,10 @@ $string['theme'] = 'Theme';
 
 //strings for repository usage report
 $string['repository_usage'] = 'Repository usage (system)';
-$string['repository_usage_help'] = 'Find repository usage for: Dropbox, Google, Box, Server files, and My CCLE files.';
+$string['repository_usage_help'] = 'Returns repository usage for: Dropbox, ' . 
+        'Google, Box, Server files, and My CCLE files for given term. ' .
+        'Searches across all files created during that term for both course ' .
+        'and collaboration sites.';
 $string['repo_name'] = 'Repository';
 $string['repo_count'] = 'File count';
 

@@ -422,6 +422,7 @@ abstract class uclastats_base implements renderable {
     
     /**
      * Gets the start and end times for term.
+     * 
      * Regular terms are indexed by 'start' and 'end'.
      * 
      * For summer term, 121, the sessions
@@ -429,6 +430,8 @@ abstract class uclastats_base implements renderable {
      * and 6C is indexed as 'start_c' and 'end_c' 
      * because there is only one session C
      *
+     * The 'start' of summer is the start of '8A' and 'end' of summer is the
+     * end of '6C'.
      * 
      * @param string $term the school term
      * @return array
@@ -446,26 +449,25 @@ abstract class uclastats_base implements renderable {
 
         $ret_val = array();
 
-        // Get the term start and term end,
-        //if it's a summer session,
-        // then get start and end of entire summer
-
-        $summer_session_a = array('6A','8A','9A','1A');
-        
-        foreach ($results as $r) {
-            
+        // Get the term start and term end, if it's a summer session, then get
+        // start and end of entire summer
+        $summer_session_a = array('6A','8A','9A','1A');        
+        foreach ($results as $r) {            
             $session = $r['session'];
-
             if ($session == 'RG') {
                 $ret_val['start'] = strtotime($r['session_start']);
                 $ret_val['end'] = strtotime($r['session_end']);
                 break;
-            } else if (in_array($session,$summer_session_a)) {
+            } else if (in_array($session, $summer_session_a)) {
                 $ret_val['start_' . strtolower($session)] = strtotime($r['session_start']);
                 $ret_val['end_' . strtolower($session)] = strtotime($r['session_end']);
+                if ($session == '8A') {
+                    $ret_val['start'] = $ret_val['start_8a'];
+                }
             } else if ($session == '6C') {
                 $ret_val['start_c'] = strtotime($r['session_start']);
                 $ret_val['end_c'] = strtotime($r['session_end']);
+                $ret_val['end'] = $ret_val['end_c'];
             }
         }
         
