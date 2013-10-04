@@ -168,7 +168,7 @@ $CFG->enablecourserequests = 1;
 $CFG->recovergradesdefault = 1;
 
 // Site administration > Plugins > Activity modules > Assignment
-$CFG->assignment_maxbytes = 10485760;   // 100MB
+$CFG->assignment_maxbytes = 104857600;   // 100MB
 
 // Site administration > Plugins > Activity modules > Folder
 $CFG->forced_plugin_settings['folder']['requiremodintro'] = 0;
@@ -197,7 +197,7 @@ $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 3; // RESOURCELIB_DISPLAY_NEW
 
 // Site administration > Plugins > Assignment plugins > Submission plugins > File submissions
-$CFG->forced_plugin_settings['assignsubmission_file']['maxbytes'] = 10485760;
+$CFG->forced_plugin_settings['assignsubmission_file']['maxbytes'] = 104857600;   // 100MB
 
 // Site administration > Plugins > Assignment plugins > Feedback plugins > Feedback comments
 $CFG->forced_plugin_settings['assignfeedback_comments']['default'] = 1;

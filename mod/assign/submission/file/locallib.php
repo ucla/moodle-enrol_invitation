@@ -72,10 +72,6 @@ class assign_submission_file extends assign_submission_plugin {
 
         $defaultmaxfilesubmissions = $this->get_config('maxfilesubmissions');
         $defaultmaxsubmissionsizebytes = $this->get_config('maxsubmissionsizebytes');
-
-        // START UCLA MOD: CCLE-3519 - New assignment mod doesn't use assignsubmission_file | maxbytes setting
-        $defaultmaxsubmissionsizebytes = get_config('assignsubmission_file', 'maxbytes');
-        // END UCLA MOD: CCLE-3519
         
         $settings = array();
         $options = array();

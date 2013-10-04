@@ -217,7 +217,7 @@ $CFG->recovergradesdefault = 1;
 $CFG->grade_overridecat = 0;
 
 // Site administration > Plugins > Activity modules > Assignment
-$CFG->assignment_maxbytes = 10485760;   // 100MB
+$CFG->assignment_maxbytes = 104857600;   // 100MB
 
 // Site administration > Plugins > Activity modules > Book
 $CFG->forced_plugin_settings['book']['requiremodintro'] = 0;
@@ -252,7 +252,7 @@ $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 3; // RESOURCELIB_DISPLAY_NEW
 
 // Site administration > Plugins > Assignment plugins > Submission plugins > File submissions
-$CFG->forced_plugin_settings['assignsubmission_file']['maxbytes'] = 10485760;
+$CFG->forced_plugin_settings['assignsubmission_file']['maxbytes'] = 104857600;   // 100MB
 
 // Site administration > Plugins > Assignment plugins > Feedback plugins > Feedback PoodLL
 $CFG->forced_plugin_settings['assignfeedback_poodll']['default'] = 0;
