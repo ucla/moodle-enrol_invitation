@@ -48,8 +48,8 @@ $string['setting_title_footer_links'] = 'Footer links';
 $string['setting_desc_footer_links'] = 'This text will be displayed to the right of the set of links in the footer. A separator will be automatically added.';
 $string['setting_default_footer_links'] = '';
 
-$string['setting_title_logo_sub_text'] = 'Text under logo';
-$string['setting_desc_logo_sub_text'] = 'This is the text displayed under the UCLA | CCLE logo. I.E. Social Sciences Computing.';
+$string['setting_title_logo_sub_text'] = 'Shared server divisions';
+$string['setting_desc_logo_sub_text'] = 'Divisions that are displayed in the front layout.';
 $string['setting_default_logo_sub_text'] = 
 '<ul>
     <li><span>Arts & Architecture</span></li>
@@ -69,9 +69,13 @@ $string['setting_default_logo_sub_text'] =
     <li><span>Public Health</span></li>
 </ul>';
 
-$string['setting_title_logo_sub_dropdown'] = 'Dropdown javascript';
-$string['setting_desc_logo_sub_dropdown'] = 'Enable the Javascript shared_server_dropdown.js';
-$string['setting_default_logo_sub_dropdown'] = '';
+$string['setting_title_system_name'] = 'System name';
+$string['setting_desc_system_name'] = 'The system name that will be displayed in the banner, below the logo.';
+$string['setting_default_system_name'] = 'Shared system';
+
+$string['setting_title_system_link'] = 'System link';
+$string['setting_desc_system_link'] = 'The link associated witht he system name.';
+$string['setting_default_system_link'] = 'https://ccle.ucla.edu/course/view/aboutccle?sectionid=924';
 
 $string['setting_title_disable_post_blocks'] = 'Disable blocks on right';
 $string['setting_desc_disable_post_blocks'] = 'Disable courses from adding blocks onto the right side of the course page. The site page will still have blocks on the right.';

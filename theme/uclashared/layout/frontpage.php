@@ -20,11 +20,11 @@ $PAGE->requires->yui_module('moodle-block_ucla_search-search', 'M.ucla_search.in
             <div class=" frontpage-shared-server hidden-xs" >
                 <h4 class="visible-md visible-lg">
                     <span class="glyphicon glyphicon-link"></span>
-                    Shared server
+                    <?php echo get_config('theme_uclashared', 'system_name') ?>
                 </h4>
                 <h4 class="server-link hidden-md hidden-lg">
                     <span class="glyphicon glyphicon-chevron-up"></span>
-                    Shared server
+                    <?php echo get_config('theme_uclashared', 'system_name') ?>
                 </h4>
                 <div class="shared-server-list">
                 <?php echo get_string('setting_default_logo_sub_text', 'theme_uclashared'); ?>

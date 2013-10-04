@@ -3690,77 +3690,89 @@ table.rolecap tr.rolecap th {
     margin-left: 91.66667%;
   }
 }
-/* line 10, ../sass/_header.scss */
+/* line 15, ../sass/_header.scss */
 #page-header {
   /*border-top: 1px solid #93d3eb;*/
   background-color: #4168a1;
-  padding: 8px 0;
+  padding: 2px 0 0 0;
   position: relative;
 }
-/* line 19, ../sass/_header.scss */
+/* line 24, ../sass/_header.scss */
 .pagelayout-report #page-header {
   float: left;
 }
-/* line 26, ../sass/_header.scss */
+/* line 31, ../sass/_header.scss */
 .front-page #page-header {
   background-color: #3764AA;
   position: absolute;
   z-index: 9999;
   opacity: 0.85;
 }
-/* line 34, ../sass/_header.scss */
+/* line 39, ../sass/_header.scss */
 .front-page #page-header .header-login {
   display: block;
 }
-/* line 37, ../sass/_header.scss */
+/* line 42, ../sass/_header.scss */
 .front-page #page-header .header-links {
   display: none;
 }
-/* line 43, ../sass/_header.scss */
+/* line 48, ../sass/_header.scss */
 #page-header.env-dev {
   background-color: #3ea639;
 }
-/* line 46, ../sass/_header.scss */
-#page-header.env-dev .header-logo .ccle-logo-text,
-#page-header.env-dev .weeks-display {
+/* line 50, ../sass/_header.scss */
+#page-header.env-dev .header-logo .ccle-logo-text {
   color: #f3dcc1;
 }
-/* line 51, ../sass/_header.scss */
+/* line 54, ../sass/_header.scss */
+#page-header.env-dev .logo-cc,
+#page-header.env-dev .logo-le {
+  color: #c3e6c2;
+}
+/* line 59, ../sass/_header.scss */
 #page-header.env-test {
   background-color: #d07919;
 }
-/* line 54, ../sass/_header.scss */
-#page-header.env-test .header-logo .ccle-logo-text,
-#page-header.env-test .weeks-display {
+/* line 61, ../sass/_header.scss */
+#page-header.env-test .header-logo .ccle-logo-text {
   color: #f3dcc1;
 }
-/* line 59, ../sass/_header.scss */
+/* line 65, ../sass/_header.scss */
+#page-header.env-test .logo-cc,
+#page-header.env-test .logo-le {
+  color: #e4c7a7;
+}
+/* line 70, ../sass/_header.scss */
 #page-header.env-stage {
   background-color: #911687;
 }
-/* line 62, ../sass/_header.scss */
-#page-header.env-stage .header-logo .ccle-logo-text,
-#page-header.env-stage .weeks-display {
+/* line 72, ../sass/_header.scss */
+#page-header.env-stage .header-logo .ccle-logo-text {
   color: #f3dcc1;
 }
+/* line 76, ../sass/_header.scss */
+#page-header.env-stage .logo-cc,
+#page-header.env-stage .logo-le {
+  color: #d1afce;
+}
 
-/* line 72, ../sass/_header.scss */
+/* line 86, ../sass/_header.scss */
 .header-login-frontpage {
   display: none;
   text-align: center;
 }
-/* line 76, ../sass/_header.scss */
+/* line 90, ../sass/_header.scss */
 .front-page .header-login-frontpage {
   display: block;
 }
-/* line 80, ../sass/_header.scss */
+/* line 94, ../sass/_header.scss */
 .header-login-frontpage a {
   color: white;
   font-size: 1.6rem;
   width: 100%;
   display: inline-block;
 }
-/* line 87, ../sass/_header.scss */
+/* line 101, ../sass/_header.scss */
 .header-login-frontpage .login {
   /*margin-left: 20px;*/
   margin-top: 10px;
@@ -3780,7 +3792,7 @@ table.rolecap tr.rolecap th {
   transition-duration: 0.25s;
   transition-timing-function: ease-out;
 }
-/* line 104, ../sass/_header.scss */
+/* line 118, ../sass/_header.scss */
 .header-login-frontpage .login:hover {
   color: #4168A1;
   background-color: white;
@@ -3789,97 +3801,93 @@ table.rolecap tr.rolecap th {
   transition-timing-function: ease-out;
 }
 @media only screen and (min-width: 768px) {
-  /* line 72, ../sass/_header.scss */
+  /* line 86, ../sass/_header.scss */
   .header-login-frontpage {
     text-align: right;
   }
-  /* line 117, ../sass/_header.scss */
+  /* line 131, ../sass/_header.scss */
   .header-login-frontpage a {
     width: auto;
   }
-  /* line 118, ../sass/_header.scss */
+  /* line 132, ../sass/_header.scss */
   .header-login-frontpage .login {
     margin-left: 20px;
     margin-top: 0;
   }
 }
 
-/* line 129, ../sass/_header.scss */
+/* line 143, ../sass/_header.scss */
 .header-login {
   text-align: center;
 }
-/* line 133, ../sass/_header.scss */
+/* line 147, ../sass/_header.scss */
 .header-login .header-links {
   color: white;
 }
-/* line 135, ../sass/_header.scss */
+/* line 149, ../sass/_header.scss */
 .header-login .header-links a {
   color: white;
 }
 @media only screen and (min-width: 768px) {
-  /* line 129, ../sass/_header.scss */
+  /* line 143, ../sass/_header.scss */
   .header-login {
     text-align: right;
   }
-  /* line 141, ../sass/_header.scss */
+  /* line 155, ../sass/_header.scss */
   .header-login .header-links {
     margin-top: 4px;
   }
-  /* line 144, ../sass/_header.scss */
-  .header-login .weeks-display {
-    margin-top: 8px;
-  }
 }
 
-/* line 153, ../sass/_header.scss */
+/* line 164, ../sass/_header.scss */
 .header-logo {
   text-align: center;
 }
-/* line 156, ../sass/_header.scss */
+/* line 167, ../sass/_header.scss */
 .header-logo .logo-ucla {
   margin-right: 8px;
   width: 60px;
   display: inline-block;
 }
-/* line 161, ../sass/_header.scss */
+/* line 172, ../sass/_header.scss */
 .header-logo .logo-ucla img {
   display: inline-block;
   max-width: 100%;
 }
 @media only screen and (min-width: 768px) {
-  /* line 156, ../sass/_header.scss */
+  /* line 167, ../sass/_header.scss */
   .header-logo .logo-ucla {
-    width: 90px;
+    width: 85px;
   }
 }
-/* line 170, ../sass/_header.scss */
+/* line 181, ../sass/_header.scss */
 .header-logo .logo-ccle {
   color: #FFBC00;
   font-weight: bold;
   font-size: 2.5rem;
   margin-right: 8px;
 }
-/* line 176, ../sass/_header.scss */
+/* line 187, ../sass/_header.scss */
 .header-logo .logo-ccle:hover {
   text-decoration: none;
 }
 @media only screen and (min-width: 768px) {
-  /* line 170, ../sass/_header.scss */
+  /* line 181, ../sass/_header.scss */
   .header-logo .logo-ccle {
     font-size: 3.8rem;
   }
 }
-/* line 180, ../sass/_header.scss */
+/* line 191, ../sass/_header.scss */
 .header-logo .logo-ccle-full {
   display: none;
 }
 @media only screen and (min-width: 768px) {
-  /* line 180, ../sass/_header.scss */
+  /* line 191, ../sass/_header.scss */
   .header-logo .logo-ccle-full {
     display: inline-block;
   }
 }
-/* line 187, ../sass/_header.scss */
+/* line 198, ../sass/_header.scss */
 .header-logo .logo-cc,
 .header-logo .logo-le {
   color: #A1B6D6;
@@ -3889,72 +3897,107 @@ table.rolecap tr.rolecap th {
   width: 100%;
   text-transform: capitalize;
 }
-/* line 195, ../sass/_header.scss */
+/* line 206, ../sass/_header.scss */
 .header-logo .logo-le {
   clear: left;
 }
 @media only screen and (min-width: 768px) {
-  /* line 153, ../sass/_header.scss */
+  /* line 164, ../sass/_header.scss */
   .header-logo {
     text-align: left;
   }
 }
 
-/* line 209, ../sass/_header.scss */
+/* line 220, ../sass/_header.scss */
 .navbar {
   border-bottom: 1px solid #eeeeee;
   background-color: #fefefe;
 }
-/* line 213, ../sass/_header.scss */
+/* line 224, ../sass/_header.scss */
 .navbar .controls {
   margin: 4px 0;
   padding: 0 16px;
   float: right;
 }
 @media only screen and (max-width: 480px) {
-  /* line 213, ../sass/_header.scss */
+  /* line 224, ../sass/_header.scss */
   .navbar .controls {
     width: 100%;
   }
-  /* line 222, ../sass/_header.scss */
+  /* line 233, ../sass/_header.scss */
   .navbar .controls .navbar-control {
     width: 100%;
     clear: both;
     margin-left: 0;
   }
-  /* line 227, ../sass/_header.scss */
+  /* line 238, ../sass/_header.scss */
   .navbar .controls .navbar-control div {
     display: inline !important;
   }
-  /* line 232, ../sass/_header.scss */
+  /* line 243, ../sass/_header.scss */
   .navbar .controls .navbar-control fieldset {
     width: 100%;
   }
-  /* line 237, ../sass/_header.scss */
+  /* line 248, ../sass/_header.scss */
   .navbar .controls .navbar-control input[type="text"] {
     width: 100%;
   }
-  /* line 243, ../sass/_header.scss */
+  /* line 254, ../sass/_header.scss */
   .navbar .controls .navbar-control .helptooltip .iconhelp {
     width: 24px;
     height: 24px;
   }
-  /* line 248, ../sass/_header.scss */
+  /* line 259, ../sass/_header.scss */
   .navbar .controls .navbar-control .helptooltip ~ input[type="text"] {
     width: 90%;
     margin-left: 8px;
   }
 }
-/* line 257, ../sass/_header.scss */
+/* line 268, ../sass/_header.scss */
 .navbar .navbar-control {
   float: left;
   margin-left: 4px;
 }
 
-/* line 268, ../sass/_header.scss */
+/* line 279, ../sass/_header.scss */
 .navbutton .wikisearch,
 .navbutton .forumsearch {
   display: inline-block !important;
+}
+
+/* line 287, ../sass/_header.scss */
+.system-identification {
+  background-color: #ddebfe;
+  color: #4168a1;
+  float: left;
+  width: 100%;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+}
+/* line 295, ../sass/_header.scss */
+.system-identification .system-name {
+  width: 40%;
+  display: inline;
+  padding: 0 16px;
+  font-weight: bold;
+  line-height: 1.5;
+}
+/* line 302, ../sass/_header.scss */
+.system-identification .system-name:hover {
+  background-color: #4168a1;
+  color: white;
+  text-decoration: none;
+}
+/* line 308, ../sass/_header.scss */
+.system-identification .weeks-display {
+  float: right;
+  text-align: right;
+  padding: 0 16px;
+  line-height: 1.5;
+}
+/* line 314, ../sass/_header.scss */
+.system-identification .weeks-display .week {
+  font-weight: bold;
 }
 
 /** Footer **/
@@ -4908,18 +4951,48 @@ table.rolecap tr.rolecap th {
   background-color: #c9302c;
 }
 
-/* line 63, ../sass/_labels.scss */
+/* line 65, ../sass/_labels.scss */
+.label-term {
+  padding: 0 4px;
+  text-transform: uppercase;
+}
+
+/* line 70, ../sass/_labels.scss */
+.label-fall {
+  background-color: #ec8539;
+  color: black;
+}
+
+/* line 75, ../sass/_labels.scss */
+.label-spring {
+  background-color: #99cb52;
+  color: black;
+}
+
+/* line 80, ../sass/_labels.scss */
+.label-winter {
+  background-color: #11bcfb;
+  color: black;
+}
+
+/* line 85, ../sass/_labels.scss */
+.label-summer {
+  background-color: #f4ec35;
+  color: black;
+}
+
+/* line 91, ../sass/_labels.scss */
 .label-pp, .groupinglabel {
   background-color: none;
   border: 1px solid #dddddd;
   color: #999;
 }
 
-/* line 72, ../sass/_labels.scss */
+/* line 100, ../sass/_labels.scss */
 .groupinglabel {
   display: inline-block;
 }
-/* line 78, ../sass/_labels.scss */
+/* line 106, ../sass/_labels.scss */
 a + .groupinglabel {
   margin-left: 12px;
 }
