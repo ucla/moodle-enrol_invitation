@@ -381,26 +381,36 @@ function validate_field($type, $field, $min_size=0, $max_size=100)
 }
 
 /**
- * Gets table information from database for: bruincast, library reserves, and video furnace
+ * Gets table information from database for: bruincast, library reserves, and
+ * video furnace.
  * 
- * @param string $table     The type of table you want to get information for.
- *      options: "bruincast", "library_reserves", "video_furnace"
+ * @param string $table The type of table you want to get information for.
+ *                      Options: "bruincast", "library_reserves", "video_furnace"
  * 
- * @return array            Returns an array containing: 
+ * @return array
  */
-function get_reserve_data($table)
-{
+function get_reserve_data($table) {
     global $DB;
-    global $CFG;
+
+    // Make sure courseid is the second column.
+    $columns = $DB->get_columns('ucla_' . $table);
+    $columnsreturned = array('id', 'courseid');
+    foreach ($columns as $columnname => $columninfo) {
+        if ($columnname == 'id' || $columnname == 'courseid')   continue;
+        $columnsreturned[] = $columnname;
+    }
+
+
+    $result = $DB->get_records('ucla_' . $table, null, null, 
+            implode(',', $columnsreturned));
     
-    $result = $DB->get_records('ucla_' . $table);
-    
-    foreach ($result as $item) {
-        if ($item->courseid != NULL) {
-            $shortname = $DB->get_field('course', 'shortname', array('id' => ($item->courseid)));
-            
-            $courseurl = new moodle_url('/course/view.php', array('id' => ($item->courseid)));
-            
+    foreach ($result as $index => $item) {
+        // Give link to course as first column of table.
+        if ($item->courseid != null) {
+            $shortname = $DB->get_field('course', 'shortname',
+                    array('id' => ($item->courseid)));
+            $courseurl = new moodle_url('/course/view.php',
+                    array('id' => ($item->courseid)));
             $shortnamewithlink = html_writer::link ($courseurl, $shortname);
             
             $item->courseid = $shortnamewithlink;
