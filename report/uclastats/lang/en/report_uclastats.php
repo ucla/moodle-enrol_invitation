@@ -230,6 +230,7 @@ $string['active_instructor_focused_help'] = 'A course is active ' .
 $string['numactive'] = 'Active';
 $string['numinactive'] = 'Inactive';
 $string['totalcourses'] = 'Total courses';
+$string['inactivecourselisting'] = 'List of inactive courses';
 
 // Strings for Course activity (Student focused)
 $string['active_student_focused'] = 'Course activity (Student focused)';

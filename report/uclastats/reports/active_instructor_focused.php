@@ -20,6 +20,20 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once($CFG->dirroot . '/report/uclastats/locallib.php');
 
 class active_instructor_focused extends uclastats_base {
+
+    /**
+     * Display number of inactive courses.
+     *
+     * @param array $results
+     * @return string
+     */
+    public function format_cached_results($results) {
+        if (isset($results['courselisting'])) {
+            return count($results['courselisting']);
+        }
+        return '';
+    }
+
     /**
      * For a given format, find the default blocks associated with it.
      * 
@@ -80,6 +94,125 @@ class active_instructor_focused extends uclastats_base {
     }
 
     /**
+     * Display two results tables. One, for the inactive courses by division,
+     * and, two, a list of the inactive courses for spot checking.
+     *
+     * @param uclastats_result $uclastats_result
+     * @return string
+     */
+    protected function get_results_table(uclastats_result $uclastats_result) {
+        $retval = '';
+
+        $results = $uclastats_result->results;
+        $courselisting = $results['courselisting'];
+        unset($results['courselisting']);
+
+        // Aggregated results.
+        $resultstable = new html_table();
+        $resultstable->id = 'uclastats-results-table';
+        $resultstable->attributes = array('class' => 'results-table ' .
+            get_class($this));
+
+        $resultstable->head = $uclastats_result->get_header();
+        $resultstable->data = $results;
+
+        $retval = html_writer::table($resultstable);
+
+        $retval .= html_writer::tag('h3', get_string('inactivecourselisting', 'report_uclastats'));
+
+        // Course listing.
+        $listingtable = new html_table();
+        $listingtable->id = 'uclastats-courselisting-table';
+        $listingtable->attributes = array('class' => 'results-table ' .
+            get_class($this));
+
+        $listingtable->head = array(get_string('division', 'report_uclastats'),
+                get_string('course_shortname', 'report_uclastats'));
+        foreach ($courselisting as $courseid => $course) {
+            $courselisting[$courseid]['shortname'] = html_writer::link(
+                    new moodle_url('/course/view.php',
+                            array('id' => $courseid)), $course['shortname'],
+                    array('target' => '_blank'));
+        }
+        $listingtable->data = $courselisting;
+        
+        $retval .= html_writer::table($listingtable);
+
+        return $retval;
+    }
+
+    /**
+     * Write out the aggregated results and the list of inactive courses.
+     *
+     * @param MoodleExcelWorksheet $worksheet
+     * @param MoodleExcelFormat $boldformat
+     * @param uclastats_result $uclastats_result
+     * @param int $row      Row to start writing.
+     *
+     * @return int          Return row we stopped writing.
+     */
+    protected function get_results_xls(MoodleExcelWorksheet $worksheet,
+            MoodleExcelFormat $boldformat, uclastats_result $uclastats_result, $row) {
+
+        $results = $uclastats_result->results;
+        $courselisting = $results['courselisting'];
+        unset($results['courselisting']);
+
+        // Display aggregated results.
+        $col = 0;
+        $header = $uclastats_result->get_header();
+        foreach ($header as $name) {
+            $worksheet->write_string($row, $col, $name, $boldformat);
+            ++$col;
+        }
+
+        // now go through result set
+        foreach ($results as $result) {
+            ++$row; $col = 0;
+            foreach ($result as $value) {
+                // values might have HTML in them
+                $value = clean_param($value, PARAM_NOTAGS);
+                if (is_numeric($value)) {
+                    $worksheet->write_number($row, $col, $value);
+                } else {
+                    $worksheet->write_string($row, $col, $value);
+                }
+                ++$col;
+            }
+        }
+
+        $row += 2; $col = 0;
+        $worksheet->write_string($row, $col,
+                get_string('inactivecourselisting', 'report_uclastats'), $boldformat);
+        $row++;
+
+        // Display course listings table header
+        $header = array(get_string('division', 'report_uclastats'),
+                get_string('course_shortname', 'report_uclastats'));
+        foreach ($header as $name) {
+            $worksheet->write_string($row, $col, $name, $boldformat);
+            ++$col;
+        }
+
+        // Now go through courselisting set.
+        foreach ($courselisting as $course) {
+            ++$row; $col = 0;
+            foreach ($course as $value) {
+                // values might have HTML in them
+                $value = clean_param($value, PARAM_NOTAGS);
+                if (is_numeric($value)) {
+                    $worksheet->write_number($row, $col, $value);
+                } else {
+                    $worksheet->write_string($row, $col, $value);
+                }
+                ++$col;
+            }
+        }
+
+        return $row;
+    }
+
+    /**
      * Query get the number of active/inactive course sites by division.
      *
      * @param array $params
@@ -88,6 +221,7 @@ class active_instructor_focused extends uclastats_base {
     public function query($params) {
         global $DB;
         $retval = array();
+        $courselisting = array();
 
         // For now, default threshold is hardcoded to be 1.
         $threshold = 1;
@@ -99,7 +233,8 @@ class active_instructor_focused extends uclastats_base {
                 JOIN    {ucla_reg_division} urd ON (
                         urci.division=urd.code
                         )
-                WHERE   1";
+                WHERE   1
+                ORDER BY urd.fullname, urci.subj_area";
         $rs = $DB->get_recordset_sql($sql, $params);
 
         if ($rs->valid()) {
@@ -135,6 +270,8 @@ class active_instructor_focused extends uclastats_base {
                     // Course is active if it is above a certain threshold.
                     ++$retval[$division]['numactive'];
                 } else {
+                    $courselisting[$course->id] = array('division' => $division,
+                        'shortname' => $course->shortname);
                     ++$retval[$division]['numinactive'];
                 }
                 ++$retval[$division]['totalcourses'];
@@ -142,6 +279,7 @@ class active_instructor_focused extends uclastats_base {
 
             // Order result by division.
             ksort($retval);
+            $retval['courselisting'] = $courselisting;
         }
         
         return $retval;

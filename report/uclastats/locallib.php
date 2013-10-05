@@ -270,15 +270,7 @@ abstract class uclastats_base implements renderable {
                     array('class' => 'noresults'));
         } else {
             // now display results table
-            $results_table = new html_table();
-            $results_table->id = 'uclastats-results-table';
-            $results_table->attributes = array('class' => 'results-table ' .
-                get_class($this));
-
-            $results_table->head = $uclastats_result->get_header();
-            $results_table->data = $results;
-
-            $ret_val .= html_writer::table($results_table);
+            $ret_val .= $this->get_results_table($uclastats_result);
         }
 
         // display export options
@@ -320,11 +312,11 @@ abstract class uclastats_base implements renderable {
         $workbook->send($filename);
         // adding the worksheet
         $worksheet = $workbook->add_worksheet($report_name);
-        $bold_format = $workbook->add_format();
-        $bold_format->set_bold(true);
+        $boldformat = $workbook->add_format();
+        $boldformat->set_bold(true);
 
         // add title
-        $worksheet->write_string(0, 0, $report_name, $bold_format);
+        $worksheet->write_string(0, 0, $report_name, $boldformat);
 
         // add parameters (if any)
         $params = $uclastats_result->params;
@@ -334,33 +326,12 @@ abstract class uclastats_base implements renderable {
                     'report_uclastats', $params_display));
         }
 
-        // now go through the result set
         $results = $uclastats_result->results;
-        $row = 3; $col = 0;
+        $row = 3;
         if (empty($results)) {
             $worksheet->write_string(2, 0, get_string('noresults','admin'));
         } else {
-            // first display table header
-            $header = $uclastats_result->get_header();
-            foreach ($header as $name) {
-                $worksheet->write_string($row, $col, $name, $bold_format);
-                ++$col;
-            }
-
-            // now go through result set
-            foreach ($results as $result) {
-                ++$row; $col = 0;
-                foreach ($result as $value) {
-                    // values might have HTML in them
-                    $value = clean_param($value, PARAM_NOTAGS);
-                    if (is_numeric($value)) {
-                        $worksheet->write_number($row, $col, $value);
-                    } else {
-                        $worksheet->write_string($row, $col, $value);
-                    }
-                    ++$col;
-                }
-            }
+            $row = $this->get_results_xls($worksheet, $boldformat, $uclastats_result, $row);
         }
 
         // display information on who ran the query and the timestamp
@@ -500,6 +471,69 @@ abstract class uclastats_base implements renderable {
         }
 
         return $ret_val;
+    }
+
+    /**
+     * Returns the HTML content of the actual results table. Override this in
+     * any children classes to change what is displayed from uclastats_result's
+     * results field.
+     *
+     * @param uclastats_result $uclastats_result
+     * @return string
+     */
+    protected function get_results_table(uclastats_result $uclastats_result) {
+        $results_table = new html_table();
+        $results_table->id = 'uclastats-results-table';
+        $results_table->attributes = array('class' => 'results-table ' .
+            get_class($this));
+
+        $results_table->head = $uclastats_result->get_header();
+        $results_table->data = $uclastats_result->results;
+
+        return html_writer::table($results_table);
+    }
+
+    /**
+     * Wrtes out the content of the results to Excel. Override this in any
+     * children classes to change what is outputted from uclastats_result's
+     * results field.
+     *
+     * @param MoodleExcelWorksheet $worksheet
+     * @param MoodleExcelFormat $boldformat
+     * @param uclastats_result $uclastats_result
+     * @param int $row      Row to start writing.
+     *
+     * @return int          Return row we stopped writing.
+     */
+    protected function get_results_xls(MoodleExcelWorksheet $worksheet,
+            MoodleExcelFormat $boldformat, uclastats_result $uclastats_result, $row) {
+
+        // now go through the result set
+        $results = $uclastats_result->results;
+        $col = 0;
+        // first display table header
+        $header = $uclastats_result->get_header();
+        foreach ($header as $name) {
+            $worksheet->write_string($row, $col, $name, $boldformat);
+            ++$col;
+        }
+
+        // now go through result set
+        foreach ($results as $result) {
+            ++$row; $col = 0;
+            foreach ($result as $value) {
+                // values might have HTML in them
+                $value = clean_param($value, PARAM_NOTAGS);
+                if (is_numeric($value)) {
+                    $worksheet->write_number($row, $col, $value);
+                } else {
+                    $worksheet->write_string($row, $col, $value);
+                }
+                ++$col;
+            }
+        }
+
+        return $row;
     }
 
     /**
