@@ -38,7 +38,7 @@ class repository_usage extends uclastats_base {
      * Returns an array of form elements used to run report.
      */
     public function get_parameters() {
-        return array();
+        return array('term');
     }
 
     /**
@@ -50,33 +50,37 @@ class repository_usage extends uclastats_base {
     public function query($params) {
         global $DB;
 
+        // Get start and end dates for term.
+        $terminfo = $this->get_term_info($params['term']);
+
         $repo_usage =
                 array(
-                    "Dropbox" => "LIKE '%dropbox%' OR source LIKE 'Dropbox%'",
-                    "Google Docs" => "LIKE '%google%'",
-                    "Box" => "LIKE 'Box %'",
-                    "Server Files" => "LIKE '%Server files%'",
-                    "My CCLE files" => "LIKE '%CCLE files%'"
+                    "Dropbox" => "(source LIKE '%dropbox%' OR source LIKE 'Dropbox%')",
+                    "Google Docs" => "(source LIKE '%google%')",
+                    "Box" => "(source LIKE 'Box %')",
+                    "Server Files" => "(source LIKE '%Server files%')",
+                    "My CCLE files" => "(source LIKE '%CCLE files%')"
         );
 
-        $sql = "SELECT COUNT(*) as repo_count
-                  FROM {files} 
-                  WHERE source";
+        $sql = "SELECT  COUNT(*) as repocount
+                FROM    {files}
+                WHERE   timecreated >= :start AND
+                        timecreated <= :end AND
+                        ";
 
         $records = array();
 
         foreach ($repo_usage as $repo_name => $clause) {
+            $repocount = $DB->get_field_sql($sql . $clause,
+                    array('start' => $terminfo['start'],
+                        'end' => $terminfo['end']));
 
-            $record = $DB->get_records_sql($sql . " " . $clause, $params);
-
-            //create new object such that ordering of attributes is Repository Name | File Count
+            // Create new object such that ordering of attributes is
+            // Repository Name | File Count.
             $repo = new stdClass();
             $repo->repo_name = $repo_name;
 
-            //get the result object that was just queried
-            $record = array_pop($record);
-
-            $repo->repo_count = $record->repo_count;
+            $repo->repo_count = $repocount;
             $records[] = $repo;
         }
 

@@ -1,64 +1,172 @@
 //
-//
+// SASS for UCLA course menu
+// This is also shared with the browseby block.
 //
 
 @import "uclatheme";
 
-// Tree styles
-.block_tree {
-    .type_structure, .type_custom, .type_activity {
-        border: 0;
-        border-bottom: 1px solid #eee;
-        padding: 0 0;
-        border-left: 4px solid #F9F9F9;
+@mixin node-glyphicon($icon) {
+    
+    @include glyphicon($icon);
+    
+    float: left;
+    color: $ccle-blue;
+    vertical-align: middle;
+    top: 2px;
+    line-height: 1.2;
+    margin-right: 4px;
+}
 
-        display: block;
+$site-menu-background-color:    #f9f9f9;
+$site-menu-hover-color:         #fcfcfc;
+
+.block_ucla_course_menu {
+    
+    .block_tree {
         
-        .tree_item {
-            padding: 8px 8px;
-            /*margin: 2px 0;*/
-            margin: 0;
-            
-            img {
-                display: none;
+        // Site menu structures
+        .type_structure, 
+        .type_custom, 
+        .type_activity {
+            border: 0;
+            border-bottom: 1px solid #eee;
+            padding: 0 0;
+            border-left: 4px solid $site-menu-background-color;
+            display: block;
+
+            .tree_item {
+                padding: 8px 8px;
+                margin: 0;
+
+                // Do not display images
+                img {
+                    display: none;
+                }
+
+                // Hidden items will have their link color darkened
+                // and will display a 'hidden' label.
+                &.block_ucla_course_menu_hidden {
+                    a {color: #aaa;}
+                    a:after {
+                        @include hidden-label(1.2rem)
+                    }
+                }
             }
-            
-            &.block_ucla_course_menu_hidden {
-                a {color: #aaa;}
-                a:after {
-                    @include hidden-label(1.2rem)
+
+            // Selected item
+            &.current_branch {
+                border-left-color: $ccle-blue;
+                background-color: white;
+
+                a {color: $ccle-blue}
+
+                .tree_item {
+                    border-bottom: 1px solid #ddd;
+                }
+            }
+
+            &:hover {
+                border-left-color: $ccle-blue;
+            }
+        }
+        
+        // Default nodes
+        .type_structure {
+            // Add right facing chevrons to the menu items
+            &.item_with_icon {
+                .tree_item.leaf {
+                    display: inline-block;
+                    width: 100%;
+                    padding:  8px;
+                }
+
+                // Add '>' glyphicon
+                .leaf:after {
+                    @include glyphicon("\e080");
+                    float: right;
+                    color: #ddd;
+                    vertical-align: middle;
+                    line-height: 1.2
+                }
+                // Color the '>' icon blue when active
+                &.current_branch  {
+                    .leaf:after {
+                        @include glyphicon("\e080");
+                        float: right;
+                        color: $ccle-blue;
+                        vertical-align: middle;
+                        line-height: 1.2
+                    }
                 }
             }
         }
         
-        // Selected item
-        &.current_branch {
-            border-left-color: $ccle-blue;
-            background-color: white;
-            
-            a {color: $ccle-blue}
+        // Custom nodes + moodle generated nodes
+        .type_custom, 
+        .type_activity {
+            border-left: 0;
             
             .tree_item {
-                border-bottom: 1px solid #ddd;
+                padding-right: 0;
+            
+                a, a:link, a:visited {display: inline;}
             }
         }
         
-        &:hover {
-            border-left-color: $ccle-blue;
+        // Generate icons for site menu links
+        .type_custom {
+            // Generic icon to prevent indentation issues
+            .leaf:before {
+                // link
+                @include node-glyphicon("\e144");
+            }
+            // Add icon to library research portal
+            .library-research-portal.leaf:before {
+                // globe
+                @include node-glyphicon("\e135");
+            }
+            // Add library reserve icon
+            .library-reserve-link.leaf:before {
+                // book
+                @include node-glyphicon("\e043");
+            }
+            // Add subject area links icon
+            .subject-area-link.leaf:before {
+                // bookmark
+                @include node-glyphicon("\1f516");
+            }
+            // Add bruincast link icon
+            .bruincast-link.leaf:before {
+                @include node-glyphicon("\e059");
+            }
+            // Add video furnace link icon 
+            .video-furnace-link.leaf:before {
+                @include node-glyphicon("\e009");
+            }
         }
+        
+        .type_activity {
+            // Add glyphicon-th-list icon to moodle modules
+            .leaf:before {
+                @include node-glyphicon("\e012");
+            }
+        }
+        
     }
 }
 
+// Tree styles
 .block .list {
     @extend .block_tree;
 }
 
-// Hide the header for site menu
+// Hide the header for site menu, but NOT for browseby.
 .block.block_ucla_course_menu:not(.block_ucla_browseby) {
     .header {
         display: none;
     }
 }
+
 // UCLA course menu specific styles
 .block.block_ucla_course_menu {
     text-align: center;
@@ -74,7 +182,6 @@
         // Style links
         a, a:link, a:visited {
             color: $ucla-blue;
-            line-height: 3.5rem;
             vertical-align: middle;
             display: inline-block;
             width: 90%;
@@ -83,50 +190,17 @@
         a:hover {
             text-decoration: none;
         }
-        
-/*        &.module-elements-section li {
-            background-color: #fafcfc;
-            border-left-color: #ceecf5;
-            
-            .leaf:after {
-                color: #ceecf5;
-            }
-        }*/
     }
     
     
-    // Add right facing chevrons to the menu items
-    .item_with_icon {
-        .tree_item.leaf {
-            display: inline-block;
-            width: 100%;
-            padding: 0 8px;
-        }
-        .leaf:after {
-            @include glyphicon("\e080");
-            float: right;
-            color: #ddd;
-            line-height: 3.2rem;
-            vertical-align: middle;
-        }
-        &.current_branch  {
-            .leaf:after {
-                @include glyphicon("\e080");
-                float: right;
-                color: $ccle-blue;
-                line-height: 3.2rem;
-                vertical-align: middle;
-            }
-        }
-    }
     
     li.type_structure {
-        &:hover {background-color: #fcfcfc;}
+        &:hover {background-color: $site-menu-hover-color;}
     }
 
     // Give sections a darker color.
     li.type_structure {
-        background-color: #F9F9F9;
+        background-color: $site-menu-background-color;
     }
 }
 

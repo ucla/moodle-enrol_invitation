@@ -69,8 +69,10 @@ class block_ucla_video_furnace extends block_base {
                 array('courseid' => $courseid));
         
         if ($recordsfound) {
-            $nodes[] = navigation_node::create(get_string('title',
+            $node = navigation_node::create(get_string('title',
                     'block_ucla_video_furnace'), self::get_action_link($courseid));
+            $node->add_class('video-furnace-link');
+            $nodes[] = $node;
         }
         
         return $nodes;

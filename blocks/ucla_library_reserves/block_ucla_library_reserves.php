@@ -45,15 +45,19 @@ class block_ucla_library_reserves extends block_base {
         $lr_string = get_string('title', 'block_ucla_library_reserves');        
         if (count($reserves) == 1) {
             $link = array_pop($reserves);
-            $nodes[] = navigation_node::create($lr_string,
-                            new moodle_url($link->url));            
+            $node = navigation_node::create($lr_string,
+                            new moodle_url($link->url));  
+            $node->add_class('library-reserve-link');
+            $nodes[] = $node;
         } else {
             // else display link with subj_area and coursenum appended
             foreach ($reserves as $reserve) {
-                $nodes[] = navigation_node::create(sprintf('%s %s %s', 
+                $node = navigation_node::create(sprintf('%s %s %s', 
                         $lr_string, $reserve->department_code, 
                         $reserve->course_number), 
-                        new moodle_url($reserve->url));                 
+                        new moodle_url($reserve->url));    
+                $node->add_class('library-reserve-link');
+                $nodes[] = $node;
             }            
         }
         

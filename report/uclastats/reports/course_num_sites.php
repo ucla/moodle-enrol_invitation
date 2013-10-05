@@ -73,11 +73,6 @@ class course_num_sites extends uclastats_base {
         // get start and end dates for term
         $term_info = $this->get_term_info($params['term']);
 
-        if (is_summer_term($params['term'])) {
-            $term_info['start_a'] = $term_info['start_1a'];
-            $term_info['end_a'] = $term_info['end_1a'];
-        }
-
         // get guest role, so that we can filter out that id
         $guest_role = get_guest_role();
 

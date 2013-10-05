@@ -13,6 +13,7 @@ require_once($CFG->dirroot . $thispath . '/block_ucla_rearrange.php');
 require_once($CFG->dirroot . $thispath . '/rearrange_form.php');
 
 require_once($CFG->dirroot . '/local/ucla/lib.php');
+require_once($CFG->dirroot . '/local/ucla/classes/local_ucla_course_section_fixer.php');
 
 global $CFG, $PAGE, $OUTPUT;
 
@@ -64,13 +65,16 @@ foreach ($sections as $section) {
     $sectionvisibility[$sid] = $section->visible;
 }
 
-$temp = get_fast_modinfo($course);
-$modinfo = & $temp;
+// Before loading modinfo, make sure section information is correct.
+$retval = local_ucla_course_section_fixer::fix_problems($course);
+if ($retval['added'] > 0 || $retval['deleted'] > 0 || $retval['updated'] > 0) {
+    debugging(sprintf("local_ucla_course_section_fixer::fix_problems: " .
+        "added %d | deleted %d | updated %d", $retval['added'],
+            $retval['deleted'], $retval['updated']));
+}
 
-$mods = get_fast_modinfo($course)->get_cms();
-//$modnames = get_module_types_names();
-//$modnamesplural = get_module_types_names(true);
-//$modnamesused = get_fast_modinfo($course)->get_used_module_names();
+$modinfo = get_fast_modinfo($course);
+$mods = $modinfo->get_cms();
 
 $sectionnodeshtml = block_ucla_rearrange::get_section_modules_rendered(
                 $courseid, $sections, $mods, $modinfo
@@ -82,8 +86,8 @@ $sectionlist = block_ucla_rearrange::sectionlist;
 $sectionshtml = html_writer::start_tag(
                 'ul',
                 array(
-            'class' => block_ucla_rearrange::sectionlistclass,
-            'id' => $sectionlist
+                    'class' => block_ucla_rearrange::sectionlistclass,
+                    'id' => $sectionlist
                 )
 );
 
@@ -251,8 +255,6 @@ if ($data = $rearrangeform->get_data()) {
     // Now we need to swap all the contents in each section...
     rebuild_course_cache($courseid);
 }
-
-// TODO put a title
 
 $restr = get_string('rearrange_sections', 'block_ucla_rearrange');
 $restrc = "$restr: {$course->shortname}";

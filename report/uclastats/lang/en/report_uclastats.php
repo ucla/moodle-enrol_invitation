@@ -27,6 +27,7 @@ $string['export_options'] = 'Export: ';
 $string['noparams'] = 'No additional parameters needed to run report';
 $string['term'] = 'Term';
 $string['subjarea'] = 'Subject area';
+$string['threshold'] = 'Threshold';
 
 // cached results strings
 $string['cached_results_table'] = 'Cached results';
@@ -142,7 +143,10 @@ $string['theme'] = 'Theme';
 
 //strings for repository usage report
 $string['repository_usage'] = 'Repository usage (system)';
-$string['repository_usage_help'] = 'Find repository usage for: Dropbox, Google, Box, Server files, and My CCLE files.';
+$string['repository_usage_help'] = 'Returns repository usage for: Dropbox, ' . 
+        'Google, Box, Server files, and My CCLE files for given term. ' .
+        'Searches across all files created during that term for both course ' .
+        'and collaboration sites.';
 $string['repo_name'] = 'Repository';
 $string['repo_count'] = 'File count';
 
@@ -217,6 +221,25 @@ $string['exportedgrades'] = 'Exported grades';
 $string['usedgradebook'] = 'Total courses using gradebook';
 $string['totalcourses'] = 'Total courses';
                                    
+// Strings for Course activity (Instructor focused)
+$string['active_instructor_focused'] = 'Course activity (Instructor focused)';
+$string['active_instructor_focused_help'] = 'A course is active ' . 
+        'if it has visible content added to it beyond the normal course shell. ' .
+        'This includes adding a block, module, or posting in the ' .
+        'default forums. This does not include uploading a syllabus.';
+$string['numactive'] = 'Active';
+$string['numinactive'] = 'Inactive';
+$string['totalcourses'] = 'Total courses';
+$string['inactivecourselisting'] = 'List of inactive courses';
+
+// Strings for Course activity (Student focused)
+$string['active_student_focused'] = 'Course activity (Student focused)';
+$string['active_student_focused_help'] = 'A course is active ' .
+        'if it has at least 80% of its enrolled students ' .
+        'viewing the course at least once during the term.';
+//$string['active_student_focused_help'] = 'A course is active ' .
+//        'if it has student log entries/number of enrolled students > 0.80';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';

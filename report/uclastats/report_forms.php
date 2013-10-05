@@ -64,6 +64,11 @@ class runreport_form extends moodleform {
                                 'report_uclastats'), $terms);
                         $mform->setDefault('term', $CFG->currentterm);
                         break;
+                    case    'threshold':
+                        $mform->addElement('text', 'threshold',
+                                get_string('threshold', 'report_uclastats'));
+                        $mform->setDefault('threshold', 5);
+                        break;
                     case 'subjarea':
                         $query = "
                             SELECT DISTINCT urs.subjarea, urs.subj_area_full

@@ -41,7 +41,9 @@ class block_ucla_subject_links extends block_base {
         if (!empty($subjname)) {
             foreach ($subjname as $sub) {
                 $url = new moodle_url('/blocks/ucla_subject_links/view.php',array('course_id' => $course->id, 'subj_area' => $sub));
-                $nodes[] = navigation_node::create(get_string('link_text', 'block_ucla_subject_links', $sub), $url);
+                $node = navigation_node::create(get_string('link_text', 'block_ucla_subject_links', $sub), $url);
+                $node->add_class('subject-area-link');
+                $nodes[] = $node;
             }
         }
         return $nodes;
