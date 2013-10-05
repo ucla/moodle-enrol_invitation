@@ -164,11 +164,6 @@ class subject_area_report extends uclastats_base {
         
         $term_info = $this->get_term_info($term);
         
-        if(is_summer_term($term)) {
-            $term_info['start'] = $term_info['start_8a'];
-            $term_info['end'] = $term_info['end_c'];
-        }
-        
         $term_info = (object)$term_info;
         
         foreach($this->courseids as $id) {

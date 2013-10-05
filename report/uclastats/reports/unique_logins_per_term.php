@@ -66,14 +66,8 @@ class unique_logins_per_term extends uclastats_base {
             throw new moodle_exception('invalidterm', 'report_uclastats');
         }
 
-        // get start and end dates for term
-     
+        // Get start and end dates for term.
         $term_info = $this->get_term_info($params['term']);
-        
-        if(is_summer_term($params['term'])) {
-            $term_info['start'] = $term_info['start_8a'];
-            $term_info['end'] = $term_info['end_c'];
-        }
 
         // count average unique logins per day (using derived tables! slow, but
         // a way to do all the calculation in the DB layer)
