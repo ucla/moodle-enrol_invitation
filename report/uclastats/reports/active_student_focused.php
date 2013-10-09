@@ -6,7 +6,8 @@
  *
  * Course activity (Student focused)
  *
- * A course is active if it matches one of several visitation criteria.
+ * A course is active if it has at least 80% of its enrolled students viewed a
+ * course module or the syllabus at least once during the term.
  * 
  * @package    report
  * @subpackage uclastats
@@ -20,8 +21,15 @@ require_once($CFG->dirroot . '/report/uclastats/locallib.php');
 class active_student_focused extends uclastats_base {
 
     /**
+     * Stored cached copy of the roleid for student.
+     * 
+     * @var int
+     */
+    private $studentroleid = null;
+
+    /**
      * For given course, check if 80% of the students has any log entries for
-     * the course.
+     * any course modules or syllabus views for the course.
      *
      * @param object $course
      * @param int $enrolledstudents Array of students enrolled in course.
@@ -32,6 +40,17 @@ class active_student_focused extends uclastats_base {
      */
     private function check_majority_viewed($course, $enrolledstudents, $start, $end) {
         global $DB;
+
+        $params = array('contextlevel' => CONTEXT_COURSE,
+                'courseid' => $course->id, 'starttime' => $start, 'endtime' => $end);
+
+        // Filter out log activity from unused forums.
+        $forums = $this->get_empty_default_forums($course);
+        if (!empty($forums)) {
+            list($notinsql, $inparams) = $DB->get_in_or_equal($forums,
+                    SQL_PARAMS_NAMED, false);
+            $params = array_merge($params, $inparams);
+        }
 
         $sql = "SELECT  DISTINCT ra.userid
                 FROM    {course} c
@@ -47,10 +66,16 @@ class active_student_focused extends uclastats_base {
                         l.time<:endtime AND
                         ra.userid=l.userid AND
                         r.shortname='student' AND
-                        l.course=c.id";
-        $students = $DB->get_records_sql($sql,
-                array('contextlevel' => CONTEXT_COURSE, 'courseid' => $course->id,
-                    'starttime' => $start, 'endtime' => $end));
+                        l.course=c.id AND
+                        l.module!='course' AND
+                        l.module!='user'";
+
+        // If we need to filter out unused forums, then add SQL.
+        if (!empty($insql)) {
+            $sql .= " l.cmid $notinsql";
+        }
+
+        $students = $DB->get_records_sql($sql, $params);
 
         // Make sure that each student returned is currently enrolled in the
         // course.
@@ -81,6 +106,32 @@ class active_student_focused extends uclastats_base {
     }
 
     /**
+     * Returns the course module ids for the default Announcements and
+     * Discussions forums that do not have any posts.
+     *
+     * @param object $course
+     *
+     * return int
+     */
+    private function get_empty_default_forums($course) {
+        global $DB;
+
+        $sql = "SELECT  cm.id
+                FROM    {forum} f
+                JOIN    {modules} m ON (m.name='forum')
+                JOIN    {course_modules} cm ON (cm.instance=f.id AND
+                            cm.course=f.course AND cm.module=m.id)
+                LEFT JOIN    {forum_discussions} fd ON (fd.forum=f.id)
+                WHERE   f.course=:courseid AND
+                        ((f.type='news' AND f.name='Announcements') OR
+                        (f.type='general' AND f.name='Discussion forum')) AND
+                        fd.id IS NULL";
+        $results = $DB->get_fieldset_sql($sql, array('courseid' => $course->id));
+
+        return $results;
+    }
+
+    /**
      * Returns the number of users enrolled as a student for given course.
      *
      * @param object $course
@@ -91,22 +142,17 @@ class active_student_focused extends uclastats_base {
         global $DB;
         $retval = array();
 
-        $sql = "SELECT  DISTINCT ra.userid AS userid
-                FROM    {course} c
-                JOIN    {context} ct ON (
-                            ct.instanceid=c.id AND
-                            ct.contextlevel=:contextlevel
-                        )
-                JOIN    {role_assignments} ra ON (ct.id=ra.contextid)
-                JOIN    {role} r ON (ra.roleid=r.id)
-                WHERE   r.shortname='student' AND
-                        c.id=:courseid";
-        $enrolled =  $DB->get_records_sql($sql, array('contextlevel' => CONTEXT_COURSE,
-                'courseid' => $course->id));
+        if (empty($this->studentroleid)) {
+            $this->studentroleid = $DB->get_field('role', 'id',
+                    array('shortname' => 'student'));
+        }
+
+        $enrolled = get_role_users($this->studentroleid,
+                context_course::instance($course->id), false, 'u.id', null, false);
 
         // Return an array of userids.
         foreach ($enrolled as $user) {
-            $retval[] = $user->userid;
+            $retval[] = $user->id;
         }
 
         return $retval;
