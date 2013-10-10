@@ -4952,31 +4952,31 @@ table.rolecap tr.rolecap th {
 }
 
 /* line 65, ../sass/_labels.scss */
-.label-term {
+.label-term, .admin a[data-name^="12F"]:before, .admin a[data-name^="13F"]:before, .admin a[data-name^="14F"]:before, .admin a[data-name^="15F"]:before, .admin a[data-name^="16F"]:before, .admin a[data-name^="17F"]:before, .admin a[data-name^="18F"]:before, .admin a[data-name^="19F"]:before, .admin a[data-name^="20F"]:before, .admin a[data-name^="21F"]:before, .admin a[data-name^="12W"]:before, .admin a[data-name^="13W"]:before, .admin a[data-name^="14W"]:before, .admin a[data-name^="15W"]:before, .admin a[data-name^="16W"]:before, .admin a[data-name^="17W"]:before, .admin a[data-name^="18W"]:before, .admin a[data-name^="19W"]:before, .admin a[data-name^="20W"]:before, .admin a[data-name^="21W"]:before, .admin a[data-name^="12S"]:before, .admin a[data-name^="13S"]:before, .admin a[data-name^="14S"]:before, .admin a[data-name^="15S"]:before, .admin a[data-name^="16S"]:before, .admin a[data-name^="17S"]:before, .admin a[data-name^="18S"]:before, .admin a[data-name^="19S"]:before, .admin a[data-name^="20S"]:before, .admin a[data-name^="21S"]:before, .admin a[data-name^="121"]:before, .admin a[data-name^="131"]:before, .admin a[data-name^="141"]:before, .admin a[data-name^="151"]:before, .admin a[data-name^="161"]:before, .admin a[data-name^="171"]:before, .admin a[data-name^="181"]:before, .admin a[data-name^="191"]:before, .admin a[data-name^="201"]:before, .admin a[data-name^="211"]:before {
   padding: 0 4px;
   text-transform: uppercase;
 }
 
 /* line 70, ../sass/_labels.scss */
-.label-fall {
+.label-fall, .admin a[data-name^="12F"]:before, .admin a[data-name^="13F"]:before, .admin a[data-name^="14F"]:before, .admin a[data-name^="15F"]:before, .admin a[data-name^="16F"]:before, .admin a[data-name^="17F"]:before, .admin a[data-name^="18F"]:before, .admin a[data-name^="19F"]:before, .admin a[data-name^="20F"]:before, .admin a[data-name^="21F"]:before {
   background-color: #ec8539;
   color: black;
 }
 
 /* line 75, ../sass/_labels.scss */
-.label-spring {
+.label-spring, .admin a[data-name^="12S"]:before, .admin a[data-name^="13S"]:before, .admin a[data-name^="14S"]:before, .admin a[data-name^="15S"]:before, .admin a[data-name^="16S"]:before, .admin a[data-name^="17S"]:before, .admin a[data-name^="18S"]:before, .admin a[data-name^="19S"]:before, .admin a[data-name^="20S"]:before, .admin a[data-name^="21S"]:before {
   background-color: #99cb52;
   color: black;
 }
 
 /* line 80, ../sass/_labels.scss */
-.label-winter {
+.label-winter, .admin a[data-name^="12W"]:before, .admin a[data-name^="13W"]:before, .admin a[data-name^="14W"]:before, .admin a[data-name^="15W"]:before, .admin a[data-name^="16W"]:before, .admin a[data-name^="17W"]:before, .admin a[data-name^="18W"]:before, .admin a[data-name^="19W"]:before, .admin a[data-name^="20W"]:before, .admin a[data-name^="21W"]:before {
   background-color: #11bcfb;
   color: black;
 }
 
 /* line 85, ../sass/_labels.scss */
-.label-summer {
+.label-summer, .admin a[data-name^="121"]:before, .admin a[data-name^="131"]:before, .admin a[data-name^="141"]:before, .admin a[data-name^="151"]:before, .admin a[data-name^="161"]:before, .admin a[data-name^="171"]:before, .admin a[data-name^="181"]:before, .admin a[data-name^="191"]:before, .admin a[data-name^="201"]:before, .admin a[data-name^="211"]:before {
   background-color: #f4ec35;
   color: black;
 }
@@ -9847,26 +9847,167 @@ h2.headingblock > a {
   background: transparent url([[pix:theme|external]]) no-repeat center right;
 }
 
-/** Admin **/
-/*.box.adminwarning {text-align:center;border:1px solid #C8C9C7;background-color:#E3E3E3;margin-bottom:1em;padding:10px 10%;}
-.box.copyright {text-align:center;font-size:90%;padding:10px 10%;}
-#adminsettings fieldset {border:1px solid #C8C9C7;background-color:#E3E3E3;}
-#adminsettings fieldset .generalbox {margin:1em 0.5em;border-color:#C8C9C7;}
-#adminsettings .form-buttons {margin-left:13em;}
-
- give 'Defined in config.php' message a little more visual weight 
-#adminsettings .form-overridden {
-    background-color: red;
-    color: white;
-    text-align: center;
-    font-weight: bold;
-    padding-left: 2px;
-    padding-right: 2px;
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="12F"]:before {
+  content: "fall 12";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="13F"]:before {
+  content: "fall 13";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="14F"]:before {
+  content: "fall 14";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="15F"]:before {
+  content: "fall 15";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="16F"]:before {
+  content: "fall 16";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="17F"]:before {
+  content: "fall 17";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="18F"]:before {
+  content: "fall 18";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="19F"]:before {
+  content: "fall 19";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="20F"]:before {
+  content: "fall 20";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="21F"]:before {
+  content: "fall 21";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="12W"]:before {
+  content: "winter 12";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="13W"]:before {
+  content: "winter 13";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="14W"]:before {
+  content: "winter 14";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="15W"]:before {
+  content: "winter 15";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="16W"]:before {
+  content: "winter 16";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="17W"]:before {
+  content: "winter 17";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="18W"]:before {
+  content: "winter 18";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="19W"]:before {
+  content: "winter 19";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="20W"]:before {
+  content: "winter 20";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="21W"]:before {
+  content: "winter 21";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="12S"]:before {
+  content: "spring 12";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="13S"]:before {
+  content: "spring 13";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="14S"]:before {
+  content: "spring 14";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="15S"]:before {
+  content: "spring 15";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="16S"]:before {
+  content: "spring 16";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="17S"]:before {
+  content: "spring 17";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="18S"]:before {
+  content: "spring 18";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="19S"]:before {
+  content: "spring 19";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="20S"]:before {
+  content: "spring 20";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="21S"]:before {
+  content: "spring 21";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="121"]:before {
+  content: "summer 12";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="131"]:before {
+  content: "summer 13";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="141"]:before {
+  content: "summer 14";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="151"]:before {
+  content: "summer 15";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="161"]:before {
+  content: "summer 16";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="171"]:before {
+  content: "summer 17";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="181"]:before {
+  content: "summer 18";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="191"]:before {
+  content: "summer 19";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="201"]:before {
+  content: "summer 20";
+}
+/* line 65, ../sass/ccle/_admin.scss */
+.admin a[data-name^="211"]:before {
+  content: "summer 21";
 }
 
-.adminsearchform {
-    text-align: center;
-}*/
 /* line 9, ../sass/ccle/mod/_admin.scss */
 .region-content > h2.main {
   border-bottom: 1px solid #cccccc;
