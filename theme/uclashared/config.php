@@ -212,7 +212,7 @@ $THEME->layouts = array(
 );
 
 $THEME->rendererfactory = 'theme_overridden_renderer_factory';
-$THEME->enable_dock = true;
+$THEME->enable_dock = false;
 $THEME->csspostprocess = 'uclashared_process_css';
 $THEME->javascripts[] = 'shared_server_dropdown';
 
