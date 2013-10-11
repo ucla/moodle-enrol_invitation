@@ -165,9 +165,7 @@ class course_handler extends browseby_handler {
             // Filter out instructors of type '03' (supervising instructor)
             // in WHERE clause.
             $sql = self::browseall_sql_helper . "
-                FROM $sqlhelp ubi
-                LEFT JOIN {ucla_browseall_classinfo} ubci
-                    USING (term, srs)
+                FROM {ucla_browseall_classinfo} ubci
                 LEFT JOIN {ucla_browseall_instrinfo} ubii
                     USING (term, srs)
                 LEFT JOIN {ucla_request_classes} urc
@@ -178,7 +176,7 @@ class course_handler extends browseby_handler {
                     ON urc.courseid = mco.id  
                  " .
             self::browseall_syllabus_helper .
-            "   WHERE ubi.userid = :user
+            "   WHERE user.id = :user
                 AND ubii.profcode != '03'
                     $termwhere
             " . self::browseall_order_helper;
@@ -186,7 +184,7 @@ class course_handler extends browseby_handler {
             $param['user'] = $instructor;
 
             $courseslist = $this->get_records_sql($sql, $param);
-            
+
             // Get the actual user information from courses
             $instruser = false;
             foreach ($courseslist as $course) {
