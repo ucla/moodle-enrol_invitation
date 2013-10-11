@@ -236,9 +236,7 @@ $string['inactivecourselisting'] = 'List of inactive courses';
 $string['active_student_focused'] = 'Course activity (Student focused)';
 $string['active_student_focused_help'] = 'A course is active ' .
         'if it has at least 80% of its enrolled students ' .
-        'viewing the course at least once during the term.';
-//$string['active_student_focused_help'] = 'A course is active ' .
-//        'if it has student log entries/number of enrolled students > 0.80';
+        'viewed a course module or the syllabus at least once during the term.';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';
