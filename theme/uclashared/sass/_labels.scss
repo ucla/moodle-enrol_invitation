@@ -58,7 +58,35 @@
   @include label-variant($label-danger-bg);
 }
 
-///
+//
+// Custom labels
+// --------------------------------------------------
+
+.label-term {
+    padding: 0 4px;
+    text-transform: uppercase;
+}
+
+.label-fall {
+    background-color: $session-fall-background-color;
+    color: $session-fall-color;
+}
+
+.label-spring {
+    background-color: $session-spring-background-color;
+    color: $session-spring-color;
+}
+
+.label-winter {
+    background-color: $session-winter-background-color;
+    color: $session-winter-color;
+}
+
+.label-summer {
+    background-color: $session-summer-background-color;
+    color: $session-summer-color;
+}
+
 // Label for public private
 .label-pp {
     background-color: none;

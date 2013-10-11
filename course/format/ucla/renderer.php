@@ -170,6 +170,29 @@ class format_ucla_renderer extends format_topics_renderer {
     }
     
     /**
+     * Returns a label class name for a given term
+     * 
+     * @param string $term in the form of: 131, 13F, ...
+     * @return string css label class
+     */
+    private function get_term_label($term) {
+        $term = substr($term, 2);
+        
+        switch ($term) {
+            case '1':
+                return 'label-summer';
+            case 'S':
+                return 'label-spring';
+            case 'W':
+                return 'label-winter';
+            case 'F':
+                return 'label-fall';
+        }
+        
+        return '';
+    }
+    
+    /**
      * Output the html for the page header. For SRS courses will display 
      * reginfo content. Also displays public/private message if user is not 
      * logged in.
@@ -202,7 +225,7 @@ class format_ucla_renderer extends format_topics_renderer {
             $regcoursetext = html_writer::tag('span', $regcourseinfo,
                     array('class' => 'reg-courses'));
             $termtext = html_writer::tag('span', ucla_term_to_text($this->term),
-                    array('class' => 'reg-term'));
+                    array('class' => 'label-term ' . $this->get_term_label($this->term)));
             
         }
 

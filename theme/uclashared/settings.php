@@ -45,12 +45,21 @@ if ($ADMIN->fulltree) {
             $default, PARAM_RAW);
     $settings->add($setting);
 
-    $the_setting = 'logo_sub_dropdown';
+    $the_setting = 'system_name';
     $name = $theme_name . '/' . $the_setting;
     $title = get_string('setting_title_' . $the_setting, $theme_name);
     $description = get_string('setting_desc_' . $the_setting, $theme_name);
-    $default = false; 
-    $setting = new admin_setting_configcheckbox($name, $title, $description, 
+    $default = get_string('setting_default_' . $the_setting, $theme_name); 
+    $setting = new admin_setting_configtext($name, $title, $description, 
+            $default);
+    $settings->add($setting);
+    
+    $the_setting = 'system_link';
+    $name = $theme_name . '/' . $the_setting;
+    $title = get_string('setting_title_' . $the_setting, $theme_name);
+    $description = get_string('setting_desc_' . $the_setting, $theme_name);
+    $default = get_string('setting_default_' . $the_setting, $theme_name); 
+    $setting = new admin_setting_configtext($name, $title, $description, 
             $default);
     $settings->add($setting);
 

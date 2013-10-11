@@ -67,6 +67,7 @@ class ucla_session {
                     }
                 }
                 
+                $weeks_str = html_writer::div($weeks_str, 'weeks-display label-' . strtolower($this->quarter_name($this->_quarter)));
                 // Update weeks display
                 $this->update_week_display($weeks_str);
                 
@@ -153,9 +154,10 @@ class ucla_session {
             $summersession = get_string('session', 'block_ucla_weeksdisplay') . ' ' . substr($session->session, -1) . ', ';
         }
 
-        $week_str = $quarter_year  . ' - ' . $summersession . $this->get_week_for_session($session);
+        $weekstr = html_writer::span($quarter_year . ' - ' . $summersession, 'session ') .
+                html_writer::span($this->get_week_for_session($session), 'week');
         
-        return $week_str;
+        return $weekstr;
     }
     
     /**

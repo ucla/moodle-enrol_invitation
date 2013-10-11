@@ -215,14 +215,3 @@ $THEME->rendererfactory = 'theme_overridden_renderer_factory';
 $THEME->enable_dock = false;
 $THEME->csspostprocess = 'uclashared_process_css';
 $THEME->javascripts[] = 'shared_server_dropdown';
-
-//if ($noconfigs) {
-//    $dropdown_contents = false;
-//} else {
-//    $dropdown_contents = get_config('theme_' . $THEME->name, 'logo_sub_dropdown');
-//}
-//
-//if ($dropdown_contents) {
-//    $THEME->javascripts[] = 'jquery-1.5.2.min'; 
-//    $THEME->javascripts[] = 'shared_server_dropdown';
-//}

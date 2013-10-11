@@ -2,15 +2,20 @@
 // HEADER
 // --------------------------------------------------
 
+// Header banner colors
 $prod-header-color:     #4168A1 !default;
 $test-header-color:     #d07919 !default;
 $stage-header-color:    #911687 !default;
 $dev-header-color:      #3EA639 !default;
 
+// Shared system banner colors
+$system-header-background-color: #DDEBFE !default;
+$system-header-color:   $prod-header-color;
+
 #page-header {
     /*border-top: 1px solid #93d3eb;*/ 
     background-color: $prod-header-color;
-    padding: 8px 0;
+    padding: 2px 0 0 0;
     position: relative;
 
     ///
@@ -42,25 +47,34 @@ $dev-header-color:      #3EA639 !default;
     // DEV environment banner
     &.env-dev {
         background-color: $dev-header-color;
-        .header-logo .ccle-logo-text,
-        .weeks-display {
+        .header-logo .ccle-logo-text {
             color: #f3dcc1;
+        }
+        .logo-cc,
+        .logo-le {
+            color: #c3e6c2;
         }
     }
     // TEST banner
     &.env-test {
         background-color: $test-header-color;
-        .header-logo .ccle-logo-text,
-        .weeks-display {
+        .header-logo .ccle-logo-text {
             color: #f3dcc1;
+        }
+        .logo-cc,
+        .logo-le {
+            color: #e4c7a7;
         }
     }
     // STAGE banner
     &.env-stage {
         background-color: $stage-header-color;
-        .header-logo .ccle-logo-text,
-        .weeks-display {
+        .header-logo .ccle-logo-text {
             color: #f3dcc1;
+        }
+        .logo-cc,
+        .logo-le {
+            color: #d1afce;
         }
     }
 }
@@ -141,9 +155,6 @@ $dev-header-color:      #3EA639 !default;
         .header-links {
             margin-top: 4px;
         }
-        .weeks-display {
-            margin-top: 8px;
-        }
     }
 }
 
@@ -164,7 +175,7 @@ $dev-header-color:      #3EA639 !default;
         }
         
         @include respond-at(tablet) {
-            width: 90px;
+            width: 85px;
         }
     }
     .logo-ccle {
@@ -267,5 +278,42 @@ $dev-header-color:      #3EA639 !default;
     .wikisearch,
     .forumsearch {
         display: inline-block !important;
+    }
+}
+
+//
+// Shared system banner styles
+// --------------------------------------------------
+.system-identification {
+    background-color: $system-header-background-color;
+    color: $prod-header-color;
+    float: left;
+    width: 100%;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    
+    .system-name {
+        width: 40%;
+        display: inline;
+        padding: 0 16px;
+        font-weight: bold;
+        line-height: 1.5;
+
+        &:hover {
+            background-color: $prod-header-color;
+            color: white;
+            text-decoration: none;
+        }
+    }
+    .weeks-display {
+        float: right;
+        text-align: right;
+        padding: 0 16px;
+        line-height: 1.5;
+
+        .week {
+            font-weight: bold;
+        }
+        
     }
 }
