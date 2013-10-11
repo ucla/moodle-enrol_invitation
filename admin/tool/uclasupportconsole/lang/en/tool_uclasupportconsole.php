@@ -104,6 +104,8 @@ $string['syllabusoverviewnotes'] = 'Does not include cancelled or tutorial cours
         'The preview syllabus percentage is counted against the total number of "Public" and "UCLA community" syllabi. ' .
         'A manual syllabus is always counted, but only increments the total number of syllabi if no other syllabus type is found.';
 $string['syllabusreoportnotes'] = 'Does not include cancelled or tutorial courses. The manual syllabus column counts the number of manual syllabi in a course.';
+$string['mediausage'] = 'Media usage';
+$string['mediausage_help'] = 'Lists course video content over 5MB for a given term.';
 
 // Course
 $string['collablist'] = 'Show collaboration sites';
