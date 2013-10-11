@@ -71,8 +71,6 @@ YUI.add('moodle-block_ucla_search-search', function(Y) {
                 return (collab + course + limit);
             };
 
-            console.log(inputid);
-            
             Y.one(inputid).plug(Y.Plugin.AutoComplete, {
                 resultFormatter:    formatter,
                 alwaysShowList:     showlist,

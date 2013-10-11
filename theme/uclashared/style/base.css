@@ -22,3 +22,16 @@ body.has_dock {margin-left:30px;}*/
 .theme_screenshot p {font-size: 0.9em; margin: 0 0 1em;}
 .theme_description {margin-left: 300px;}
 .theme_description h2 {padding-top: 0.5em;}*/
+
+/* Message for unsupported browsers.  Needs to load early in CSS parser */
+.unsupported-browser {
+    width: 100%;
+    background-color: #fae692;
+    padding: 10px 100px;
+    border-bottom: 1px solid #444;
+}
+    
+.unsupported-browser .container {
+    padding: 10px 50px;
+    background: url([[pix:theme|ie-notice]]) no-repeat;
+}
