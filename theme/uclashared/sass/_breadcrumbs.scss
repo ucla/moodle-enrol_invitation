@@ -9,5 +9,18 @@
     .divider {
         display: none;
     }
+    
+    // Add a HOME glyphicon to breadcrumbs.
+    // Also removes text.
+    li:first-child > a {
+        height: 16px;
+        width: 16px;
+        display: block;
+        overflow: hidden;
+        
+        &:before{
+            @include glyphicon("\e021");
+        }
+    }
 
 }

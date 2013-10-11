@@ -8453,6 +8453,25 @@ h2.headingblock.input-group-btn > input[type="submit"] + a, #tool_uclacourserequ
 .breadcrumb .divider {
   display: none;
 }
+/* line 15, ../sass/_breadcrumbs.scss */
+.breadcrumb li:first-child > a {
+  height: 16px;
+  width: 16px;
+  display: block;
+  overflow: hidden;
+}
+/* line 21, ../sass/_breadcrumbs.scss */
+.breadcrumb li:first-child > a:before {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  content: "\e021";
+}
 
 /* line 7, ../package/bootstrap/lib/_wells.scss */
 .well {
