@@ -79,8 +79,10 @@ echo $OUTPUT->doctype() ?>
         <link href='https://fonts.googleapis.com/css?family=Lato:400,400italic,700,900' rel='stylesheet' type='text/css'>
     <?php } ?>
     <?php echo $OUTPUT->standard_head_html() ?>
-    
-    <!--[if gt IE 7]>
+    <!--[if lte IE 8]>
+        <script type="text/javascript" src="<?php echo $CFG->wwwroot . '/theme/uclashared/javascript/' ?>unsupported-browser.js"></script>
+    <![endif]--> 
+    <!--[if gt IE 8]>
         <link href='https://fonts.googleapis.com/css?family=Lato:400,400italic,700,900' rel='stylesheet' type='text/css'>   
     <![endif]-->
     
