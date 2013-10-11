@@ -942,21 +942,12 @@ class uclacoursecreator {
         $rci_courses =& $this->cron_term_cache['term_rci'];
    
         // Get all categories and index them
-        $id_categories = get_categories();
-        
-        // Add "root" to available categories
-        $fakeroot = new stdclass();
-        $fakeroot->name = 'Root';
-        $fakeroot->id = 0;
-        $fakeroot->parent = 'None';
-        $id_categories[0] = $fakeroot;
+        $id_categories = coursecat::get(0)->get_children(array('recursive' => true));
 
         $name_categories = array();
-
         $forbidden_names = array();
 
         foreach ($id_categories as $cat) {
-            // Note standard is same here #OOOO
             $catname = $cat->name . '-' . $cat->parent;
             if (isset($name_categories[$catname])) {
                 $forbidden_names[$catname] = $catname;
@@ -1032,27 +1023,19 @@ class uclacoursecreator {
         fix_course_sortorder();
     }
 
+    /**
+     * Wrapper for calling core API to create a new category.
+     *
+     * @param string $name
+     * @param int $parent
+     * @return coursecat
+     */
     function new_category($name, $parent=0) {
-        global $CFG, $DB;
-
-        // This is how moodle creates categories...
-        $newcategory = new StdClass();
+        $newcategory = new stdClass();
         $newcategory->name = $name;
         $newcategory->parent = $parent;
-        $newcategory->sortorder = 999;
 
-        // This is because we're not going to add a description.
-        $newcategory->descriptionformat = 0;
-
-        $newcategory->id = $DB->insert_record('course_categories',
-            $newcategory);
-
-        $newcategory->context = get_context_instance(CONTEXT_COURSECAT, 
-            $newcategory->id);
-
-        mark_context_dirty($newcategory->context->path);
-
-        return $newcategory;
+        return coursecat::create($newcategory);
     }
 
     /**
