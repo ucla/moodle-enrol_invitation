@@ -561,6 +561,10 @@ if (!$courses) {
         $attributes['class'] = $acourse->visible ? '' : 'dimmed';
         $coursename = get_course_display_name_for_list($acourse);
         $coursename = format_string($coursename, true, array('context' => $coursecontext));
+        // START UCLA MOD CCLE-4258 - adding data-name attribute
+        // to target with attribute selector.
+        $attributes['data-name'] = $coursename;
+        // END UCLA MOD CCLE-4258
         $coursename = html_writer::link($courseurl, $coursename, $attributes);
 
         $icons = array();

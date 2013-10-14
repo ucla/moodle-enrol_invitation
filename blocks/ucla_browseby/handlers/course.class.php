@@ -6,8 +6,7 @@ class course_handler extends browseby_handler {
             CONCAT(
                 ubci.term, '-',
                 ubci.srs, '-',
-                ubii.uid, '-',
-                r.shortname 
+                ubii.uid
             ) AS 'recordsetid',
             ubci.section AS 'sectnum',
             ubci.course AS 'coursenum',
@@ -33,8 +32,7 @@ class course_handler extends browseby_handler {
             mco.idnumber AS idnumber,
             public_world_syllabus.id>0 AS has_public_world_syllabus,
             public_ucla_syllabus.id>0 AS has_public_ucla_syllabus,
-            private_syllabus.id>0 AS has_private_syllabus,
-            r.shortname AS role_shortname
+            private_syllabus.id>0 AS has_private_syllabus
     ";
 
     const browseall_order_helper = "
@@ -59,7 +57,7 @@ class course_handler extends browseby_handler {
     }
 
     function handle($args) {
-        global $CFG, $OUTPUT, $PAGE;
+        global $OUTPUT, $PAGE;
 
         $subjarea = null;
         $instructor = null;
@@ -105,26 +103,22 @@ class course_handler extends browseby_handler {
             // Get all courses in this subject area but from
             // our browseall tables
             // CCLE-3989 - Supervising Instructor Shown On Course List:
-            // Join role table to limit display to only instructor types in CFG.
+            // Filter out instructors of type '03' (supervising instructor)
+            // in WHERE clause.
             $sql = self::browseall_sql_helper . "
                 FROM {ucla_browseall_classinfo} ubci
-                JOIN {ucla_browseall_instrinfo} ubii
+                INNER JOIN {ucla_browseall_instrinfo} ubii
                     USING(term, srs)
-                JOIN {ucla_request_classes} urc
+                LEFT JOIN {ucla_request_classes} urc
                     USING(term, srs)
-                JOIN {user} user
+                LEFT JOIN {user} user
                     ON ubii.uid = user.idnumber
-                JOIN {course} mco
+                LEFT JOIN {course} mco
                     ON urc.courseid = mco.id
-                JOIN {context} ct
-                    ON mco.id = ct.instanceid              
-                JOIN {role_assignments} ra
-                    ON ct.id = ra.contextid AND user.id = ra.userid
-                JOIN {role} r
-                    ON ra.roleid = r.id
             " .
             self::browseall_syllabus_helper .
             "   WHERE ubci.subjarea = :subjarea
+                AND ubii.profcode != '03'
                 $termwhere
             " . self::browseall_order_helper;
 
@@ -168,36 +162,29 @@ class course_handler extends browseby_handler {
             // Query that selects courses for selected term only
             // This will not include people enrolled only locally.
             // CCLE-3989 - Supervising Instructor Shown On Course List:
-            // Join role table to limit display to only instructor types in CFG.
+            // Filter out instructors of type '03' (supervising instructor)
+            // in WHERE clause.
             $sql = self::browseall_sql_helper . "
-                FROM $sqlhelp ubi
-                JOIN {ucla_browseall_classinfo} ubci
+                FROM {ucla_browseall_classinfo} ubci
+                LEFT JOIN {ucla_browseall_instrinfo} ubii
                     USING (term, srs)
-                JOIN {ucla_browseall_instrinfo} ubii
+                LEFT JOIN {ucla_request_classes} urc
                     USING (term, srs)
-                JOIN {ucla_request_classes} urc
-                    USING (term, srs)
-                JOIN {user} user
+                LEFT JOIN {user} user
                     ON ubii.uid = user.idnumber
-                JOIN {course} mco
+                LEFT JOIN {course} mco
                     ON urc.courseid = mco.id  
-                JOIN {context} ct
-                    ON mco.id = ct.instanceid               
-                JOIN {role_assignments} ra
-                    ON ct.id = ra.contextid AND user.id = ra.userid
-                JOIN {role} r
-                    ON ra.roleid =r.id
                  " .
             self::browseall_syllabus_helper .
-            "   WHERE
-                    ubi.userid = :user
+            "   WHERE user.id = :user
+                AND ubii.profcode != '03'
                     $termwhere
             " . self::browseall_order_helper;
 
             $param['user'] = $instructor;
 
             $courseslist = $this->get_records_sql($sql, $param);
-            
+
             // Get the actual user information from courses
             $instruser = false;
             foreach ($courseslist as $course) {
@@ -285,11 +272,8 @@ class course_handler extends browseby_handler {
             // Append instructors, since they could have duplicate rows
             if (isset($fullcourseslist[$k])) {
                 $courseobj = $fullcourseslist[$k];
-                
-                // CCLE-3989 - Supervising Instructor showsn on Course List:
-                // Only append if this instructor's role_shortname is in CFG.
-                if (in_array($course->role_shortname, $CFG->instructor_levels_roles['Instructor'])
-                        && $instructor_name = $this->fullname($course)) {
+
+                if ($instructor_name = $this->fullname($course)) {
                     $courseobj->instructors[$course->userid] = $instructor_name;
                 }
             } else {
@@ -328,11 +312,8 @@ class course_handler extends browseby_handler {
                     uclacoursecreator::make_course_title(
                         $course->course_title, $course->section_title
                     );
-                
-               // CCLE-3989 - Supervising Instructor showsn on Course List:
-               // Only append if this instructor's role_shortname is in CFG.
-               if (in_array($course->role_shortname, $CFG->instructor_levels_roles['Instructor'])
-                        && $instructor_name = $this->fullname($course)) {
+
+               if ($instructor_name = $this->fullname($course)) {
                    $courseobj->instructors[$course->userid] = $instructor_name;
                 }
 

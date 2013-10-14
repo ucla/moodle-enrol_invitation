@@ -469,7 +469,6 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
         }
     }
 
-
     /**
      * Make sure createorfinduser creates a non-existing user.
      */
@@ -501,6 +500,66 @@ class local_ucla_enrollment_testcase extends advanced_testcase {
         }
         $result = $cache->get($cachekey);
         $this->assertEquals($result, $founduser);
+    }
+
+    /**
+     * Make sure that when createorfinduser does update a user's information it
+     * will update user's information if Registrar has data and local DB is
+     * empty, regardless of minuserupdatewaitdays.
+     */
+    public function test_createorfinduser_update_empty() {
+        global $DB;
+
+        // Set user's last access time to some recent time, before
+        // minuserupdatewaitdays.
+        $maxtime = ((int) get_config('local_ucla', 'minuserupdatewaitdays')) * 86400;
+        $lastaccess = time() - mt_rand(0, $maxtime);
+
+        // Fields that we will try to make an empty an empty user for.
+        $emptyfields = array('firstname', 'lastname', 'email', 'uid');
+
+        foreach ($emptyfields as $field) {
+            $user = $this->getDataGenerator()
+                    ->get_plugin_generator('local_ucla')
+                    ->create_user(array('lastaccess' => $lastaccess));
+
+            // Change either firstname or lastname, make sure this doesn't change.
+            $rejectchangefield = 'firstname';
+            if ($field == 'firstname') {
+                $rejectchangefield = 'lastname';
+            }
+
+            $enrollment = array('uid'       => $user->idnumber,
+                                'firstname' => $user->firstname,
+                                'lastname'  => $user->lastname,
+                                'email'     => $user->email,
+                                'username'  => $user->username);
+
+            // Attempt to change a non-blank field with minuserupdatewaitdays in effect.
+            $enrollment[$rejectchangefield] = substr(md5(rand()),0,7);
+
+            // Now blank out user field in DB.
+            $userfield = $field;
+            if ($field == 'uid') {
+                $userfield = 'idnumber';
+            }
+            $DB->set_field('user', $userfield, '', array('id' => $user->id));
+
+            $founduser = $this->mockenrollmenthelper->createorfinduser($enrollment);
+
+            // Make sure that we didn't update non-empty local fields.
+            $this->assertEquals($user->$rejectchangefield, $founduser->$rejectchangefield,
+                    'Field updated: ' . $rejectchangefield);
+
+            // Make sure returned user does have empty local field updated.
+            $this->assertEquals($enrollment[$field], $founduser->$userfield,
+                    'Field being processed: ' . $field);
+
+            // Make sure local DB was updated as well.
+            $dbuser = $DB->get_record('user', array('id' => $user->id));
+            $this->assertEquals($enrollment[$field], $dbuser->$userfield,
+                    'Field being processed: ' . $field);
+        }
     }
 
     /**

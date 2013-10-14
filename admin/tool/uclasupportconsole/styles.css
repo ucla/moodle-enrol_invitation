@@ -1,39 +1,20 @@
-/*
-    Required include for modules
-*/
-/* 360px is iPhone vertical */
-/* 480px is iPhone horizontal */
-/* 768px is iPad horizontal */
-/* 1024px is iPad vertical */
-/* line 6, sass/styles.scss */
-#page-admin-tool-uclasupportconsole-index h3,
-#page-admin-tool-uclasupportconsole-index h2 {
-  /*text-align: left;*/
-}
-
-/* line 10, sass/styles.scss */
-.supportconsole .uclaconsole {
-  /*clear: both;*/
-  /*margin-left: 12px;*/
-}
-
-/* line 15, sass/styles.scss */
+/* line 3, sass/styles.scss */
 .supportconsole label {
   padding-right: 5px;
   padding-left: 5px;
 }
 
-/* line 20, sass/styles.scss */
+/* line 8, sass/styles.scss */
 #log-action-types {
   list-style-type: none;
 }
 
-/* line 24, sass/styles.scss */
+/* line 12, sass/styles.scss */
 #syllabusreoport .c1, #syllabusreoport .c2, #syllabusreoport .c3 {
   text-align: center;
 }
 
-/* line 30, sass/styles.scss */
+/* line 18, sass/styles.scss */
 .supportconsole .main {
   margin-bottom: 8px;
 }

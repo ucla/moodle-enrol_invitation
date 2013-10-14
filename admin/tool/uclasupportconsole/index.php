@@ -1752,7 +1752,8 @@ if ($displayforms) {
     $sectionhtml .= supportconsole_simple_form($title, 
         html_writer::label('Number of users to show', 'count')
             . html_writer::empty_tag('input', array(
-                'name' => 'count', 
+                'name' => 'count',
+                'type' => 'text',
                 'id' => 'count',
                 'value' => 20,
                 'size' => 3
@@ -1894,6 +1895,79 @@ if ($displayforms) {
 }
 
 $consoles->push_console_html('users', $title, $sectionhtml);
+
+////////////////////////////////////////////////////////////////////
+$title = "mediausage";
+$sectionhtml = '';
+if ($displayforms) {
+    $content = html_writer::tag('p',
+            get_string('mediausage_help', 'tool_uclasupportconsole')) .
+            get_term_selector($title) . ' ' .
+            html_writer::tag('label', get_string('sizemb'),
+                    array('for' => 'mediausage-filesize')) .
+            html_writer::empty_tag('input', array(
+                    'type' => 'text',
+                    'size' => 3,
+                    'id' => 'mediausage-filesize',
+                    'name' => 'filesize',
+                    'value' => 5
+                ));
+
+    $sectionhtml .= supportconsole_simple_form($title, $content);
+} else if ($consolecommand == "$title") {  # tie-in to link from name lookup
+    $term = required_param('term', PARAM_ALPHANUM);
+    $filesize = required_param('filesize', PARAM_INT);
+
+    // Get byte size, since parameter is in MB.
+    $filesize = $filesize * 1048576;
+
+    // Get all video files over 5 MB.
+    $sql = "SELECT  c.id AS course,
+                c.shortname,
+                f.filename,
+                f.filesize,
+                m.name,
+                cm.id
+        FROM    {course} AS c
+        JOIN    {ucla_request_classes} AS urc ON (urc.courseid=c.id)
+        JOIN    {ucla_reg_classinfo} AS urci ON (urci.term=urc.term AND urci.srs=urc.srs)
+        JOIN    {course_modules} cm ON (cm.course=c.id)
+        JOIN    {context} ct ON (ct.instanceid=cm.id AND ct.contextlevel=:contextlevel)
+        JOIN    {files} f ON (f.contextid=ct.id)
+        JOIN    {modules} m ON (m.id=cm.module)
+        WHERE   urc.term=:term AND
+                f.mimetype LIKE 'video/%' AND
+                f.filesize>=:filesize
+        GROUP BY c.id
+        ORDER BY    urci.term, urci.subj_area, urci.crsidx, urci.secidx";
+
+    $results = $DB->get_records_sql($sql, array('term' => $term,
+            'contextlevel' => CONTEXT_MODULE, 'filesize' => $filesize));
+
+    foreach ($results as $k => $course) {
+        // Replace courseid with link to course.
+        $course->course = html_writer::link(new moodle_url(
+                '/course/view.php', array('id' => $course->course)
+            ), $course->shortname, array('target' => '_blank'));
+        unset($course->shortname);
+
+        // Format size to be human readable (although not sortable).
+        $course->filesize = display_size($course->filesize);
+
+        // Add link to module that has file.
+        $course->filename = html_writer::link(new moodle_url(
+                sprintf('/mod/%s/view.php?id=%d', $course->name, $course->id)),
+                $course->filename, array('target' => '_blank'));
+        unset($course->id);
+
+        $results[$k] = $course;
+    }
+
+    $sectionhtml .= supportconsole_render_section_shortcut($title, $results,
+        array($term, display_size($filesize)),
+            get_string('mediausage_help', 'tool_uclasupportconsole'));
+}
+$consoles->push_console_html('modules', $title, $sectionhtml);
 
 // see if user came from a specific page, if so, then direct them back there
 $gobackurl = $PAGE->url;

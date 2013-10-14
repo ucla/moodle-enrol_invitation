@@ -28,6 +28,8 @@ $string['noparams'] = 'No additional parameters needed to run report';
 $string['term'] = 'Term';
 $string['subjarea'] = 'Subject area';
 $string['threshold'] = 'Threshold';
+$string['startdate'] = 'Start date';
+$string['enddate'] = 'End date';
 
 // cached results strings
 $string['cached_results_table'] = 'Cached results';
@@ -92,14 +94,12 @@ $string['course_files'] = 'Resource files';
 $string['course_size'] = 'Resource file size (MB)';
 $string['course_syllabus'] = 'Syllabus';
 
-
 //strings for system_size_report
 $string['system_size'] = 'System size (system)';
 $string['system_size_help'] = 'Returns number of files over 1 MB and ' .
                               'size of database';
 $string['file_count'] = 'Number of files over 1 MB';
 $string['database_size'] = 'Size of database';
-
 
 //strings for collab_num_sites
 $string['collab_num_sites'] = 'Num sites (collab)';
@@ -236,9 +236,15 @@ $string['inactivecourselisting'] = 'List of inactive courses';
 $string['active_student_focused'] = 'Course activity (Student focused)';
 $string['active_student_focused_help'] = 'A course is active ' .
         'if it has at least 80% of its enrolled students ' .
-        'viewing the course at least once during the term.';
-//$string['active_student_focused_help'] = 'A course is active ' .
-//        'if it has student log entries/number of enrolled students > 0.80';
+        'viewed a course module or the syllabus at least once during the term.';
+
+// Strings for Category forum usage
+$string['category_forum_usage'] = 'Category forum usage';
+$string['category_forum_usage_help'] = 'Forum usage, broken down by month and role, for a given category and timeframe.';
+$string['monthyear'] = 'Month/Year';
+$string['categorylisting'] = 'Category listing';
+$string['courselisting'] = 'Course listing';
+$string['noposts'] = 'No posts found';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';

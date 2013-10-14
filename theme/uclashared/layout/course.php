@@ -79,8 +79,10 @@ echo $OUTPUT->doctype() ?>
         <link href='https://fonts.googleapis.com/css?family=Lato:400,400italic,700,900' rel='stylesheet' type='text/css'>
     <?php } ?>
     <?php echo $OUTPUT->standard_head_html() ?>
-    
-    <!--[if gt IE 7]>
+    <!--[if lte IE 8]>
+        <script type="text/javascript" src="<?php echo $CFG->wwwroot . '/theme/uclashared/javascript/' ?>unsupported-browser.js"></script>
+    <![endif]--> 
+    <!--[if gt IE 8]>
         <link href='https://fonts.googleapis.com/css?family=Lato:400,400italic,700,900' rel='stylesheet' type='text/css'>   
     <![endif]-->
     
@@ -102,16 +104,16 @@ echo $OUTPUT->doctype() ?>
                     }
                 ?>
                 </div>
-                <div class="weeks-display" >
-                    <?php echo $OUTPUT->weeks_display() ?>
-                </div>
             </div>
             <div class="header-login-frontpage col-sm-6" >
                 <?php echo $OUTPUT->help_feedback_link() ?>
                 <a class="login" href="<?php echo get_login_url() ?>">Login</a>
             </div>
         </div>
-        
+        <div class="system-identification " >
+            <a class="system-name" href="<?php echo get_config('theme_uclashared', 'system_link') ?>"><?php echo get_config('theme_uclashared', 'system_name') ?></a>
+            <?php echo $OUTPUT->weeks_display() ?>
+        </div>
     </header>
  
 <?php } ?>

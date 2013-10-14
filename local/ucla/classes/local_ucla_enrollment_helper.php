@@ -250,6 +250,7 @@ class local_ucla_enrollment_helper {
             // User was found on local system, so update their info, if needed.
             $needsupdating = false;
             $updateuserfields = array('uid', 'firstname', 'lastname', 'email');
+            $blankfields = array();
 
             // Clone, because we might not use the updates if minuserupdatewait
             // did not pass, but still want to be notified of potentially out
@@ -283,6 +284,7 @@ class local_ucla_enrollment_helper {
                                         $this->localuserfield,
                                         $enrollment[$field]), 2);
                         $user->{$this->localuserfield} = $enrollment[$field];
+                        $blankfields[$this->localuserfield] = $enrollment[$field];
                     } else if ($enrollment[$field]
                             != $user->{$this->localuserfield}) {
                         // Sanity check! If uid exists, it should match.
@@ -299,9 +301,14 @@ class local_ucla_enrollment_helper {
                     }
                 } else if ($enrollment[$field] !== $user->$field) {
                     $needsupdating = true;
+
+                    if (empty($user->$field) && !empty($enrollment[$field])) {
+                        $blankfields[$field] = $enrollment[$field];
+                    }
+
                     $this->trace->output(
                             sprintf('User %d needs update: %s [%s] => [%s]',
-                                    $retval->id, $field, $retval->$field,
+                                    $user->id, $field, $user->$field,
                                     $enrollment[$field]), 2);
                     $user->$field = $enrollment[$field];
                 }
@@ -320,10 +327,24 @@ class local_ucla_enrollment_helper {
                     // User was updated, so replace what we queried for before.
                     $retval = $user;
                 } else {
-                    $this->trace->output(sprintf(
-                            'Skip updating user %d, because user logged in %s ago',
-                            $user->id,
-                            distance_of_time_in_words($user->lastaccess, time())), 2);
+                    // Should not update non-empty fields, but check if there
+                    // are any blank fields that we can update.
+                    if (!empty($blankfields)) {
+                        foreach ($blankfields as $userfield => $value) {
+                            $retval->$userfield = $value;
+                        }
+                        unset($retval->password);
+                        user_update_user($retval);
+
+                        $this->trace->output(sprintf('Updated blank fields for user %d: %s',
+                                $retval->id,
+                                implode(',', array_keys($blankfields))), 2);
+                    } else {
+                        $this->trace->output(sprintf(
+                                'Skip updating user %d, because user logged in %s ago',
+                                $user->id,
+                                distance_of_time_in_words($user->lastaccess, time())), 2);
+                    }
                 }
             }
         }

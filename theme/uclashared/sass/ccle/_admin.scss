@@ -39,27 +39,34 @@ only screen and (min-width: $breakpoint-xsmall) and (max-width: $breakpoint-medi
 }
 
 
+//
+// Admin / Course / Category browser
+//
 
-// This is a pontentially bogus component.  
-// Keeping only for compatibility.  Eventually remove these styles
-
-/** Admin **/
-/*.box.adminwarning {text-align:center;border:1px solid #C8C9C7;background-color:#E3E3E3;margin-bottom:1em;padding:10px 10%;}
-.box.copyright {text-align:center;font-size:90%;padding:10px 10%;}
-#adminsettings fieldset {border:1px solid #C8C9C7;background-color:#E3E3E3;}
-#adminsettings fieldset .generalbox {margin:1em 0.5em;border-color:#C8C9C7;}
-#adminsettings .form-buttons {margin-left:13em;}
-
- give 'Defined in config.php' message a little more visual weight 
-#adminsettings .form-overridden {
-    background-color: red;
-    color: white;
-    text-align: center;
-    font-weight: bold;
-    padding-left: 2px;
-    padding-right: 2px;
+// CCLE-4258: add visual cue to indicate term on categories course lists.
+// This will handle terms until 2022!
+.admin {
+    
+    // Terms we want to cover, with term code
+    $terms: (
+        fall F,
+        winter W,
+        spring S,
+        summer 1
+    );
+    
+    // Iterate through terms
+    @each $term in $terms {
+        $name: nth($term, 1);
+        $code: nth($term, 2);
+        
+        // Generate values for 10 years after 2012
+        @for $i from 12 to 22 {
+            a[data-name^="#{$i}#{$code}"]:before {
+                @extend .label-term;
+                @extend .label-#{$name};
+                content: "#{$name} #{$i}";
+            }
+        }
+    }
 }
-
-.adminsearchform {
-    text-align: center;
-}*/

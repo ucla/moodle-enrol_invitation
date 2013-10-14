@@ -38,7 +38,7 @@ class runreport_form extends moodleform {
         if ($is_high_load) {
             $mform->addElement('html', html_writer::tag('div',
                     get_string('warning_high_load', 'report_uclastats'),
-                    array('class' => 'warning-high-load')));
+                    array('class' => 'alert alert-warning')));
         }
 
         if (!empty($fields)) {
@@ -89,6 +89,16 @@ class runreport_form extends moodleform {
                         $mform->addElement('select', 'subjarea', 
                                 get_string('subjarea', 'report_uclastats'), $s);
                         break;
+                    case 'category':
+                        $displaylist = coursecat::make_categories_list('moodle/course:create');
+                        $mform->addElement('select', 'category', get_string('category'), $displaylist);
+                        break;
+                    case 'startendmonth':
+                        // Data picker for start and end months to run report.
+                        $mform->addElement('date_selector', 'startdate', get_string('startdate', 'report_uclastats'));
+                        $mform->addElement('date_selector', 'enddate', get_string('enddate', 'report_uclastats'));
+                        // Default to 6 months ago, rounded to start of month.
+                        $mform->setDefault('startdate', strtotime(date("F 1, Y", strtotime("-6 months"))));
                 }
             }
         } else {

@@ -330,8 +330,6 @@ class course_section_fixer_test extends advanced_testcase {
     /**
      * Make sure that detect_numsections properly detects and then fixes the
      * number of sections.
-     *
-     * @group totest
      */
     public function test_detect_numsections() {
         $course = $this->create_course_with_content();
