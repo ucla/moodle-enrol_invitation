@@ -276,6 +276,13 @@ class local_ucla_generator extends testing_data_generator {
             debugging('Given idnumber is not 9 digits long');
         }
 
+        // If email isn't given, then use username. Cannot depend on Moodle's
+        // create user to create an email address, because it will append
+        // @example.com to the username, which is not a valid email.
+        if (!isset($record['email'])) {
+            $record['email'] = $record['username'];
+        }
+
         // Create the user using the regular data generator method.
         return parent::create_user($record, $options);
     }
