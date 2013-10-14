@@ -105,7 +105,7 @@ $string['syllabusoverviewnotes'] = 'Does not include cancelled or tutorial cours
         'A manual syllabus is always counted, but only increments the total number of syllabi if no other syllabus type is found.';
 $string['syllabusreoportnotes'] = 'Does not include cancelled or tutorial courses. The manual syllabus column counts the number of manual syllabi in a course.';
 $string['mediausage'] = 'Media usage';
-$string['mediausage_help'] = 'Lists course video content over 5MB for a given term.';
+$string['mediausage_help'] = 'Lists course video content over specified size for a given term.';
 
 // Course
 $string['collablist'] = 'Show collaboration sites';

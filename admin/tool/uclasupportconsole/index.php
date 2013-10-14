@@ -1900,11 +1900,26 @@ $consoles->push_console_html('users', $title, $sectionhtml);
 $title = "mediausage";
 $sectionhtml = '';
 if ($displayforms) {
-    $sectionhtml .= supportconsole_simple_form($title,
-            html_writer::tag('p', get_string('mediausage_help', 'tool_uclasupportconsole')) .
-            get_term_selector($title));
+    $content = html_writer::tag('p',
+            get_string('mediausage_help', 'tool_uclasupportconsole')) .
+            get_term_selector($title) . ' ' .
+            html_writer::tag('label', get_string('sizemb'),
+                    array('for' => 'mediausage-filesize')) .
+            html_writer::empty_tag('input', array(
+                    'type' => 'text',
+                    'size' => 3,
+                    'id' => 'mediausage-filesize',
+                    'name' => 'filesize',
+                    'value' => 5
+                ));
+
+    $sectionhtml .= supportconsole_simple_form($title, $content);
 } else if ($consolecommand == "$title") {  # tie-in to link from name lookup
     $term = required_param('term', PARAM_ALPHANUM);
+    $filesize = required_param('filesize', PARAM_INT);
+
+    // Get byte size, since parameter is in MB.
+    $filesize = $filesize * 1048576;
 
     // Get all video files over 5 MB.
     $sql = "SELECT  c.id AS course,
@@ -1922,12 +1937,12 @@ if ($displayforms) {
         JOIN    {modules} m ON (m.id=cm.module)
         WHERE   urc.term=:term AND
                 f.mimetype LIKE 'video/%' AND
-                f.filesize>=:maxsize
+                f.filesize>=:filesize
         GROUP BY c.id
         ORDER BY    urci.term, urci.subj_area, urci.crsidx, urci.secidx";
 
     $results = $DB->get_records_sql($sql, array('term' => $term,
-            'contextlevel' => CONTEXT_MODULE, 'maxsize' => 5242880));
+            'contextlevel' => CONTEXT_MODULE, 'filesize' => $filesize));
 
     foreach ($results as $k => $course) {
         // Replace courseid with link to course.
@@ -1949,7 +1964,8 @@ if ($displayforms) {
     }
 
     $sectionhtml .= supportconsole_render_section_shortcut($title, $results,
-        $term, get_string('mediausage_help', 'tool_uclasupportconsole'));
+        array($term, display_size($filesize)),
+            get_string('mediausage_help', 'tool_uclasupportconsole'));
 }
 $consoles->push_console_html('modules', $title, $sectionhtml);
 
