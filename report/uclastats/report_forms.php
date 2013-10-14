@@ -38,7 +38,7 @@ class runreport_form extends moodleform {
         if ($is_high_load) {
             $mform->addElement('html', html_writer::tag('div',
                     get_string('warning_high_load', 'report_uclastats'),
-                    array('class' => 'warning-high-load')));
+                    array('class' => 'alert alert-warning')));
         }
 
         if (!empty($fields)) {
