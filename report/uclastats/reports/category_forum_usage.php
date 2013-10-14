@@ -24,6 +24,7 @@
 defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot . '/report/uclastats/locallib.php');
+require_once($CFG->libdir . '/coursecatlib.php');
 
 /**
  * Class definition.
