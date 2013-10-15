@@ -1106,7 +1106,8 @@ function print_badge_image(badge $badge, stdClass $context, $size = 'small') {
 
     $imageurl = moodle_url::make_pluginfile_url($context->id, 'badges', 'badgeimage', $badge->id, '/', $fsize, false);
     // Appending a random parameter to image link to forse browser reload the image.
-    $attributes = array('src' => $imageurl . '?' . rand(1, 10000), 'alt' => s($badge->name), 'class' => 'activatebadge');
+    $imageurl->param('refresh', rand(1, 10000));
+    $attributes = array('src' => $imageurl, 'alt' => s($badge->name), 'class' => 'activatebadge');
 
     return html_writer::empty_tag('img', $attributes);
 }
@@ -1166,13 +1167,25 @@ function badges_bake($hash, $badgeid, $userid = 0, $pathhash = false) {
 /**
  * Returns external backpack settings and badges from this backpack.
  *
+ * This function first checks if badges for the user are cached and
+ * tries to retrieve them from the cache. Otherwise, badges are obtained
+ * through curl request to the backpack.
+ *
  * @param int $userid Backpack user ID.
+ * @param boolean $refresh Refresh badges collection in cache.
  * @return null|object Returns null is there is no backpack or object with backpack settings.
  */
-function get_backpack_settings($userid) {
+function get_backpack_settings($userid, $refresh = false) {
     global $DB;
     require_once(dirname(dirname(__FILE__)) . '/badges/lib/backpacklib.php');
 
+    // Try to get badges from cache first.
+    $badgescache = cache::make('core', 'externalbadges');
+    $out = $badgescache->get($userid);
+    if ($out !== false && !$refresh) {
+        return $out;
+    }
+    // Get badges through curl request to the backpack.
     $record = $DB->get_record('badge_backpack', array('userid' => $userid));
     if ($record) {
         $backpack = new OpenBadgesBackpackHandler($record);
@@ -1197,6 +1210,7 @@ function get_backpack_settings($userid) {
             $out->totalcollections = 0;
         }
 
+        $badgescache->set($userid, $out);
         return $out;
     }
 
@@ -1346,5 +1360,21 @@ function badges_handle_course_deletion($courseid) {
         $toupdate->courseid = null;
         $toupdate->status = BADGE_STATUS_ARCHIVED;
         $DB->update_record('badge', $toupdate);
+    }
+}
+
+/**
+ * Loads JS files required for backpack support.
+ *
+ * @uses   $CFG, $PAGE
+ * @return void
+ */
+function badges_setup_backpack_js() {
+    global $CFG, $PAGE;
+    if (!empty($CFG->badges_allowexternalbackpack)) {
+        $PAGE->requires->string_for_js('error:backpackproblem', 'badges');
+        $protocol = (strpos($CFG->wwwroot, 'https://') === 0) ? 'https://' : 'http://';
+        $PAGE->requires->js(new moodle_url($protocol . 'backpack.openbadges.org/issuer.js'), true);
+        $PAGE->requires->js('/badges/backpack.js', true);
     }
 }
